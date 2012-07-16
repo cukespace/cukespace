@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    
+    <modelVersion>4.0.0</modelVersion>
+    
+    <parent>
+        <groupId>org.sonatype.oss</groupId>
+        <artifactId>oss-parent</artifactId>
+        <version>7</version>
+        <relativePath/>
+    </parent>
+    
+    <groupId>info.loganmcgrath.cucumber.arquillian</groupId>
+    <artifactId>cucumber-arquillian-parent</artifactId>
+    <packaging>pom</packaging>
+    <version>0.0.1-SNAPSHOT</version>
+    <name>Cucumber/Arquillian Integration Parent</name>
+    
+    <modules>
+        <module>client</module>
+        <module>container</module>
+    </modules>
+    
+    <properties>
+        
+        <!-- project settings -->
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.build.source>1.6</project.build.source>
+        <project.build.target>1.6</project.build.target>
+        
+        <!-- Dependency and plugin versions -->
+        <arquillian.version>1.0.1.Final</arquillian.version>
+        <compiler.version>2.3.1</compiler.version>
+        <cucumber-jvm.version>1.0.11</cucumber-jvm.version>
+        
+    </properties>
+    
+    <scm>
+        <connection>scm:git:git://github.com/lmcgrath/cucumber-arquillian.git</connection>
+        <developerConnection>scm:git:git@github.com:lmcgrath/cucumber-arquillian.git</developerConnection>
+        <url>https://www.github.com/lmcgrath/cucumber-arquillian</url>
+    </scm>
+    
+    <dependencyManagement>
+        <dependencies>
+            
+            <dependency>
+                <groupId>org.jboss.arquillian</groupId>
+                <artifactId>arquillian-bom</artifactId>
+                <version>${arquillian.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            
+            <dependency>
+                <groupId>org.jboss.arquillian</groupId>
+                <artifactId>arquillian-build</artifactId>
+                <version>${arquillian.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            
+            <dependency>
+                <groupId>info.cukes</groupId>
+                <artifactId>cucumber-jvm</artifactId>
+                <type>pom</type>
+                <version>${cucumber-jvm.version}</version>
+                <scope>import</scope>
+            </dependency>
+            
+        </dependencies>
+    </dependencyManagement>
+    
+    <build>
+        
+        <pluginManagement>
+            <plugins>
+                
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>${compiler.version}</version>
+                    <configuration>
+                        <sourceEncoding>${project.build.sourceEncoding}</sourceEncoding>
+                        <source>${project.build.source}</source>
+                        <target>${project.build.target}</target>
+                    </configuration>
+                </plugin>
+                
+            </plugins>
+        </pluginManagement>
+        
+    </build>
+    
+</project>
