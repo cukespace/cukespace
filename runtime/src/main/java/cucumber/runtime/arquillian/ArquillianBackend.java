@@ -18,14 +18,11 @@ public class ArquillianBackend implements Backend
      */
     public ArquillianBackend()
     {
-        // TODO Auto-generated constructor stub
+        // intentionally empty
         
     } // ArquillianBackend
     
     
-    /**
-     * @see cucumber.runtime.Backend#loadGlue(cucumber.runtime.Glue, java.util.List)
-     */
     @Override
     public void loadGlue( Glue glue, List<String> gluePaths )
     {
@@ -34,9 +31,6 @@ public class ArquillianBackend implements Backend
     } // loadGlue
     
     
-    /**
-     * @see cucumber.runtime.Backend#setUnreportedStepExecutor(cucumber.runtime.UnreportedStepExecutor)
-     */
     @Override
     public void setUnreportedStepExecutor( UnreportedStepExecutor executor )
     {
@@ -45,9 +39,6 @@ public class ArquillianBackend implements Backend
     } // setUnreportedStepExecutor
     
     
-    /**
-     * @see cucumber.runtime.Backend#buildWorld()
-     */
     @Override
     public void buildWorld()
     {
@@ -56,9 +47,6 @@ public class ArquillianBackend implements Backend
     } // buildWorld
     
     
-    /**
-     * @see cucumber.runtime.Backend#disposeWorld()
-     */
     @Override
     public void disposeWorld()
     {
@@ -67,9 +55,6 @@ public class ArquillianBackend implements Backend
     } // disposeWorld
     
     
-    /**
-     * @see cucumber.runtime.Backend#getSnippet(gherkin.formatter.model.Step)
-     */
     @Override
     public String getSnippet( Step step )
     {
