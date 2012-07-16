@@ -3,12 +3,18 @@ package info.loganmcgrath.cucumber.arquillian.test;
 import static org.jboss.shrinkwrap.api.ShrinkWrap.create;
 import static org.jboss.shrinkwrap.resolver.api.DependencyResolvers.use;
 
+import java.io.InputStream;
+import java.net.URL;
+import java.net.URLConnection;
+
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.GenericArchive;
+import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.jboss.shrinkwrap.resolver.api.maven.MavenDependencyResolver;
+import org.jboss.vfs.VirtualFile;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -20,8 +26,8 @@ import info.loganmcgrath.cucumber.arquillian.steps.BellySteps;
 
 
 /**
- * Test to show-case shortcomings of "default" cucumber implementation in
- * container environment.
+ * Test to show-case shortcomings of "default" cucumber implementation in JBoss
+ * AS environment.
  */
 @RunWith( Arquillian.class )
 public class DefaultImplementationTest
@@ -40,6 +46,11 @@ public class DefaultImplementationTest
                 .artifact( "info.cukes:cucumber-core:jar" )
                 .artifact( "info.cukes:cucumber-java:jar" )
                 .resolveAs( GenericArchive.class ) );
+        
+        war.addAsLibrary(
+            create( JavaArchive.class )
+                .addAsResource( DefaultImplementationTest.class.getPackage(), "cukes.feature" )
+        );
         
         war.addClasses(
             DefaultImplementationTest.class,
@@ -63,11 +74,12 @@ public class DefaultImplementationTest
     
     
     /**
-     * Shows that multi-loader fails to find classpath resources in container
-     * environment.
+     * Shows that multi-loader fails to find classpath resources in JBoss AS.
      * 
-     * <p>Due to this limitation, a different ResourceLoader implementation is
-     * required.</p>
+     * <p>This failure occurs on JBoss AS because of the Virtual File System.
+     * There is also no way to arbitrarily add resource loaders based on the
+     * protocol (<em>vfs<em>, in this case) so a different resource loader
+     * implementation altogether is required.</p>
      * 
      * @throws Exception Thrown if something effs up.
      */
