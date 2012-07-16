@@ -9,8 +9,8 @@
         <version>0.0.1-SNAPSHOT</version>
     </parent>
     
-    <artifactId>cucumber-arquillian-testrunner</artifactId>
-    <name>Cucumber/Arquillian Testrunner</name>
+    <artifactId>cucumber-arquillian-runtime</artifactId>
+    <name>Cucumber/Arquillian Runtime</name>
     
     <dependencies>
         

@@ -19,7 +19,7 @@
     <modules>
         <module>client</module>
         <module>container</module>
-        <module>testrunner</module>
+        <module>runtime</module>
     </modules>
     
     <properties>
