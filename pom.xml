@@ -19,6 +19,7 @@
     <modules>
         <module>client</module>
         <module>container</module>
+        <module>testrunner</module>
     </modules>
     
     <properties>
@@ -81,7 +82,7 @@
                     <artifactId>maven-compiler-plugin</artifactId>
                     <version>${compiler.version}</version>
                     <configuration>
-                        <sourceEncoding>${project.build.sourceEncoding}</sourceEncoding>
+                        <encoding>${project.build.sourceEncoding}</encoding>
                         <source>${project.build.source}</source>
                         <target>${project.build.target}</target>
                     </configuration>
