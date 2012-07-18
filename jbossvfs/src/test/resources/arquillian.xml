@@ -10,10 +10,13 @@
         <property name="deploymentExportPath">target/deployments</property>
     </engine>
     
-    <container qualifier="jboss7-managed">
+    <container qualifier="jbossas-managed">
         <configuration>
-            <property name="serverConfig">standalone.xml</property>
+            <property name="jbossHome">target/jboss-as-7.1.1.Final</property>
         </configuration>
+    </container>
+    
+    <container qualifier="jbossas-remote">
     </container>
     
 </arquillian>
