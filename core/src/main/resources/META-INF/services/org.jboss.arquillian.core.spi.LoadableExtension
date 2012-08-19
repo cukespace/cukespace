@@ -1,1 +1,1 @@
-info.loganmcgrath.cucumber.arquillian.client.CucumberClientExtension
+cucumber.runtime.arquillian.client.CucumberClientExtension

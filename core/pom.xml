@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     
     <parent>
-        <groupId>info.loganmcgrath.cucumber.arquillian</groupId>
+        <groupId>info.cukes.runtime.arquillian</groupId>
         <artifactId>cucumber-arquillian-parent</artifactId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
@@ -25,6 +25,11 @@
         </dependency>
         
         <dependency>
+            <groupId>org.jboss.arquillian.junit</groupId>
+            <artifactId>arquillian-junit-container</artifactId>
+        </dependency>
+        
+        <dependency>
             <groupId>org.jboss.shrinkwrap</groupId>
             <artifactId>shrinkwrap-api</artifactId>
         </dependency>
@@ -39,9 +44,22 @@
             <artifactId>cucumber-java</artifactId>
         </dependency>
         
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        
     </dependencies>
     
     <build>
+        
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
         
         <plugins>
             
