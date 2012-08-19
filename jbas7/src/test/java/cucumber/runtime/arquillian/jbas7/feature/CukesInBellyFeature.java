@@ -1,14 +1,11 @@
 package cucumber.runtime.arquillian.jbas7.feature;
 
 import static org.jboss.shrinkwrap.api.ShrinkWrap.create;
-import static org.jboss.shrinkwrap.resolver.api.DependencyResolvers.use;
 
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.shrinkwrap.api.Archive;
-import org.jboss.shrinkwrap.api.GenericArchive;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.jboss.shrinkwrap.resolver.api.maven.MavenDependencyResolver;
 import org.junit.Before;
 
 import cucumber.runtime.RuntimeOptions;
@@ -30,12 +27,6 @@ public class CukesInBellyFeature extends Cucumber {
     public static Archive<?> createDeployment() {
         WebArchive war = create(WebArchive.class)
             .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml")
-            .addAsLibraries(use(MavenDependencyResolver.class)
-                .loadMetadataFromPom("pom.xml")
-                .goOffline()
-                .artifact("info.cukes:cucumber-java:jar")
-                .resolveAs(GenericArchive.class)
-            )
             .addAsResource("cucumber/runtime/arquillian/feature/cukes.feature")
             .addClass(Belly.class)
             .addClass(BellySteps.class)
