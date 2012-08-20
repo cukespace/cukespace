@@ -47,10 +47,10 @@ public class TestEnricherProvider {
      * 
      * @param event The before-test-execution event.
      */
-    public void enrich( @Observes Before event ) {
+    public void enrich(@Observes Before event) {
         Collection<TestEnricher> enrichers
-            = this.serviceLoader.get().all( TestEnricher.class );
+            = this.serviceLoader.get().all(TestEnricher.class);
         
-        TEST_ENRICHERS.set( enrichers );
+        TEST_ENRICHERS.set(enrichers);
     }
 }

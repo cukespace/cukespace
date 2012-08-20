@@ -16,7 +16,7 @@ import cucumber.runtime.RuntimeOptions;
 /**
  * JUnit fixture for running Cucumber features.
  */
-@RunWith( Arquillian.class )
+@RunWith(Arquillian.class)
 public abstract class Cucumber {
     
     /**

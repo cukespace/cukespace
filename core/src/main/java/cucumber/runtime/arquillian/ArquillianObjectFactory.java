@@ -23,7 +23,7 @@ public class ArquillianObjectFactory extends DefaultJavaObjectFactory {
         T instance = super.getInstance(type);
         
         for(TestEnricher testEnricher : getTestEnrichers()) {
-            testEnricher.enrich( instance );
+            testEnricher.enrich(instance);
         }
         
         return instance;

@@ -29,7 +29,7 @@ public class BellySteps {
      * 
      * @param cukes The number of cukes.
      */
-    @When( "^I eat (\\d+) cukes$" )
+    @When("^I eat (\\d+) cukes$")
     public void eatCukes(int cukes) {
         this.belly.setCukes(cukes);
     }
@@ -37,7 +37,7 @@ public class BellySteps {
     /**
      * Sets up the belly for eating cukes.
      */
-    @Given( "^I have a belly$" )
+    @Given("^I have a belly$")
     public void setUpBelly() {
         this.belly = new Belly();
     }
@@ -47,7 +47,7 @@ public class BellySteps {
      * 
      * @param cukes The expected number of cukes.
      */
-    @Then( "^I have (\\d+) cukes in my belly$" )
+    @Then("^I should have (\\d+) cukes in my belly$")
     public void shouldHaveThisMany(int cukes) {
         assertEquals(cukes, this.belly.getCukes());
     }
