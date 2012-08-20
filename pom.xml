@@ -18,6 +18,7 @@
     
     <modules>
         <module>core</module>
+        <module>glassfish3</module>
         <module>jbas7</module>
     </modules>
     

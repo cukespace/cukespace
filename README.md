@@ -6,7 +6,14 @@ application server of your choice using the Arquillian test framework.
 
 ## Supported application servers:
 
-* JBoss AS 7
+The following application servers are supported with Cucumber-JVM/Arquillian.
+The artifact ```cucumber-arquillian-core``` is required for all servers, and
+additional dependencies have been listed for each.
+
+| Server      | Additional Dependencies   |
+|-------------|---------------------------|
+| JBoss AS 7  | cucumber-arquillian-jbas7 |
+| Glassfish 3 |                           |
 
 # Quickstart
 
@@ -29,7 +36,7 @@ If you're feeling confident, you can even do it without testing:
 
 You'll want at least the following dependency in your pom.xml:
 
-```
+```xml
 <dependency>
     <groupId>info.cukes.runtime.arquillian</groupId>
     <artifactId>cucumber-arquillian-core</artifactId>
@@ -41,7 +48,7 @@ You'll want at least the following dependency in your pom.xml:
 You'll also want to add dependencies for the application server you wish to
 test against. Here's an example dependency for JBoss AS 7:
 
-```
+```xml
 <dependency>
     <groupId>info.cukes.runtime.arquillian</groupId>
     <artifactId>cucumber-arquillian-jbas7</artifactId>
@@ -55,7 +62,7 @@ test against. Here's an example dependency for JBoss AS 7:
 All you have to do is extend ```Cucumber```, create the test deployment, and
 tailor the Cucumber runtime options:
 
-```
+```java
 package my.features;
 
 import cucumber.runtime.arquillian.junit.Cucumber;
