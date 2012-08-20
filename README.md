@@ -52,12 +52,13 @@ test against. Here's an example dependency for JBoss AS 7:
 
 ## Creating Features
 
-All you have to do is extend ```Cucumber``, create the test deployment, and
+All you have to do is extend ```Cucumber```, create the test deployment, and
 tailor the Cucumber runtime options:
 
 ```
 package my.features;
 
+import cucumber.runtime.arquillian.junit.Cucumber;
 import my.features.domain.Belly;
 import my.features.glue.BellySteps;
 
