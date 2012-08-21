@@ -41,12 +41,12 @@ public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
         
         try {
             properties.load(versionsStream);
-        } catch(IOException exception) {
+        } catch (IOException exception) {
             throw new CucumberException(exception);
         } finally {
             try {
                 versionsStream.close();
-            } catch(IOException exception) {
+            } catch (IOException exception) {
                 // intentionally empty
             }
         }

@@ -28,7 +28,7 @@ public class Jbas7ResourceIteratorFactory implements ResourceIteratorFactory {
         try {
             Object content = url.openConnection().getContent();
             
-            if(content instanceof VirtualFile) {
+            if (content instanceof VirtualFile) {
                 return new Jbas7ResourceIterator((VirtualFile) content, path, suffix);
             }
             
@@ -37,7 +37,7 @@ public class Jbas7ResourceIteratorFactory implements ResourceIteratorFactory {
                 .append(url)
                 .append(" does not refer to a valid JBoss AS 7 resource")
                 .toString());
-        } catch(IOException exception) {
+        } catch (IOException exception) {
             throw new CucumberException(exception);
         }
     }

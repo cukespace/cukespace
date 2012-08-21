@@ -44,7 +44,7 @@ public class Jbas7ResourceIterator implements Iterator<Resource> {
     public Jbas7ResourceIterator(VirtualFile virtualFile, String path, String suffix) {
         try {
             this.elements = virtualFile.getChildrenRecursively().iterator();
-        } catch(IOException exception) {
+        } catch (IOException exception) {
             throw new CucumberException(exception);
         }
         
@@ -62,7 +62,7 @@ public class Jbas7ResourceIterator implements Iterator<Resource> {
     @Override
     public Resource next() {
         try {
-            if(this.hasNext()) {
+            if (this.hasNext()) {
                 return this.next;
             }
             

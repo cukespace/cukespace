@@ -27,6 +27,15 @@ public class Belly {
     }
     
     /**
+     * Gets a value indicating whether the belly is hungry.
+     * 
+     * @return True if the belly is hungry.
+     */
+    public boolean isNotHungry() {
+        return this.cukes > 0;
+    }
+    
+    /**
      * Sets the number of cukes.
      * 
      * @param cukes The number of cukes.

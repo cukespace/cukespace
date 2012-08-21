@@ -56,7 +56,7 @@ public abstract class Cucumber {
         List<Throwable> errors = runtime.getErrors();
         
         try {
-            if(!errors.isEmpty()) {
+            if (!errors.isEmpty()) {
                 throw new MultipleFailureException(errors);
             }
         } finally {

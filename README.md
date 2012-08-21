@@ -84,8 +84,8 @@ public class CukesInBellyFeature extends Cucumber {
     @Before
     public void initializeRuntimeOptions() {
         RuntimeOptions runtimeOptions = this.getRuntimeOptions();
-        runtimeOptions.featurePaths.add("classpath:my/features" );
-        runtimeOptions.glue.add("classpath:my/features/glue" );
+        runtimeOptions.featurePaths.add("classpath:my/features");
+        runtimeOptions.glue.add("classpath:my/features/glue");
     }
 }
 ```
