@@ -1,4 +1,4 @@
-package cucumber.runtime.arquillian.glue;
+package cucumber.runtime.arquillian.glue.server;
 
 import static org.junit.Assert.assertEquals;
 

@@ -6,11 +6,10 @@ import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Before;
 
 import cucumber.runtime.RuntimeOptions;
 import cucumber.runtime.arquillian.domain.Belly;
-import cucumber.runtime.arquillian.glue.BellySteps;
+import cucumber.runtime.arquillian.glue.server.BellySteps;
 import cucumber.runtime.arquillian.junit.Cucumber;
 
 /**
@@ -42,13 +41,10 @@ public class CukesInBellyFeature extends Cucumber {
         // intentionally empty
     }
     
-    /**
-     * Initializes the runtime options.
-     */
-    @Before
-    public void initializeRuntimeOptions() {
+    @Override
+    protected void initializeRuntimeOptions() {
         RuntimeOptions runtimeOptions = this.getRuntimeOptions();
-        runtimeOptions.featurePaths.add("classpath:cucumber/runtime/arquillian/feature" );
-        runtimeOptions.glue.add("classpath:cucumber/runtime/arquillian/glue" );
+        runtimeOptions.featurePaths.add("classpath:cucumber/runtime/arquillian/feature");
+        runtimeOptions.glue.add("classpath:cucumber/runtime/arquillian/glue/server");
     }
 }

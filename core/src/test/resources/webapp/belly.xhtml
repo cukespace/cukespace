@@ -8,11 +8,11 @@
     </head>
     <body>
         <h:messages/>
-        <h:form id="bellyForm" rendered="#{currentBelly.notHungry}">
+        <h:form id="bellyForm" rendered="#{bellyController.currentBelly.hungry}">
             <h:panelGrid columns="2">
                 <h:outputLabel for="mouth" value="Cucumbers:"/>
-                <h:inputText id="mouth" value="#{bellyController.cukes}"/>
-                <h:commandButton id="login" value="Log in" action="#{bellyController.eatCukes}"/>
+                <h:inputText id="mouth" value="#{bellyController.currentBelly.cukes}"/>
+                <h:commandButton id="eatCukes" value="Eat Cukes" action="#{bellyController.eatCukes}"/>
             </h:panelGrid>
         </h:form>
     </body>

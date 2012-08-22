@@ -2,6 +2,9 @@ package cucumber.runtime.arquillian.controller;
 
 import static javax.faces.application.FacesMessage.*;
 
+import java.io.Serializable;
+import java.text.MessageFormat;
+
 import javax.enterprise.context.SessionScoped;
 import javax.enterprise.inject.Produces;
 import javax.faces.application.FacesMessage;
@@ -16,12 +19,17 @@ import cucumber.runtime.arquillian.domain.Belly;
  */
 @Named
 @SessionScoped
-public class BellyController {
+public class BellyController implements Serializable {
     
     /**
      * Error message used when the belly is still hungry.
      */
     private static final String ERROR_HUNGRY = "The belly is still HUNGRY!";
+    
+    /**
+     * Serial Version UID.
+     */
+    private static final long serialVersionUID = 1760736145267516537L;
     
     /**
      * Success message used when the belly is not hungry.
@@ -52,10 +60,11 @@ public class BellyController {
      * @return The next view ID.
      */
     public String eatCukes() {
-        if(this.belly.isNotHungry()) {
-            this.facesContext.addMessage(null, new FacesMessage(SEVERITY_INFO, SUCCESS_NOT_HUNGRY, SUCCESS_NOT_HUNGRY));
-        } else {
+        if(this.belly.isHungry()) {
             this.facesContext.addMessage(null, new FacesMessage(SEVERITY_ERROR, ERROR_HUNGRY, ERROR_HUNGRY));
+        } else {
+            String message = MessageFormat.format(SUCCESS_NOT_HUNGRY, this.belly.getCukes());
+            this.facesContext.addMessage(null, new FacesMessage(SEVERITY_INFO, message, message));
         }
         return "belly.xhtml";
     }
@@ -68,14 +77,5 @@ public class BellyController {
     @Produces
     public Belly getCurrentBelly() {
         return this.belly;
-    }
-    
-    /**
-     * Sets the number of cukes in the belly.
-     * 
-     * @param cukes The number of cukes.
-     */
-    public void setCukes(int cukes) {
-        this.belly.setCukes(cukes);
     }
 }

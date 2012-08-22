@@ -50,6 +50,9 @@ public abstract class Cucumber {
      */
     @Test
     public void runFeatures() throws Exception {
+        
+        this.initializeRuntimeOptions();
+        
         Runtime runtime = this.createRuntime();
         runtime.run();
         
@@ -105,4 +108,9 @@ public abstract class Cucumber {
     protected ClassLoader getClassLoader() {
         return this.getClass().getClassLoader();
     }
+    
+    /**
+     * Initializes the runtime options for the runner.
+     */
+    protected abstract void initializeRuntimeOptions();
 }

@@ -10,7 +10,7 @@ import org.junit.Before;
 
 import cucumber.runtime.RuntimeOptions;
 import cucumber.runtime.arquillian.domain.Belly;
-import cucumber.runtime.arquillian.glue.BellySteps;
+import cucumber.runtime.arquillian.glue.server.BellySteps;
 import cucumber.runtime.arquillian.junit.Cucumber;
 
 /**

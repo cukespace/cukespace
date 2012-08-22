@@ -1,9 +1,16 @@
 package cucumber.runtime.arquillian.domain;
 
+import java.io.Serializable;
+
 /**
  * Belly for eating cukes.
  */
-public class Belly {
+public class Belly implements Serializable {
+    
+    /**
+     * Serial Version UID.
+     */
+    private static final long serialVersionUID = -1182468379585134676L;
     
     /**
      * The number of cukes.
@@ -31,8 +38,8 @@ public class Belly {
      * 
      * @return True if the belly is hungry.
      */
-    public boolean isNotHungry() {
-        return this.cukes > 0;
+    public boolean isHungry() {
+        return this.cukes <= 0;
     }
     
     /**

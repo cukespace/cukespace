@@ -1,7 +1,8 @@
-package cucumber.runtime.arquillian.glue;
+package cucumber.runtime.arquillian.glue.ui;
 
 import static org.junit.Assert.assertTrue;
 
+import java.net.MalformedURLException;
 import java.net.URL;
 
 import org.jboss.arquillian.drone.api.annotation.Drone;
@@ -45,16 +46,19 @@ public class ClientBellySteps {
     @When("^I eat (\\d+) cukes$")
     public void eatCukes(int cukes) {
         this.selenium.type("id=bellyForm:mouth", Integer.toString(cukes));
-        this.selenium.click("id=bellyForm:eat");
+        this.selenium.click("id=bellyForm:eatCukes");
         this.selenium.waitForPageToLoad("5000");
     }
     
     /**
      * Sets up the belly for eating cukes.
+     * 
+     * @throws MalformedURLException Thrown if the URL to the belly is
+     * malformed.
      */
     @Given("^I have a belly$")
-    public void setUpBelly() {
-        this.selenium.open(this.deploymentUrl.toString());
+    public void setUpBelly() throws MalformedURLException {
+        this.selenium.open(new URL(this.deploymentUrl, "faces/belly.xhtml").toString());
         this.selenium.waitForPageToLoad("5000");
     }
     
@@ -67,7 +71,7 @@ public class ClientBellySteps {
     public void shouldHaveThisMany(int cukes) {
         assertTrue(
             "Unexpected number of cukes!",
-            this.selenium.isElementPresent("xpath=//p[contains(text(), 'You have " + cukes + " in your belly!')]")
+            this.selenium.isElementPresent("xpath=//li[contains(text(), 'The belly ate " + cukes + " cukes!')]")
         );
     }
 }
