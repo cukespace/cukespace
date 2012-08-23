@@ -1,8 +1,6 @@
 package cucumber.runtime.arquillian.junit;
 
-import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.drone.api.annotation.Drone;
-import org.junit.Test;
 
 import com.thoughtworks.selenium.DefaultSelenium;
 
@@ -26,12 +24,5 @@ public abstract class CucumberClient extends Cucumber {
      */
     public CucumberClient() {
         // intentionally empty
-    }
-    
-    @Test
-    @RunAsClient
-    @Override
-    public void runFeatures() throws Exception {
-        super.runFeatures();
     }
 }
