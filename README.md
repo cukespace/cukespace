@@ -92,3 +92,19 @@ public class CukesInBellyFeature extends Cucumber {
 
 Arquillian will then package up all the necessary dependencies along with your
 test deployment and execute the feature in the application server.
+
+## Running the Examples
+
+To run the default configuration:
+
+```mvn verify``
+
+The following command line properties allow you to specify the target server
+and browser:
+
+| Property | Values | Example |
+|----------|--------|---------|
+| jbas7 | managed, remote | ```mvn verify -Djbas7=managed``` |
+| glassfish3 | managed | ```mvn verify -Dglassfish3=managed``` |
+| browser | [see here](http://stackoverflow.com/questions/2569977/list-of-selenium-rc-browser-launchers) | ```mvn verify -Dbrowser=*googlechrome``` |
+
