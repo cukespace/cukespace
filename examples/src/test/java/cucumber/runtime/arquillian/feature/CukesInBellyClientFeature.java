@@ -1,6 +1,8 @@
-package cucumber.runtime.arquillian.glassfish3.feature;
+package cucumber.runtime.arquillian.feature;
 
 import static org.jboss.shrinkwrap.api.ShrinkWrap.create;
+
+import java.io.File;
 
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.shrinkwrap.api.Archive;
@@ -11,7 +13,6 @@ import org.jboss.shrinkwrap.api.spec.WebArchive;
 import cucumber.runtime.RuntimeOptions;
 import cucumber.runtime.arquillian.controller.BellyController;
 import cucumber.runtime.arquillian.domain.Belly;
-import cucumber.runtime.arquillian.junit.CucumberClient;
 import cucumber.runtime.arquillian.producer.FacesContextProducer;
 
 /**
@@ -22,15 +23,17 @@ public class CukesInBellyClientFeature extends CucumberClient {
     /**
      * Creates the test deployment.
      * 
+     * <p>Client fixtures only have to mark their associated deployment with
+     * "testable = false" to run the feature from the client.</p>
+     * 
      * @return The test deployment.
      */
     @Deployment(testable = false)
     public static Archive<?> createDeployment() {
-        Class<?> klass = CukesInBellyClientFeature.class;
         return create(WebArchive.class)
             .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml")
             .addAsWebInfResource(new StringAsset("<faces-config version=\"2.0\"/>"), "faces-config.xml")
-            .addAsWebResource(klass.getResource("/webapp/belly.xhtml"), "belly.xhtml")
+            .addAsWebResource(new File("src/main/webapp/belly.xhtml"), "belly.xhtml")
             .addClass(Belly.class)
             .addClass(BellyController.class)
             .addClass(FacesContextProducer.class);

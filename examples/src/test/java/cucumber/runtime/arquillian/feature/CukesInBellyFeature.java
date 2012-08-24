@@ -1,4 +1,4 @@
-package cucumber.runtime.arquillian.jbas7.feature;
+package cucumber.runtime.arquillian.feature;
 
 import static org.jboss.shrinkwrap.api.ShrinkWrap.create;
 

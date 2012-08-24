@@ -18,7 +18,7 @@
     
     <modules>
         <module>core</module>
-        <module>glassfish3</module>
+        <module>examples</module>
         <module>jbas7</module>
     </modules>
     
@@ -32,11 +32,11 @@
         <!-- dependency and plugin versions -->
         <arquillian.version>1.0.1.Final</arquillian.version>
         <arquillian-drone.version>1.0.0.Final</arquillian-drone.version>
-        <arquillian-graphene.version>1.0.0.Final</arquillian-graphene.version>
-        <compiler.version>2.3.1</compiler.version>
         <cucumber-jvm.version>1.0.12</cucumber-jvm.version>
-        <jar.version>2.3.1</jar.version>
-        <surefire.version>2.12</surefire.version>
+        <maven-compiler.version>2.3.1</maven-compiler.version>
+        <maven-jar.version>2.3.1</maven-jar.version>
+        <maven-surefire.version>2.12</maven-surefire.version>
+        <maven-war.version>2.2</maven-war.version>
         
     </properties>
     
@@ -92,7 +92,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
-                    <version>${compiler.version}</version>
+                    <version>${maven-compiler.version}</version>
                     <configuration>
                         <encoding>${project.build.sourceEncoding}</encoding>
                         <source>${project.build.source}</source>
@@ -103,7 +103,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-failsafe-plugin</artifactId>
-                    <version>${surefire.version}</version>
+                    <version>${maven-surefire.version}</version>
                     <inherited>true</inherited>
                     <configuration>
                         <includes>
@@ -123,14 +123,24 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-jar-plugin</artifactId>
-                    <version>${jar.version}</version>
+                    <version>${maven-jar.version}</version>
                     <inherited>true</inherited>
                 </plugin>
                 
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-war-plugin</artifactId>
+                    <version>${maven-war.version}</version>
+                    <inherited>true</inherited>
+                    <configuration>
+                        <failOnMissingWebXml>false</failOnMissingWebXml>
+                    </configuration>
+                </plugin>
+                
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
-                    <version>${surefire.version}</version>
+                    <version>${maven-surefire.version}</version>
                     <inherited>true</inherited>
                     <configuration>
                         <includes>

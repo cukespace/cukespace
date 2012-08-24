@@ -20,7 +20,6 @@ import cucumber.runtime.CucumberException;
 import cucumber.runtime.arquillian.TestEnricherProvider;
 import cucumber.runtime.arquillian.container.CucumberContainerExtension;
 import cucumber.runtime.arquillian.junit.Cucumber;
-import cucumber.runtime.arquillian.junit.CucumberClient;
 
 /**
  * Archive processor for adding necessary Cucumber dependencies into test
@@ -66,7 +65,6 @@ public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
                 .addClass(CucumberContainerExtension.class)
                 .addClass(TestEnricherProvider.class)
                 .addClass(Cucumber.class)
-                .addClass(CucumberClient.class)
         );
     }
 }
