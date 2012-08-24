@@ -272,7 +272,6 @@
                     <groupId>info.cukes.runtime.arquillian</groupId>
                     <artifactId>cucumber-arquillian-jbas7</artifactId>
                     <version>${project.version}</version>
-                    <classifier>tests</classifier>
                     <scope>test</scope>
                 </dependency>
             </dependencies>
