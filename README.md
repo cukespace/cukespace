@@ -57,21 +57,6 @@ test against. Here's an example dependency for JBoss AS 7:
 </dependency>
 ```
 
-## Running the Examples
-
-To run the default configuration:
-
-```mvn verify``
-
-The following command line properties allow you to specify the target server
-and browser:
-
-| Property | Values | Example |
-|----------|--------|---------|
-| jbas7 | managed, remote | ```mvn verify -Djbas7=managed``` |
-| glassfish3 | managed | ```mvn verify -Dglassfish3=managed``` |
-| browser | [see here](http://stackoverflow.com/questions/2569977/list-of-selenium-rc-browser-launchers) | ```mvn verify -Dbrowser=*googlechrome``` |
-
 ## Creating Features
 
 ### Server-Side Tests
@@ -185,3 +170,18 @@ won't be able to inject it into any of your step definitions. You'll know when
 you've forgotten because you'll get the following error:
 
 ```java.lang.IllegalArgumentException: Drone Test context should not be null```
+
+## Running the Examples
+
+To run the default configuration:
+
+```mvn verify```
+
+The following command line properties allow you to specify the target server
+and browser:
+
+| Property | Values | Example |
+|----------|--------|---------|
+| jbas7 | managed, remote | ```mvn verify -Djbas7=managed``` |
+| glassfish3 | managed | ```mvn verify -Dglassfish3=managed``` |
+| browser | [see here](http://stackoverflow.com/questions/2569977/list-of-selenium-rc-browser-launchers) | ```mvn verify -Dbrowser=*googlechrome``` |
