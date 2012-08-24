@@ -57,7 +57,7 @@ test against. Here's an example dependency for JBoss AS 7:
 </dependency>
 ```
 
-## Creating Features
+## Creating Features for Server-side Execution
 
 All you have to do is extend ```Cucumber```, create the test deployment, and
 tailor the Cucumber runtime options:
@@ -81,8 +81,8 @@ public class CukesInBellyFeature extends Cucumber {
             .addClass(CukesInBellyFeature.class);
     }
     
-    @Before
-    public void initializeRuntimeOptions() {
+    @Override
+    protected void initializeRuntimeOptions() {
         RuntimeOptions runtimeOptions = this.getRuntimeOptions();
         runtimeOptions.featurePaths.add("classpath:my/features");
         runtimeOptions.glue.add("classpath:my/features/glue");
@@ -91,7 +91,83 @@ public class CukesInBellyFeature extends Cucumber {
 ```
 
 Arquillian will then package up all the necessary dependencies along with your
-test deployment and execute the feature in the application server.
+test deployment and execute the feature in the application server. Your step
+definitions will also be serviced by Arquillian's awesome test enrichers, so
+your steps will have access to any resource supported by the Arquillian
+container you choose to use:
+
+```java
+public class CukesInBellySteps {
+    
+    @EJB
+    private CukeService service;
+    
+    @Resource
+    private Connection connection;
+    
+    @PersistenceContext
+    private EntityManager entityManager;
+    
+    @Inject
+    private CukeLocator cukeLocator;
+    
+    @When("^I persist my cuke$")
+    public void persistCuke() {
+        this.entityManager.persist(this.cukeLocator.findCuke());
+    }
+}
+``` 
+
+### Creating Features for Functional UI Testing
+
+[This guide](http://arquillian.org/guides/functional_testing_using_drone/) will
+help you get started with using the Arquillian Drone extension for functional
+testing.
+
+To create features for functional UI testing, you first want to add all
+necessary Drone dependencies to your project's POM, then mark your deployment
+as untestable and inject a webdriver:
+
+```java
+public class CukesInBellyClientFeature extends Cucumber {
+    
+    @Drone
+    DefaultSelenium browser;
+    
+    @Deployment(testable = false)
+    public static Archive<?> createDeployment() {
+        return ShrinkWrap.create(WebArchive.class)
+            .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml")
+            .addAsWebInfResource(new StringAsset("<faces-config version=\"2.0\"/>"), "faces-config.xml")
+            .addAsWebResource(new File("src/main/webapp/belly.xhtml"), "belly.xhtml")
+            .addClass(Belly.class)
+            .addClass(BellyController.class);
+    }
+    
+    // ...
+}
+```
+
+You can then access your Drone from any step definition.
+
+```java
+public class IrresistibleButtonSteps {
+    
+    @Drone
+    private DefaultSelenium browser;
+    
+    @When("^I click on an irresistible button$")
+    public void click() {
+        this.browser.click("id=irresistible-button");
+    }
+}
+```
+
+Be sure to remember to inject the webdriver into your test fixture, or you
+won't be able to inject it into any of your step definitions. You'll know when
+you've forgotten because you'll get the following error:
+
+```java.lang.IllegalArgumentException: Drone Test context should not be null```
 
 ## Running the Examples
 
