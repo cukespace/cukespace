@@ -22,7 +22,7 @@ public abstract class CucumberClient extends Cucumber {
      * extension of your choice. You are not limited to DefaultSelenium.</p>
      */
     @Drone
-    protected DefaultSelenium selenium;
+    protected DefaultSelenium browser;
     
     /**
      * Initializes a new instance of the CucumberClient class.

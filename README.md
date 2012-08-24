@@ -99,25 +99,26 @@ your steps will have access to any resource supported by the Arquillian
 container you choose to use:
 
 ```java
-public class CukesInBellySteps {
-    
-    @EJB
-    private CukeService service;
-    
-    @Resource
-    private Connection connection;
-    
-    @PersistenceContext
-    private EntityManager entityManager;
-    
-    @Inject
-    private CukeLocator cukeLocator;
-    
-    @When("^I persist my cuke$")
-    public void persistCuke() {
-        this.entityManager.persist(this.cukeLocator.findCuke());
-    }
+// clip
+
+@EJB
+private CukeService service;
+
+@Resource
+private Connection connection;
+
+@PersistenceContext
+private EntityManager entityManager;
+
+@Inject
+private CukeLocator cukeLocator;
+
+@When("^I persist my cuke$")
+public void persistCuke() {
+    this.entityManager.persist(this.cukeLocator.findCuke());
 }
+
+// clip
 ``` 
 
 ### Functional UI Testing with Arquillian Drone
@@ -131,23 +132,22 @@ necessary Drone dependencies to your project's POM, then mark your deployment
 as untestable and inject a webdriver:
 
 ```java
-public class CukesInBellyClientFeature extends Cucumber {
-    
-    @Drone
-    DefaultSelenium browser;
-    
-    @Deployment(testable = false)
-    public static Archive<?> createDeployment() {
-        return ShrinkWrap.create(WebArchive.class)
-            .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml")
-            .addAsWebInfResource(new StringAsset("<faces-config version=\"2.0\"/>"), "faces-config.xml")
-            .addAsWebResource(new File("src/main/webapp/belly.xhtml"), "belly.xhtml")
-            .addClass(Belly.class)
-            .addClass(BellyController.class);
-    }
-    
-    // ...
+// clip
+
+@Drone
+DefaultSelenium browser;
+
+@Deployment(testable = false)
+public static Archive<?> createDeployment() {
+    return ShrinkWrap.create(WebArchive.class)
+        .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml")
+        .addAsWebInfResource(new StringAsset("<faces-config version=\"2.0\"/>"), "faces-config.xml")
+        .addAsWebResource(new File("src/main/webapp/belly.xhtml"), "belly.xhtml")
+        .addClass(Belly.class)
+        .addClass(BellyController.class);
 }
+
+// clip
 ```
 
 You can then access your Drone from any step definition.
@@ -176,6 +176,9 @@ you've forgotten because you'll get the following error:
 To run the default configuration:
 
 ```mvn verify```
+
+The UI example will take screenshots and store them in the target/screenshots
+folder.
 
 The following command line properties allow you to specify the target server
 and browser:
