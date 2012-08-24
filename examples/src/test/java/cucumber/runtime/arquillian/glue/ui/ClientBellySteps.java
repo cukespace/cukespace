@@ -47,6 +47,7 @@ public class ClientBellySteps {
     public void eatCukes(int cukes) {
         this.selenium.type("id=bellyForm:mouth", Integer.toString(cukes));
         this.selenium.click("id=bellyForm:eatCukes");
+        this.selenium.captureScreenshot("target/screenshots/eatCukes.png");
         this.selenium.waitForPageToLoad("5000");
     }
     
@@ -59,6 +60,7 @@ public class ClientBellySteps {
     @Given("^I have a belly$")
     public void setUpBelly() throws MalformedURLException {
         this.selenium.open(new URL(this.deploymentUrl, "faces/belly.xhtml").toString());
+        this.selenium.captureScreenshot("target/screenshots/setUpBelly.png");
         this.selenium.waitForPageToLoad("5000");
     }
     
@@ -69,6 +71,7 @@ public class ClientBellySteps {
      */
     @Then("^I should have (\\d+) cukes in my belly$")
     public void shouldHaveThisMany(int cukes) {
+        this.selenium.captureScreenshot("target/screenshots/shouldHaveThisMany.png");
         assertTrue(
             "Unexpected number of cukes!",
             this.selenium.isElementPresent("xpath=//li[contains(text(), 'The belly ate " + cukes + " cukes!')]")
