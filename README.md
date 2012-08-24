@@ -100,24 +100,22 @@ container you choose to use:
 
 ```java
 // clip
-
-@EJB
-private CukeService service;
-
-@Resource
-private Connection connection;
-
-@PersistenceContext
-private EntityManager entityManager;
-
-@Inject
-private CukeLocator cukeLocator;
-
-@When("^I persist my cuke$")
-public void persistCuke() {
-    this.entityManager.persist(this.cukeLocator.findCuke());
-}
-
+    @EJB
+    private CukeService service;
+    
+    @Resource
+    private Connection connection;
+    
+    @PersistenceContext
+    private EntityManager entityManager;
+    
+    @Inject
+    private CukeLocator cukeLocator;
+    
+    @When("^I persist my cuke$")
+    public void persistCuke() {
+        this.entityManager.persist(this.cukeLocator.findCuke());
+    }
 // clip
 ``` 
 
@@ -133,20 +131,18 @@ as untestable and inject a webdriver:
 
 ```java
 // clip
-
-@Drone
-DefaultSelenium browser;
-
-@Deployment(testable = false)
-public static Archive<?> createDeployment() {
-    return ShrinkWrap.create(WebArchive.class)
-        .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml")
-        .addAsWebInfResource(new StringAsset("<faces-config version=\"2.0\"/>"), "faces-config.xml")
-        .addAsWebResource(new File("src/main/webapp/belly.xhtml"), "belly.xhtml")
-        .addClass(Belly.class)
-        .addClass(BellyController.class);
-}
-
+    @Drone
+    DefaultSelenium browser;
+    
+    @Deployment(testable = false)
+    public static Archive<?> createDeployment() {
+        return ShrinkWrap.create(WebArchive.class)
+            .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml")
+            .addAsWebInfResource(new StringAsset("<faces-config version=\"2.0\"/>"), "faces-config.xml")
+            .addAsWebResource(new File("src/main/webapp/belly.xhtml"), "belly.xhtml")
+            .addClass(Belly.class)
+            .addClass(BellyController.class);
+    }
 // clip
 ```
 
@@ -183,8 +179,8 @@ folder.
 The following command line properties allow you to specify the target server
 and browser:
 
-| Property | Values | Example |
-|----------|--------|---------|
-| jbas7 | managed, remote | ```mvn verify -Djbas7=managed``` |
-| glassfish3 | managed | ```mvn verify -Dglassfish3=managed``` |
-| browser | [see here](http://stackoverflow.com/questions/2569977/list-of-selenium-rc-browser-launchers) | ```mvn verify -Dbrowser=*googlechrome``` |
+| Property   | Values          | Example                               |
+|------------|-----------------|---------------------------------------|
+| jbas7      | managed, remote | ```mvn verify -Djbas7=managed```      |
+| glassfish3 | managed         | ```mvn verify -Dglassfish3=managed``` |
+| browser    | [see here](http://stackoverflow.com/questions/2569977/list-of-selenium-rc-browser-launchers) | ```mvn verify -Dbrowser=*googlechrome``` |
