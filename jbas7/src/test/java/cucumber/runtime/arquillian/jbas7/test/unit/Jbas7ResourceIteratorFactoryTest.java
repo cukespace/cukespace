@@ -75,7 +75,6 @@ public class Jbas7ResourceIteratorFactoryTest {
         
         // Then
         assertThat(iterator, notNullValue());
-        assertTrue(iterator.hasNext());
     }
     
     /**
