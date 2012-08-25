@@ -28,6 +28,7 @@ public abstract class CucumberClient extends Cucumber {
      * Initializes a new instance of the CucumberClient class.
      */
     public CucumberClient() {
+        
         // intentionally empty
     }
 }

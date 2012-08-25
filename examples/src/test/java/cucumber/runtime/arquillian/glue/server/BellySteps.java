@@ -21,6 +21,7 @@ public class BellySteps {
      * Initializes a new instance of the BellySteps class.
      */
     public BellySteps() {
+        
         // intentionally empty
     }
     
@@ -31,6 +32,7 @@ public class BellySteps {
      */
     @When("^I eat (\\d+) cukes$")
     public void eatCukes(int cukes) {
+        
         this.belly.setCukes(cukes);
     }
     
@@ -39,6 +41,7 @@ public class BellySteps {
      */
     @Given("^I have a belly$")
     public void setUpBelly() {
+        
         this.belly = new Belly();
     }
     
@@ -49,6 +52,7 @@ public class BellySteps {
      */
     @Then("^I should have (\\d+) cukes in my belly$")
     public void shouldHaveThisMany(int cukes) {
+        
         assertEquals(cukes, this.belly.getCukes());
     }
 }

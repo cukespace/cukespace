@@ -24,6 +24,7 @@ public class CukesInBellyFeature extends Cucumber {
      */
     @Deployment
     public static Archive<?> createDeployment() {
+        
         WebArchive war = create(WebArchive.class)
             .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml")
             .addAsResource("cucumber/runtime/arquillian/feature/cukes.feature")
@@ -38,11 +39,13 @@ public class CukesInBellyFeature extends Cucumber {
      * Initializes a new instance of the CukesInBellyFeature class.
      */
     public CukesInBellyFeature() {
+        
         // intentionally empty
     }
     
     @Override
     protected void initializeRuntimeOptions() {
+        
         RuntimeOptions runtimeOptions = this.getRuntimeOptions();
         runtimeOptions.featurePaths.add("classpath:cucumber/runtime/arquillian/feature");
         runtimeOptions.glue.add("classpath:cucumber/runtime/arquillian/glue/server");

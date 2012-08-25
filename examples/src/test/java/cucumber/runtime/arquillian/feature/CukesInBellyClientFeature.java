@@ -30,6 +30,7 @@ public class CukesInBellyClientFeature extends CucumberClient {
      */
     @Deployment(testable = false)
     public static Archive<?> createDeployment() {
+        
         return create(WebArchive.class)
             .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml")
             .addAsWebInfResource(new StringAsset("<faces-config version=\"2.0\"/>"), "faces-config.xml")
@@ -43,11 +44,13 @@ public class CukesInBellyClientFeature extends CucumberClient {
      * Initializes a new instance of the CukesInBellyClientFeature class.
      */
     public CukesInBellyClientFeature() {
+        
         // intentionally empty
     }
     
     @Override
     protected void initializeRuntimeOptions() {
+        
         RuntimeOptions runtimeOptions = this.getRuntimeOptions();
         runtimeOptions.featurePaths.add("classpath:cucumber/runtime/arquillian/feature");
         runtimeOptions.glue.add("classpath:cucumber/runtime/arquillian/glue/ui");

@@ -20,11 +20,13 @@ public class Jbas7ResourceIteratorFactory implements ResourceIteratorFactory {
      * Initializes a new instance of the Jbas7ResourceIteratorFactory class.
      */
     public Jbas7ResourceIteratorFactory() {
+        
         // intentionally empty
     }
     
     @Override
     public Iterator<Resource> createIterator(URL url, String path, String suffix) {
+        
         try {
             Object content = url.openConnection().getContent();
             
@@ -44,6 +46,7 @@ public class Jbas7ResourceIteratorFactory implements ResourceIteratorFactory {
     
     @Override
     public boolean isFactoryFor(URL url) {
+        
         return "vfs".equals(url.getProtocol());
     }
 }

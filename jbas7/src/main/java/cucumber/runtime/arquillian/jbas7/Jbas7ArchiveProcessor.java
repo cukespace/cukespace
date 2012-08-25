@@ -20,11 +20,13 @@ public class Jbas7ArchiveProcessor implements ApplicationArchiveProcessor {
      * Initializes a new instance of the Jbas7ArchiveProcessor class.
      */
     public Jbas7ArchiveProcessor() {
+        
         // intentionally empty
     }
     
     @Override
     public void process(Archive<?> applicationArchive, TestClass testClass) {
+        
         ((LibraryContainer<?>) applicationArchive).addAsLibrary(
             create(JavaArchive.class)
                 .addAsServiceProvider(ResourceIteratorFactory.class, Jbas7ResourceIteratorFactory.class)

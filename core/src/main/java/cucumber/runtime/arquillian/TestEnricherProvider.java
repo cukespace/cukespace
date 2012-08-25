@@ -26,6 +26,7 @@ public class TestEnricherProvider {
      * @return The test enrichers.
      */
     public static Collection<TestEnricher> getTestEnrichers() {
+        
         return TEST_ENRICHERS.get();
     }
     
@@ -39,6 +40,7 @@ public class TestEnricherProvider {
      * Initializes a new instance of the TestEnricherProvider class.
      */
     public TestEnricherProvider() {
+        
         // intentionally empty
     }
     
@@ -48,6 +50,7 @@ public class TestEnricherProvider {
      * @param event The before-test-execution event.
      */
     public void enrich(@Observes Before event) {
+        
         Collection<TestEnricher> enrichers
             = this.serviceLoader.get().all(TestEnricher.class);
         

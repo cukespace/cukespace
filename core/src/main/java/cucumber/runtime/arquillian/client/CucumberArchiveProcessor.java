@@ -31,11 +31,13 @@ public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
      * Initializes a new instance of the CucumberArchiveProcessor class.
      */
     public CucumberArchiveProcessor() {
+        
         // intentionally empty
     }
     
     @Override
     public void process(Archive<?> applicationArchive, TestClass testClass) {
+        
         Properties properties = new Properties();
         InputStream versionsStream = CucumberArchiveProcessor.class.getResourceAsStream("versions.properties");
         

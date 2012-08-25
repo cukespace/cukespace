@@ -28,6 +28,7 @@ public abstract class Cucumber {
      * Initializes a new instance of the Cucumber class.
      */
     public Cucumber() {
+        
         // don't use System.getProperties() because developers may not have
         // direct control over the server environment
         this.runtimeOptions = new RuntimeOptions(new Properties(), "-m");
@@ -40,6 +41,7 @@ public abstract class Cucumber {
      * @return The runtime options.
      */
     public RuntimeOptions getRuntimeOptions() {
+        
         return this.runtimeOptions;
     }
     
@@ -73,6 +75,7 @@ public abstract class Cucumber {
      * @return The new resource loader.
      */
     protected ResourceLoader createResourceLoader() {
+        
         return new MultiLoader(this.getClassLoader());
     }
     
@@ -82,6 +85,7 @@ public abstract class Cucumber {
      * @return The new runtime.
      */
     protected Runtime createRuntime() {
+        
         Runtime runtime = new Runtime(
             this.createResourceLoader(),
             this.getClassLoader(),
@@ -97,6 +101,7 @@ public abstract class Cucumber {
      * @param runtime The runtime to destroy.
      */
     protected void destroyRuntime(Runtime runtime) {
+        
         // intentionally empty
     }
     
@@ -106,6 +111,7 @@ public abstract class Cucumber {
      * @return The class loader.
      */
     protected ClassLoader getClassLoader() {
+        
         return this.getClass().getClassLoader();
     }
     

@@ -15,11 +15,14 @@
     <properties>
         
         <!-- dependency and plugin versions -->
+        <jboss-logging.version>3.1.0.GA</jboss-logging.version>
         <jboss-vfs.version>3.1.0.Final</jboss-vfs.version>
         
     </properties>
     
     <dependencies>
+        
+        <!-- Provided dependencies -->
         
         <dependency>
             <groupId>org.jboss</groupId>
@@ -34,6 +37,8 @@
             </exclusions>
         </dependency>
         
+        <!-- Compile dependencies -->
+        
         <dependency>
             <groupId>info.cukes</groupId>
             <artifactId>cucumber-java</artifactId>
@@ -43,6 +48,27 @@
             <groupId>info.cukes.runtime.arquillian</groupId>
             <artifactId>cucumber-arquillian-core</artifactId>
             <version>${project.version}</version>
+        </dependency>
+        
+        <!-- Test dependencies -->
+        
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit-dep</artifactId>
+            <scope>test</scope>
+        </dependency>
+        
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-all</artifactId>
+            <scope>test</scope>
+        </dependency>
+        
+        <dependency>
+            <groupId>org.jboss.logging</groupId>
+            <artifactId>jboss-logging</artifactId>
+            <version>${jboss-logging.version}</version>
+            <scope>test</scope>
         </dependency>
         
     </dependencies>

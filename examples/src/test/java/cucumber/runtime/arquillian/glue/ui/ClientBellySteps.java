@@ -45,6 +45,7 @@ public class ClientBellySteps {
      */
     @When("^I eat (\\d+) cukes$")
     public void eatCukes(int cukes) {
+        
         this.browser.type("id=bellyForm:mouth", Integer.toString(cukes));
         this.browser.captureScreenshot("target/screenshots/eatCukes.png");
         this.browser.click("id=bellyForm:eatCukes");
@@ -59,6 +60,7 @@ public class ClientBellySteps {
      */
     @Given("^I have a belly$")
     public void setUpBelly() throws MalformedURLException {
+        
         this.browser.open(new URL(this.deploymentUrl, "faces/belly.xhtml").toString());
         this.browser.captureScreenshot("target/screenshots/setUpBelly.png");
         this.browser.waitForPageToLoad("5000");
@@ -71,7 +73,9 @@ public class ClientBellySteps {
      */
     @Then("^I should have (\\d+) cukes in my belly$")
     public void shouldHaveThisMany(int cukes) {
+        
         this.browser.captureScreenshot("target/screenshots/shouldHaveThisMany.png");
+        
         assertTrue(
             "Unexpected number of cukes!",
             this.browser.isElementPresent("xpath=//li[contains(text(), 'The belly ate " + cukes + " cukes!')]")
