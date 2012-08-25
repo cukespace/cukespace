@@ -42,6 +42,7 @@ public class Jbas7ResourceIterator implements Iterator<Resource> {
      * @param suffix The suffix.
      */
     public Jbas7ResourceIterator(VirtualFile virtualFile, String path, String suffix) {
+        
         try {
             this.elements = virtualFile.getChildrenRecursively().iterator();
         } catch (IOException exception) {
@@ -56,16 +57,17 @@ public class Jbas7ResourceIterator implements Iterator<Resource> {
     
     @Override
     public boolean hasNext() {
+        
         return this.next != null;
     }
     
     @Override
     public Resource next() {
+        
         try {
             if (this.hasNext()) {
                 return this.next;
             }
-            
             throw new NoSuchElementException();
         } finally {
             this.moveNext();
@@ -74,6 +76,7 @@ public class Jbas7ResourceIterator implements Iterator<Resource> {
     
     @Override
     public void remove() {
+        
         throw new UnsupportedOperationException();
     }
     
@@ -84,6 +87,7 @@ public class Jbas7ResourceIterator implements Iterator<Resource> {
      * @return The file path relative to the classpath.
      */
     private String getPathRelativeToClasspath(VirtualFile virtualFile) {
+        
         return virtualFile.getPathName().replaceFirst("^.+(\\.jar|\\.war/WEB-INF/classes)/", "");
     }
     
@@ -94,6 +98,7 @@ public class Jbas7ResourceIterator implements Iterator<Resource> {
      * @return True, if the path has the suffix.
      */
     private boolean hasSuffix(String path) {
+        
         return this.suffix == null || "".equals(this.suffix) || path.endsWith(this.suffix);
     }
     
@@ -101,6 +106,7 @@ public class Jbas7ResourceIterator implements Iterator<Resource> {
      * Moves to the next child in the resource.
      */
     private void moveNext() {
+        
         this.next = null;
         
         while(this.elements.hasNext()) {
