@@ -32,7 +32,7 @@
         <!-- dependency and plugin versions -->
         <arquillian.version>1.0.1.Final</arquillian.version>
         <arquillian-drone.version>1.1.0.CR2</arquillian-drone.version>
-        <cucumber-jvm.version>1.0.12</cucumber-jvm.version>
+        <cucumber-jvm.version>1.0.14</cucumber-jvm.version>
         <maven-compiler.version>2.3.1</maven-compiler.version>
         <maven-jar.version>2.3.1</maven-jar.version>
         <maven-surefire.version>2.12</maven-surefire.version>
