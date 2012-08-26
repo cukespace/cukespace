@@ -58,11 +58,13 @@ public class Jbas7ResourceIteratorFactoryTest {
     /**
      * Verifies that the factory will return an iterator for a VFS URL.
      * 
+     * <p>This test only verifies that an iterator will be created. Not that
+     * the iterator is usable.</p>
+     * 
      * @throws URISyntaxException Thrown for bad URI syntax.
      * @throws MalformedURLException Thrown for bad URL formation.
      */
     @Test
-    @Ignore("Test needs to get VFS resource differently, fails for JARs")
     public void shouldGetIteratorForVfsUrl() throws URISyntaxException, MalformedURLException {
         
         // Given
