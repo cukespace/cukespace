@@ -12,7 +12,6 @@ import java.util.Iterator;
 
 import org.jboss.vfs.VFS;
 import org.jboss.vfs.VirtualFile;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import cucumber.io.Resource;
