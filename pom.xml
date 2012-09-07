@@ -10,7 +10,7 @@
         <relativePath/>
     </parent>
     
-    <groupId>info.cukes.runtime.arquillian</groupId>
+    <groupId>info.classlessprimitive.cukes.runtime.arquillian</groupId>
     <artifactId>cucumber-arquillian-parent</artifactId>
     <packaging>pom</packaging>
     <version>0.0.1-SNAPSHOT</version>
@@ -47,7 +47,23 @@
         <connection>scm:git:git://github.com/lmcgrath/cucumber-arquillian.git</connection>
         <developerConnection>scm:git:git@github.com:lmcgrath/cucumber-arquillian.git</developerConnection>
         <url>https://www.github.com/lmcgrath/cucumber-arquillian</url>
+        <tag>HEAD</tag>
     </scm>
+    
+    <licenses>
+        <license>
+            <name>MIT License</name>
+            <url>http://www.opensource.org/licenses/mit-license</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+    
+    <repositories>
+        <repository>
+            <id>jboss.org</id>
+            <url>https://repository.jboss.org/nexus/content/groups/public-jboss</url>
+        </repository>
+    </repositories>
     
     <dependencyManagement>
         <dependencies>
@@ -139,12 +155,12 @@
                         </includes>
                     </configuration>
                     <executions>
-                      <execution>
-                        <goals>
-                          <goal>integration-test</goal>
-                          <goal>verify</goal>
-                        </goals>
-                      </execution>
+                        <execution>
+                            <goals>
+                                <goal>integration-test</goal>
+                                <goal>verify</goal>
+                            </goals>
+                        </execution>
                     </executions>
                 </plugin>
                 
