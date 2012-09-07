@@ -10,7 +10,7 @@
         <relativePath/>
     </parent>
     
-    <groupId>info.classlessprimitive.cukes.runtime.arquillian</groupId>
+    <groupId>com.github.lmcgrath.cucumber-arquillian</groupId>
     <artifactId>cucumber-arquillian-parent</artifactId>
     <packaging>pom</packaging>
     <version>0.0.1-SNAPSHOT</version>

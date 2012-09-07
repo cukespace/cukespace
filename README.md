@@ -38,7 +38,7 @@ You'll want at least the following dependency in your pom.xml:
 
 ```xml
 <dependency>
-    <groupId>info.classlessprimitive.cukes.runtime.arquillian</groupId>
+    <groupId>com.github.lmcgrath.cucumber-arquillian</groupId>
     <artifactId>cucumber-arquillian-core</artifactId>
     <version>{VERSION}</version>
     <scope>test</scope>
@@ -50,7 +50,7 @@ test against. Here's an example dependency for JBoss AS 7:
 
 ```xml
 <dependency>
-    <groupId>info.classlessprimitive.cukes.runtime.arquillian</groupId>
+    <groupId>com.github.lmcgrath.cucumber-arquillian</groupId>
     <artifactId>cucumber-arquillian-jbas7</artifactId>
     <version>{VERSION}</version>
     <scope>test</scope>
