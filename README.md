@@ -18,10 +18,12 @@ have been listed for each.
 # Quickstart
 
 This quickstart assumes you're already very familiar with [Arquillian][] and
-[Cucumber-JVM][].
+[Cucumber-JVM][], and that you've set up your Maven to use the
+[JBoss repository][].
 
 [Arquillian]: http://www.arquillian.org/
 [Cucumber-JVM]: http://www.github.com/cucumber/cucumber-jvm
+[JBoss repository]: https://community.jboss.org/wiki/MavenGettingStarted-Users
 
 ## Installation
 
