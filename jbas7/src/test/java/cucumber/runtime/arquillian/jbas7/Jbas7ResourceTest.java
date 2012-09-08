@@ -1,4 +1,4 @@
-package cucumber.runtime.arquillian.jbas7.test.unit;
+package cucumber.runtime.arquillian.jbas7;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;

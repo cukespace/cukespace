@@ -9,16 +9,19 @@ import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
+import org.junit.experimental.categories.Category;
 
 import cucumber.runtime.RuntimeOptions;
 import cucumber.runtime.arquillian.controller.BellyController;
 import cucumber.runtime.arquillian.domain.Belly;
+import cucumber.runtime.arquillian.junit.FunctionalTest;
 import cucumber.runtime.arquillian.producer.FacesContextProducer;
 
 /**
  * Cucumber feature run from the client.
  */
-public class CukesInBellyClientFeature extends CucumberClient {
+@Category(FunctionalTest.class)
+public class CukesInBellyFunctionalTest extends FunctionalCucumber {
     
     /**
      * Creates the test deployment.
@@ -41,9 +44,9 @@ public class CukesInBellyClientFeature extends CucumberClient {
     }
     
     /**
-     * Initializes a new instance of the CukesInBellyClientFeature class.
+     * Initializes a new instance of the CukesInBellyFunctionalTest class.
      */
-    public CukesInBellyClientFeature() {
+    public CukesInBellyFunctionalTest() {
         
         // intentionally empty
     }

@@ -10,11 +10,11 @@
         <relativePath/>
     </parent>
     
-    <groupId>com.github.cucumber-arquillian</groupId>
+    <groupId>com.github.cukespace</groupId>
     <artifactId>cucumber-arquillian-parent</artifactId>
     <packaging>pom</packaging>
     <version>0.0.1-SNAPSHOT</version>
-    <name>Cucumber/Arquillian Integration Parent</name>
+    <name>Cukes in Space! Parent</name>
     
     <modules>
         <module>core</module>
@@ -137,6 +137,7 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
                     <version>${maven-compiler.version}</version>
+                    <inherited>true</inherited>
                     <configuration>
                         <encoding>${project.build.sourceEncoding}</encoding>
                         <source>${project.build.source}</source>
@@ -149,11 +150,6 @@
                     <artifactId>maven-failsafe-plugin</artifactId>
                     <version>${maven-surefire.version}</version>
                     <inherited>true</inherited>
-                    <configuration>
-                        <includes>
-                            <include>**/test/integration/**/*Test.java</include>
-                        </includes>
-                    </configuration>
                     <executions>
                         <execution>
                             <goals>
@@ -175,12 +171,6 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>${maven-surefire.version}</version>
-                    <inherited>true</inherited>
-                    <configuration>
-                        <includes>
-                            <include>**/test/unit/**/*Test.java</include>
-                        </includes>
-                    </configuration>
                 </plugin>
                 
                 <plugin>

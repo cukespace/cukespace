@@ -1,4 +1,4 @@
-package cucumber.runtime.arquillian.jbas7.test.unit;
+package cucumber.runtime.arquillian.jbas7;
 
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertFalse;
@@ -69,7 +69,7 @@ public class Jbas7ResourceIteratorFactoryTest {
         // Given
         String resourcePath = "/cucumber/runtime/arquillian/client";
         URL resourceUrl = Jbas7ResourceTest.class.getResource(resourcePath);
-        VirtualFile virtualFile = VFS.getChild(resourceUrl.toURI());
+        VirtualFile virtualFile = VFS.getChild(resourceUrl.toURI().toString());
         URL url = virtualFile.toURL();
         ResourceIteratorFactory factory = new Jbas7ResourceIteratorFactory();
         

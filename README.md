@@ -1,36 +1,35 @@
-Cucumber-JVM/Arquillian Integration
-===================================
+Cukes in Space!
+===============
 
-This project allows you to deploy and run Cucumber features into the
+Cukes in Space! allows you to deploy and run Cucumber features in the
 application server of your choice using the Arquillian test framework.
 
 ## Supported application servers:
 
-The following application servers are supported with Cucumber-JVM/Arquillian.
-The artifact ```cucumber-arquillian-core``` is required for all servers, and
-additional dependencies have been listed for each.
+The following application servers are supported. The artifact
+```cukespace-core``` is required for all servers, and additional dependencies
+have been listed for each.
 
-| Server      | Additional Dependencies   |
-|-------------|---------------------------|
-| JBoss AS 7  | cucumber-arquillian-jbas7 |
-| Glassfish 3 |                           |
+| Server      | Additional Dependencies |
+|-------------|-------------------------|
+| JBoss AS 7  | cukespace-jbas7         |
+| Glassfish 3 |                         |
 
 # Quickstart
 
-This quickstart assumes you're already very familiar with [Arquillian](http://www.arquillian.org/)
-and [Cucumber-JVM](http://www.github.com/cucumber/cucumber-jvm).
+This quickstart assumes you're already very familiar with [Arquillian][] and
+[Cucumber-JVM][].
+
+[Arquillian]: http://www.arquillian.org/
+[Cucumber-JVM]: http://www.github.com/cucumber/cucumber-jvm
 
 ## Installation
 
 Before you start writing features, you'll want to pull down the source for
-Cucumber-JVM/Arquillian and install it to your local repository using the
-following command:
+Cukes in Space! and install it to your local repository using the following
+command:
 
 ```mvn install```
-
-If you're feeling confident, you can even do it without testing:
-
-```mvn install -DskipTests```
 
 ## Project Setup
 
@@ -38,8 +37,8 @@ You'll want at least the following dependency in your pom.xml:
 
 ```xml
 <dependency>
-    <groupId>com.github.cucumber-arquillian</groupId>
-    <artifactId>cucumber-arquillian-core</artifactId>
+    <groupId>com.github.cukespace</groupId>
+    <artifactId>cukespace-core</artifactId>
     <version>{VERSION}</version>
     <scope>test</scope>
 </dependency>
@@ -50,8 +49,8 @@ test against. Here's an example dependency for JBoss AS 7:
 
 ```xml
 <dependency>
-    <groupId>com.github.cucumber-arquillian</groupId>
-    <artifactId>cucumber-arquillian-jbas7</artifactId>
+    <groupId>com.github.cukespace</groupId>
+    <artifactId>cukespace-jbas7</artifactId>
     <version>{VERSION}</version>
     <scope>test</scope>
 </dependency>
@@ -71,7 +70,7 @@ import cucumber.runtime.arquillian.junit.Cucumber;
 import my.features.domain.Belly;
 import my.features.glue.BellySteps;
 
-public class CukesInBellyFeature extends Cucumber {
+public class CukesInBellyTest extends Cucumber {
     
     @Deployment
     public static Archive<?> createDeployment() {
@@ -121,9 +120,10 @@ container you choose to use:
 
 ### Functional UI Testing with Arquillian Drone
 
-[This guide](http://arquillian.org/guides/functional_testing_using_drone/) will
-help you get started with using the Arquillian Drone extension for functional
-testing.
+[This guide][] will help you get started with using the Arquillian Drone
+extension for functional testing.
+
+[This guide]: http://arquillian.org/guides/functional_testing_using_drone/
 
 To create features for functional UI testing, you first want to add all
 necessary Drone dependencies to your project's POM, then mark your deployment
@@ -179,8 +179,10 @@ folder.
 The following command line properties allow you to specify the target server
 and browser:
 
-| Property   | Values          | Example                               |
-|------------|-----------------|---------------------------------------|
-| jbas7      | managed, remote | ```mvn verify -Djbas7=managed```      |
-| glassfish3 | managed         | ```mvn verify -Dglassfish3=managed``` |
-| browser    | [see here](http://stackoverflow.com/questions/2569977/list-of-selenium-rc-browser-launchers) | ```mvn verify -Dbrowser=*googlechrome``` |
+| Property   | Values          | Example                                  |
+|------------|-----------------|------------------------------------------|
+| jbas7      | managed, remote | ```mvn verify -Djbas7=managed```         |
+| glassfish3 | managed         | ```mvn verify -Dglassfish3=managed```    |
+| browser    | [see here][]    | ```mvn verify -Dbrowser=*googlechrome``` |
+
+[see here]: http://stackoverflow.com/questions/2569977/list-of-selenium-rc-browser-launchers

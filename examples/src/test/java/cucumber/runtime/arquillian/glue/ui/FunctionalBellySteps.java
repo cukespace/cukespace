@@ -17,7 +17,7 @@ import cucumber.annotation.en.When;
 /**
  * Test steps for the cuke-eating belly.
  */
-public class ClientBellySteps {
+public class FunctionalBellySteps {
     
     /**
      * The application URL.
@@ -34,7 +34,7 @@ public class ClientBellySteps {
     /**
      * Initializes a new instance of the BellySteps class.
      */
-    public ClientBellySteps() {
+    public FunctionalBellySteps() {
         // intentionally empty
     }
     

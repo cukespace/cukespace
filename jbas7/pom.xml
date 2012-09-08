@@ -4,13 +4,13 @@
     <modelVersion>4.0.0</modelVersion>
     
     <parent>
-        <groupId>com.github.cucumber-arquillian</groupId>
+        <groupId>com.github.cukespace</groupId>
         <artifactId>cucumber-arquillian-parent</artifactId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
     
     <artifactId>cucumber-arquillian-jbas7</artifactId>
-    <name>Cucumber/Arquillian on JBoss AS 7</name>
+    <name>Cukes in Space! with JBoss AS 7</name>
     
     <properties>
         
@@ -45,7 +45,7 @@
         </dependency>
         
         <dependency>
-            <groupId>com.github.cucumber-arquillian</groupId>
+            <groupId>com.github.cukespace</groupId>
             <artifactId>cucumber-arquillian-core</artifactId>
             <version>${project.version}</version>
         </dependency>

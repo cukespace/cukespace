@@ -9,7 +9,7 @@ import cucumber.runtime.arquillian.junit.Cucumber;
 /**
  * Example fixture for running client-side features.
  */
-public abstract class CucumberClient extends Cucumber {
+public abstract class FunctionalCucumber extends Cucumber {
     
     /**
      * The Selenium driver.
@@ -25,9 +25,9 @@ public abstract class CucumberClient extends Cucumber {
     protected DefaultSelenium browser;
     
     /**
-     * Initializes a new instance of the CucumberClient class.
+     * Initializes a new instance of the FunctionalCucumber class.
      */
-    public CucumberClient() {
+    public FunctionalCucumber() {
         
         // intentionally empty
     }

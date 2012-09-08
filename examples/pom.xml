@@ -4,13 +4,13 @@
     <modelVersion>4.0.0</modelVersion>
     
     <parent>
-        <groupId>com.github.cucumber-arquillian</groupId>
+        <groupId>com.github.cukespace</groupId>
         <artifactId>cucumber-arquillian-parent</artifactId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
     
     <artifactId>cucumber-arquillian-examples</artifactId>
-    <name>Cucumber/Arquillian Examples</name>
+    <name>Cukes in Space! Examples</name>
     <packaging>war</packaging>
     
     <properties>
@@ -114,7 +114,7 @@
         </dependency>
         
         <dependency>
-            <groupId>com.github.cucumber-arquillian</groupId>
+            <groupId>com.github.cukespace</groupId>
             <artifactId>cucumber-arquillian-core</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
@@ -132,16 +132,6 @@
         </testResources>
         
         <plugins>
-            
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-failsafe-plugin</artifactId>
-                <configuration>
-                    <includes>
-                        <include>**/*Feature.java</include>
-                    </includes>
-                </configuration>
-            </plugin>
             
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -244,7 +234,7 @@
             </properties>
             <dependencies>
                 <dependency>
-                    <groupId>com.github.cucumber-arquillian</groupId>
+                    <groupId>com.github.cukespace</groupId>
                     <artifactId>cucumber-arquillian-jbas7</artifactId>
                     <version>${project.version}</version>
                     <scope>test</scope>
@@ -269,7 +259,7 @@
                     <scope>test</scope>
                 </dependency>
                 <dependency>
-                    <groupId>com.github.cucumber-arquillian</groupId>
+                    <groupId>com.github.cukespace</groupId>
                     <artifactId>cucumber-arquillian-jbas7</artifactId>
                     <version>${project.version}</version>
                     <scope>test</scope>
