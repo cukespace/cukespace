@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     
     <parent>
-        <groupId>com.github.lmcgrath.cucumber-arquillian</groupId>
+        <groupId>com.github.cucumber-arquillian</groupId>
         <artifactId>cucumber-arquillian-parent</artifactId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
@@ -45,7 +45,7 @@
         </dependency>
         
         <dependency>
-            <groupId>com.github.lmcgrath.cucumber-arquillian</groupId>
+            <groupId>com.github.cucumber-arquillian</groupId>
             <artifactId>cucumber-arquillian-core</artifactId>
             <version>${project.version}</version>
         </dependency>

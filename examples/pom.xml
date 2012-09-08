@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     
     <parent>
-        <groupId>com.github.lmcgrath.cucumber-arquillian</groupId>
+        <groupId>com.github.cucumber-arquillian</groupId>
         <artifactId>cucumber-arquillian-parent</artifactId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
@@ -114,7 +114,7 @@
         </dependency>
         
         <dependency>
-            <groupId>com.github.lmcgrath.cucumber-arquillian</groupId>
+            <groupId>com.github.cucumber-arquillian</groupId>
             <artifactId>cucumber-arquillian-core</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
@@ -244,7 +244,7 @@
             </properties>
             <dependencies>
                 <dependency>
-                    <groupId>com.github.lmcgrath.cucumber-arquillian</groupId>
+                    <groupId>com.github.cucumber-arquillian</groupId>
                     <artifactId>cucumber-arquillian-jbas7</artifactId>
                     <version>${project.version}</version>
                     <scope>test</scope>
@@ -269,7 +269,7 @@
                     <scope>test</scope>
                 </dependency>
                 <dependency>
-                    <groupId>com.github.lmcgrath.cucumber-arquillian</groupId>
+                    <groupId>com.github.cucumber-arquillian</groupId>
                     <artifactId>cucumber-arquillian-jbas7</artifactId>
                     <version>${project.version}</version>
                     <scope>test</scope>
