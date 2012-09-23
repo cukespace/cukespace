@@ -33,7 +33,6 @@ public class Jbas7ResourceIteratorFactory implements ResourceIteratorFactory {
     
     @Override
     public boolean isFactoryFor(URL url) {
-        
         return "vfs".equals(url.getProtocol());
     }
 }

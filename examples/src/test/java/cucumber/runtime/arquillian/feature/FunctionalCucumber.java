@@ -12,11 +12,11 @@ public abstract class FunctionalCucumber extends Cucumber {
      * The Selenium driver.
      * 
      * <p>HACK: This exists because Drone doesn't seem to create the Selenium
-     * driver unless referenced explicitely by the test fixture. Without this
+     * driver unless referenced explicitly by the test fixture. Without this
      * field, Drone will fail to inject Selenium into any glue code.</p>
      * 
-     * <p>You are encouraged to implement a "client fixture" with the Drone
-     * extension of your choice. You are not limited to DefaultSelenium.</p>
+     * <p>You can implement any "client fixture" with the Drone extension of
+     * your choice. You are not limited to DefaultSelenium.</p>
      */
     @Drone
     protected DefaultSelenium browser;

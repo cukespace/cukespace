@@ -8,10 +8,6 @@ public class Belly implements Serializable {
     
     private int cukes;
     
-    public Belly() {
-        // intentionally empty
-    }
-    
     public int getCukes() {
         return this.cukes;
     }

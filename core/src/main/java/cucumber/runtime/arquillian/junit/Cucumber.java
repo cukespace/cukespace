@@ -59,7 +59,7 @@ public abstract class Cucumber {
     }
     
     protected void destroyRuntime(Runtime runtime) {
-        
+        // intentionally empty
     }
     
     protected ClassLoader getClassLoader() {
