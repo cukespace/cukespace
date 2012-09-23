@@ -17,23 +17,11 @@ import cucumber.runtime.arquillian.domain.Belly;
 import cucumber.runtime.arquillian.junit.FunctionalTest;
 import cucumber.runtime.arquillian.producer.FacesContextProducer;
 
-/**
- * Cucumber feature run from the client.
- */
 @Category(FunctionalTest.class)
 public class CukesInBellyFunctionalTest extends FunctionalCucumber {
     
-    /**
-     * Creates the test deployment.
-     * 
-     * <p>Client fixtures only have to mark their associated deployment with
-     * "testable = false" to run the feature from the client.</p>
-     * 
-     * @return The test deployment.
-     */
     @Deployment(testable = false)
     public static Archive<?> createDeployment() {
-        
         return create(WebArchive.class)
             .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml")
             .addAsWebInfResource(new StringAsset("<faces-config version=\"2.0\"/>"), "faces-config.xml")
@@ -43,17 +31,8 @@ public class CukesInBellyFunctionalTest extends FunctionalCucumber {
             .addClass(FacesContextProducer.class);
     }
     
-    /**
-     * Initializes a new instance of the CukesInBellyFunctionalTest class.
-     */
-    public CukesInBellyFunctionalTest() {
-        
-        // intentionally empty
-    }
-    
     @Override
     protected void initializeRuntimeOptions() {
-        
         RuntimeOptions runtimeOptions = this.getRuntimeOptions();
         runtimeOptions.featurePaths.add("classpath:cucumber/runtime/arquillian/feature");
         runtimeOptions.glue.add("classpath:cucumber/runtime/arquillian/glue/ui");

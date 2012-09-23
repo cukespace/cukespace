@@ -10,23 +10,10 @@ import cucumber.io.Resource;
 import cucumber.io.ResourceIteratorFactory;
 import cucumber.runtime.CucumberException;
 
-/**
- * Resource iterator factory for resources found in the JBoss AS 7 virtual
- * filesystem.
- */
 public class Jbas7ResourceIteratorFactory implements ResourceIteratorFactory {
-    
-    /**
-     * Initializes a new instance of the Jbas7ResourceIteratorFactory class.
-     */
-    public Jbas7ResourceIteratorFactory() {
-        
-        // intentionally empty
-    }
     
     @Override
     public Iterator<Resource> createIterator(URL url, String path, String suffix) {
-        
         try {
             Object content = url.openConnection().getContent();
             

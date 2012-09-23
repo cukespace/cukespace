@@ -14,17 +14,9 @@ import cucumber.runtime.arquillian.glue.server.BellySteps;
 import cucumber.runtime.arquillian.junit.Cucumber;
 import cucumber.runtime.arquillian.junit.ServerSideTest;
 
-/**
- * Basic test for Cucumber features in JBoss AS 7.
- */
 @Category(ServerSideTest.class)
 public class CukesInBellyTest extends Cucumber {
     
-    /**
-     * Creates the test deployment.
-     * 
-     * @return The test deployment.
-     */
     @Deployment
     public static Archive<?> createDeployment() {
         
@@ -38,17 +30,8 @@ public class CukesInBellyTest extends Cucumber {
         return war;
     }
     
-    /**
-     * Initializes a new instance of the CukesInBellyTest class.
-     */
-    public CukesInBellyTest() {
-        
-        // intentionally empty
-    }
-    
     @Override
     protected void initializeRuntimeOptions() {
-        
         RuntimeOptions runtimeOptions = this.getRuntimeOptions();
         runtimeOptions.featurePaths.add("classpath:cucumber/runtime/arquillian/feature");
         runtimeOptions.glue.add("classpath:cucumber/runtime/arquillian/glue/server");

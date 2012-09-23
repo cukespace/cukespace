@@ -6,9 +6,6 @@ import com.thoughtworks.selenium.DefaultSelenium;
 
 import cucumber.runtime.arquillian.junit.Cucumber;
 
-/**
- * Example fixture for running client-side features.
- */
 public abstract class FunctionalCucumber extends Cucumber {
     
     /**
@@ -23,12 +20,4 @@ public abstract class FunctionalCucumber extends Cucumber {
      */
     @Drone
     protected DefaultSelenium browser;
-    
-    /**
-     * Initializes a new instance of the FunctionalCucumber class.
-     */
-    public FunctionalCucumber() {
-        
-        // intentionally empty
-    }
 }

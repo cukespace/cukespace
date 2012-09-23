@@ -6,5 +6,4 @@ package cucumber.runtime.arquillian.junit;
  */
 public interface FunctionalTest {
     
-    // intentionally empty
 }
