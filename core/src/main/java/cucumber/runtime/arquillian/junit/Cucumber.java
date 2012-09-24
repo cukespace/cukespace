@@ -23,6 +23,11 @@ public abstract class Cucumber {
         this.runtimeOptions.strict = true;
     }
     
+    @Deprecated
+    public RuntimeOptions getRuntimeOptions() {
+        return this.runtimeOptions;
+    }
+    
     @Test
     public void runFeatures() throws Exception {
         this.initializeRuntimeOptions();
