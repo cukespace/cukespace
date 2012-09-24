@@ -8,7 +8,6 @@ import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.experimental.categories.Category;
 
-import cucumber.runtime.RuntimeOptions;
 import cucumber.runtime.arquillian.domain.Belly;
 import cucumber.runtime.arquillian.glue.server.BellySteps;
 import cucumber.runtime.arquillian.junit.Cucumber;
@@ -32,7 +31,6 @@ public class CukesInBellyTest extends Cucumber {
     
     @Override
     protected void initializeRuntimeOptions() {
-        RuntimeOptions runtimeOptions = this.getRuntimeOptions();
         runtimeOptions.featurePaths.add("classpath:cucumber/runtime/arquillian/feature");
         runtimeOptions.glue.add("classpath:cucumber/runtime/arquillian/glue/server");
     }

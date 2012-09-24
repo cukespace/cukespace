@@ -16,15 +16,11 @@ import cucumber.runtime.RuntimeOptions;
 @RunWith(Arquillian.class)
 public abstract class Cucumber {
     
-    private final RuntimeOptions runtimeOptions;
+    protected final RuntimeOptions runtimeOptions;
     
     public Cucumber() {
         this.runtimeOptions = new RuntimeOptions(new Properties(), "-m");
         this.runtimeOptions.strict = true;
-    }
-    
-    public RuntimeOptions getRuntimeOptions() {
-        return this.runtimeOptions;
     }
     
     @Test
@@ -52,7 +48,7 @@ public abstract class Cucumber {
         Runtime runtime = new Runtime(
             this.createResourceLoader(),
             this.getClassLoader(),
-            this.getRuntimeOptions()
+            this.runtimeOptions
         );
         
         return runtime;
