@@ -23,6 +23,9 @@ public abstract class Cucumber {
         this.runtimeOptions.strict = true;
     }
     
+    /**
+     * @deprecated Use the {@link #runtimeOptions} field directly instead.
+     */
     @Deprecated
     public RuntimeOptions getRuntimeOptions() {
         return this.runtimeOptions;
