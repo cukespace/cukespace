@@ -22,8 +22,7 @@ public class TestEnricherProvider {
     private Instance<ServiceLoader> serviceLoader;
     
     public void enrich(@Observes Before event) {
-        Collection<TestEnricher> enrichers
-            = this.serviceLoader.get().all(TestEnricher.class);
+        Collection<TestEnricher> enrichers = serviceLoader.get().all(TestEnricher.class);
         
         TEST_ENRICHERS.set(enrichers);
     }

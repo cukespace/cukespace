@@ -31,11 +31,11 @@ public class Jbas7Resource implements Resource {
     
     @Override
     public InputStream getInputStream() throws IOException {
-        return this.virtualFile.openStream();
+        return virtualFile.openStream();
     }
     
     @Override
     public String getPath() {
-        return this.name;
+        return name;
     }
 }

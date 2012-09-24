@@ -19,8 +19,8 @@ public abstract class Cucumber {
     protected final RuntimeOptions runtimeOptions;
     
     public Cucumber() {
-        this.runtimeOptions = new RuntimeOptions(new Properties(), "-m");
-        this.runtimeOptions.strict = true;
+        runtimeOptions = new RuntimeOptions(new Properties(), "-m");
+        runtimeOptions.strict = true;
     }
     
     /**
@@ -28,13 +28,13 @@ public abstract class Cucumber {
      */
     @Deprecated
     public RuntimeOptions getRuntimeOptions() {
-        return this.runtimeOptions;
+        return runtimeOptions;
     }
     
     @Test
     public void runFeatures() throws Exception {
-        this.initializeRuntimeOptions();
-        Runtime runtime = this.createRuntime();
+        initializeRuntimeOptions();
+        Runtime runtime = createRuntime();
         runtime.run();
         
         List<Throwable> errors = runtime.getErrors();
@@ -44,7 +44,7 @@ public abstract class Cucumber {
                 throw new MultipleFailureException(errors);
             }
         } finally {
-            this.destroyRuntime(runtime);
+            destroyRuntime(runtime);
         }
     }
     
@@ -54,9 +54,9 @@ public abstract class Cucumber {
     
     protected Runtime createRuntime() {
         Runtime runtime = new Runtime(
-            this.createResourceLoader(),
-            this.getClassLoader(),
-            this.runtimeOptions
+            createResourceLoader(),
+            getClassLoader(),
+            runtimeOptions
         );
         
         return runtime;
@@ -67,7 +67,7 @@ public abstract class Cucumber {
     }
     
     protected ClassLoader getClassLoader() {
-        return this.getClass().getClassLoader();
+        return getClass().getClassLoader();
     }
     
     protected abstract void initializeRuntimeOptions();

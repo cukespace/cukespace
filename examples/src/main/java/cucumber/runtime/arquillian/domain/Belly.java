@@ -9,11 +9,11 @@ public class Belly implements Serializable {
     private int cukes;
     
     public int getCukes() {
-        return this.cukes;
+        return cukes;
     }
     
     public boolean isHungry() {
-        return this.cukes <= 0;
+        return cukes <= 0;
     }
     
     public void setCukes(int cukes) {

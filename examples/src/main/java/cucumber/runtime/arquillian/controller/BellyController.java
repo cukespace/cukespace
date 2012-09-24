@@ -30,21 +30,21 @@ public class BellyController implements Serializable {
     private FacesContext facesContext;
     
     public BellyController() {
-        this.belly = new Belly();
+        belly = new Belly();
     }
     
     public String eatCukes() {
-        if(this.belly.isHungry()) {
-            this.facesContext.addMessage(null, new FacesMessage(SEVERITY_ERROR, ERROR_HUNGRY, ERROR_HUNGRY));
+        if(belly.isHungry()) {
+            facesContext.addMessage(null, new FacesMessage(SEVERITY_ERROR, ERROR_HUNGRY, ERROR_HUNGRY));
         } else {
-            String message = MessageFormat.format(SUCCESS_NOT_HUNGRY, this.belly.getCukes());
-            this.facesContext.addMessage(null, new FacesMessage(SEVERITY_INFO, message, message));
+            String message = MessageFormat.format(SUCCESS_NOT_HUNGRY, belly.getCukes());
+            facesContext.addMessage(null, new FacesMessage(SEVERITY_INFO, message, message));
         }
         return "belly.xhtml";
     }
     
     @Produces
     public Belly getCurrentBelly() {
-        return this.belly;
+        return belly;
     }
 }

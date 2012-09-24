@@ -13,16 +13,16 @@ public class BellySteps {
     
     @When("^I eat (\\d+) cukes$")
     public void eatCukes(int cukes) {
-        this.belly.setCukes(cukes);
+        belly.setCukes(cukes);
     }
     
     @Given("^I have a belly$")
     public void setUpBelly() {
-        this.belly = new Belly();
+        belly = new Belly();
     }
     
     @Then("^I should have (\\d+) cukes in my belly$")
     public void shouldHaveThisMany(int cukes) {
-        assertEquals(cukes, this.belly.getCukes());
+        assertEquals(cukes, belly.getCukes());
     }
 }

@@ -21,7 +21,7 @@ public class Jbas7ResourceIterator implements Iterator<Resource> {
     
     public Jbas7ResourceIterator(VirtualFile virtualFile, String path, String suffix) {
         try {
-            this.elements = virtualFile.getChildrenRecursively().iterator();
+            elements = virtualFile.getChildrenRecursively().iterator();
         } catch (IOException exception) {
             throw new CucumberException(exception);
         }
@@ -29,23 +29,23 @@ public class Jbas7ResourceIterator implements Iterator<Resource> {
         this.path = path;
         this.suffix = suffix;
         
-        this.moveNext();
+        moveNext();
     }
     
     @Override
     public boolean hasNext() {
-        return this.next != null;
+        return next != null;
     }
     
     @Override
     public Resource next() {
         try {
             if (this.hasNext()) {
-                return this.next;
+                return next;
             }
             throw new NoSuchElementException();
         } finally {
-            this.moveNext();
+            moveNext();
         }
     }
     
@@ -58,19 +58,19 @@ public class Jbas7ResourceIterator implements Iterator<Resource> {
         return virtualFile.getPathName().replaceFirst("^.+(\\.jar|\\.war/WEB-INF/classes)/", "");
     }
     
-    private boolean hasSuffix(String path) {
-        return this.suffix == null || "".equals(this.suffix) || path.endsWith(this.suffix);
+    private boolean hasSuffix(String pathToCheck) {
+        return suffix == null || "".equals(suffix) || pathToCheck.endsWith(suffix);
     }
     
     private void moveNext() {
-        this.next = null;
+        next = null;
         
-        while(this.elements.hasNext()) {
-            VirtualFile virtualFile = this.elements.next();
-            String name = this.getPathRelativeToClasspath(virtualFile);
+        while(elements.hasNext()) {
+            VirtualFile virtualFile = elements.next();
+            String name = getPathRelativeToClasspath(virtualFile);
             
-            if(name.startsWith(this.path) && this.hasSuffix(name)) {
-                this.next = new Jbas7Resource(virtualFile, name);
+            if(name.startsWith(path) && hasSuffix(name)) {
+                next = new Jbas7Resource(virtualFile, name);
                 break;
             }
         }

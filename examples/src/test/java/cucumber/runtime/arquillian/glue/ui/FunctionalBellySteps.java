@@ -24,26 +24,26 @@ public class FunctionalBellySteps {
     
     @When("^I eat (\\d+) cukes$")
     public void eatCukes(int cukes) {
-        this.browser.type("id=bellyForm:mouth", Integer.toString(cukes));
-        this.browser.captureScreenshot("target/screenshots/eatCukes.png");
-        this.browser.click("id=bellyForm:eatCukes");
-        this.browser.waitForPageToLoad("5000");
+        browser.type("id=bellyForm:mouth", Integer.toString(cukes));
+        browser.captureScreenshot("target/screenshots/eatCukes.png");
+        browser.click("id=bellyForm:eatCukes");
+        browser.waitForPageToLoad("5000");
     }
     
     @Given("^I have a belly$")
     public void setUpBelly() throws MalformedURLException {
-        this.browser.open(new URL(this.deploymentUrl, "faces/belly.xhtml").toString());
-        this.browser.captureScreenshot("target/screenshots/setUpBelly.png");
-        this.browser.waitForPageToLoad("5000");
+        browser.open(new URL(deploymentUrl, "faces/belly.xhtml").toString());
+        browser.captureScreenshot("target/screenshots/setUpBelly.png");
+        browser.waitForPageToLoad("5000");
     }
     
     @Then("^I should have (\\d+) cukes in my belly$")
     public void shouldHaveThisMany(int cukes) {
-        this.browser.captureScreenshot("target/screenshots/shouldHaveThisMany.png");
+        browser.captureScreenshot("target/screenshots/shouldHaveThisMany.png");
         
         assertTrue(
             "Unexpected number of cukes!",
-            this.browser.isElementPresent("xpath=//li[contains(text(), 'The belly ate " + cukes + " cukes!')]")
+            browser.isElementPresent("xpath=//li[contains(text(), 'The belly ate " + cukes + " cukes!')]")
         );
     }
 }
