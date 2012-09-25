@@ -10,20 +10,25 @@ import org.jboss.arquillian.test.spi.TestEnricher;
 import org.jboss.arquillian.test.spi.event.suite.Before;
 
 public class TestEnricherProvider {
-    
-    private static final ThreadLocal<Collection<TestEnricher>> TEST_ENRICHERS
-        = new ThreadLocal<Collection<TestEnricher>>();
-    
+
+    private static final ThreadLocal<Collection<TestEnricher>> TEST_ENRICHERS =
+        new ThreadLocal<Collection<TestEnricher>>();
+
     public static Collection<TestEnricher> getTestEnrichers() {
         return TEST_ENRICHERS.get();
     }
-    
+
+    static void setTestEnrichers(Collection<TestEnricher> testEnrichers) {
+        TEST_ENRICHERS.set(testEnrichers);
+    }
+
     @Inject
     private Instance<ServiceLoader> serviceLoader;
-    
+
     public void enrich(@Observes Before event) {
-        Collection<TestEnricher> enrichers = serviceLoader.get().all(TestEnricher.class);
-        
+        Collection<TestEnricher> enrichers = serviceLoader.get()
+            .all(TestEnricher.class);
+
         TEST_ENRICHERS.set(enrichers);
     }
 }
