@@ -38,7 +38,6 @@ public class FunctionalBellySteps {
         browser.captureScreenshot("target/screenshots/shouldHaveThisMany.png");
         assertTrue(
             "Unexpected number of cukes!",
-            browser.isElementPresent("xpath=//li[contains(text(), 'The belly ate " + cukes + " cukes!')]")
-        );
+            browser.isElementPresent("xpath=//li[contains(text(), 'The belly ate " + cukes + " cukes!')]"));
     }
 }

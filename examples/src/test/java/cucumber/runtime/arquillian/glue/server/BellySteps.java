@@ -8,7 +8,6 @@ import cucumber.api.java.en.When;
 import cucumber.runtime.arquillian.domain.Belly;
 
 public class BellySteps {
-    
     private Belly belly;
     
     @When("^I eat (\\d+) cukes$")
