@@ -191,9 +191,11 @@ and browser:
 
 ### Running examples in Mac OS X
 
-Mac OS X seems to have a problem finding where JBoss AS lives. The only workaround at this point is to manually set JBOSS_HOME from the command line:
+If JBOSS_HOME isn't defined in Mac OS X, then the example using JBoss AS will fail to run. There seems to be an issue with Arquillian being able to resolve JBOSS_HOME in Mac OS X, and the only workaround at this point is to manually define JBOSS_HOME from the command line prior to running the examples:
 
 ```
 export JBOSS_HOME=target/jboss-as-7.1.1.Final
 ```
+
+You won't need to do this if JBOSS_HOME is already defined and refers to a JBoss AS 7.1.1.Final instance.
 
