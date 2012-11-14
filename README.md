@@ -187,7 +187,7 @@ and browser:
 
 [see here]: http://stackoverflow.com/questions/2569977/list-of-selenium-rc-browser-launchers
 
-## Issues
+## Known Issues
 
 ### Running examples in Mac OS X
 
