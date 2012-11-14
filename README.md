@@ -100,22 +100,22 @@ container you choose to use:
 
 ```java
 // clip
-    @EJB
-    private CukeService service;
-    
-    @Resource
-    private Connection connection;
-    
-    @PersistenceContext
-    private EntityManager entityManager;
-    
-    @Inject
-    private CukeLocator cukeLocator;
-    
-    @When("^I persist my cuke$")
-    public void persistCuke() {
-        this.entityManager.persist(this.cukeLocator.findCuke());
-    }
+@EJB
+private CukeService service;
+
+@Resource
+private Connection connection;
+
+@PersistenceContext
+private EntityManager entityManager;
+
+@Inject
+private CukeLocator cukeLocator;
+
+@When("^I persist my cuke$")
+public void persistCuke() {
+    this.entityManager.persist(this.cukeLocator.findCuke());
+}
 // clip
 ``` 
 
@@ -132,18 +132,18 @@ as untestable and inject a webdriver:
 
 ```java
 // clip
-    @Drone
-    DefaultSelenium browser;
-    
-    @Deployment(testable = false)
-    public static Archive<?> createDeployment() {
-        return ShrinkWrap.create(WebArchive.class)
-            .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml")
-            .addAsWebInfResource(new StringAsset("<faces-config version=\"2.0\"/>"), "faces-config.xml")
-            .addAsWebResource(new File("src/main/webapp/belly.xhtml"), "belly.xhtml")
-            .addClass(Belly.class)
-            .addClass(BellyController.class);
-    }
+@Drone
+DefaultSelenium browser;
+
+@Deployment(testable = false)
+public static Archive<?> createDeployment() {
+    return ShrinkWrap.create(WebArchive.class)
+        .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml")
+        .addAsWebInfResource(new StringAsset("<faces-config version=\"2.0\"/>"), "faces-config.xml")
+        .addAsWebResource(new File("src/main/webapp/belly.xhtml"), "belly.xhtml")
+        .addClass(Belly.class)
+        .addClass(BellyController.class);
+}
 // clip
 ```
 
@@ -165,13 +165,17 @@ Be sure to remember to inject the webdriver into your test fixture, or you
 won't be able to inject it into any of your step definitions. You'll know when
 you've forgotten because you'll get the following error:
 
-```java.lang.IllegalArgumentException: Drone Test context should not be null```
+```
+java.lang.IllegalArgumentException: Drone Test context should not be null
+```
 
 ## Running the Examples
 
-To run the default configuration:
+To run the default configuration with FireFox and JBoss AS 7:
 
-```mvn verify```
+```
+$ mvn verify
+```
 
 The UI example will take screenshots and store them in the target/screenshots
 folder.
@@ -179,11 +183,11 @@ folder.
 The following command line properties allow you to specify the target server
 and browser:
 
-| Property   | Values          | Example                                  |
-|------------|-----------------|------------------------------------------|
-| jbas7      | managed, remote | ```mvn verify -Djbas7=managed```         |
-| glassfish3 | managed         | ```mvn verify -Dglassfish3=managed```    |
-| browser    | [see here][]    | ```mvn verify -Dbrowser=*googlechrome``` |
+| Property   | Values          | Example                                    |
+|------------|-----------------|--------------------------------------------|
+| jbas7      | managed, remote | ```$ mvn verify -Djbas7=managed```         |
+| glassfish3 | managed         | ```$ mvn verify -Dglassfish3=managed```    |
+| browser    | [see here][]    | ```$ mvn verify -Dbrowser=*googlechrome``` |
 
 [see here]: http://stackoverflow.com/questions/2569977/list-of-selenium-rc-browser-launchers
 
@@ -191,11 +195,23 @@ and browser:
 
 ### Running examples in Mac OS X
 
-If JBOSS_HOME isn't defined in Mac OS X, then the example using JBoss AS will fail to run. There seems to be an issue with Arquillian being able to resolve JBOSS_HOME in Mac OS X, and the only workaround at this point is to manually define JBOSS_HOME from the command line prior to running the examples:
+#### JBoss AS 7
+
+If JBOSS_HOME isn't defined in Mac OS X, then the example using JBoss AS will
+fail to run. There seems to be an issue with Arquillian being able to resolve
+JBOSS_HOME in Mac OS X, and the only workaround at this point is to manually
+define JBOSS_HOME from the command line prior to running the examples:
 
 ```
-export JBOSS_HOME=target/jboss-as-7.1.1.Final
+$ export JBOSS_HOME=target/jboss-as-7.1.1.Final
 ```
 
 You won't need to do this if JBOSS_HOME is already defined and refers to a JBoss AS 7.1.1.Final instance.
 
+#### GlassFish 3.1.2
+
+Mac OS X has the same problem with GlassFish as it does JBoss AS:
+
+```
+$ export GLASSFISH_HOME=target/glassfish3
+```
