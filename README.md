@@ -72,8 +72,7 @@ import cucumber.runtime.arquillian.junit.Cucumber;
 import my.features.domain.Belly;
 import my.features.glue.BellySteps;
 
-public class CukesInBellyTest extends Cucumber {
-    
+public class CukesInBellyTest extends Cucumber {    
     @Deployment
     public static Archive<?> createDeployment() {
         return ShrinkWrap.create(WebArchive.class)
@@ -152,7 +151,6 @@ You can then access your Drone from any step definition.
 
 ```java
 public class IrresistibleButtonSteps {
-    
     @Drone
     private DefaultSelenium browser;
     
@@ -188,3 +186,14 @@ and browser:
 | browser    | [see here][]    | ```mvn verify -Dbrowser=*googlechrome``` |
 
 [see here]: http://stackoverflow.com/questions/2569977/list-of-selenium-rc-browser-launchers
+
+## Issues
+
+### Running examples in Mac OS X
+
+Mac OS X seems to have a problem finding where JBoss AS lives. The only workaround at this point is to manually set JBOSS_HOME from the command line:
+
+```
+export JBOSS_HOME=target/jboss-as-7.1.1.Final
+```
+
