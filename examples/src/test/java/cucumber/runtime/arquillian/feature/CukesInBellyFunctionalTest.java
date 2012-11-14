@@ -3,7 +3,10 @@ package cucumber.runtime.arquillian.feature;
 import static org.jboss.shrinkwrap.api.ShrinkWrap.create;
 
 import java.io.File;
-
+import cucumber.runtime.arquillian.controller.BellyController;
+import cucumber.runtime.arquillian.domain.Belly;
+import cucumber.runtime.arquillian.junit.FunctionalTest;
+import cucumber.runtime.arquillian.producer.FacesContextProducer;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
@@ -11,14 +14,8 @@ import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.experimental.categories.Category;
 
-import cucumber.runtime.arquillian.controller.BellyController;
-import cucumber.runtime.arquillian.domain.Belly;
-import cucumber.runtime.arquillian.junit.FunctionalTest;
-import cucumber.runtime.arquillian.producer.FacesContextProducer;
-
 @Category(FunctionalTest.class)
 public class CukesInBellyFunctionalTest extends FunctionalCucumber {
-    
     @Deployment(testable = false)
     public static Archive<?> createDeployment() {
         return create(WebArchive.class)

@@ -1,6 +1,5 @@
 package cucumber.runtime.arquillian.junit;
 
-
 /**
  * Server feature test category.
  */

@@ -3,7 +3,6 @@ package cucumber.runtime.arquillian.domain;
 import java.io.Serializable;
 
 public class Belly implements Serializable {
-    
     private static final long serialVersionUID = -1182468379585134676L;
     
     private int cukes;

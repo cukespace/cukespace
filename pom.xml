@@ -7,7 +7,7 @@
         <groupId>org.sonatype.oss</groupId>
         <artifactId>oss-parent</artifactId>
         <version>7</version>
-        <relativePath />
+        <relativePath/>
     </parent>
     
     <groupId>com.github.cukespace</groupId>
@@ -38,9 +38,9 @@
         <project.build.target>1.6</project.build.target>
         
         <!-- dependency and plugin versions -->
-        <arquillian.version>1.0.1.Final</arquillian.version>
-        <arquillian-drone.version>1.1.0.CR2</arquillian-drone.version>
-        <cucumber-jvm.version>1.0.14</cucumber-jvm.version>
+        <arquillian.version>1.0.3.Final</arquillian.version>
+        <arquillian-drone.version>1.1.0.CR3</arquillian-drone.version>
+        <cucumber-jvm.version>1.1.1</cucumber-jvm.version>
         <hamcrest.version>1.1</hamcrest.version>
         <junit.version>4.10</junit.version>
         <maven-compiler.version>2.3.1</maven-compiler.version>

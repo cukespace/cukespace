@@ -4,18 +4,14 @@ import static org.junit.Assert.assertTrue;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-
+import com.thoughtworks.selenium.DefaultSelenium;
+import cucumber.api.java.en.Given;
+import cucumber.api.java.en.Then;
+import cucumber.api.java.en.When;
 import org.jboss.arquillian.drone.api.annotation.Drone;
 import org.jboss.arquillian.test.api.ArquillianResource;
 
-import com.thoughtworks.selenium.DefaultSelenium;
-
-import cucumber.annotation.en.Given;
-import cucumber.annotation.en.Then;
-import cucumber.annotation.en.When;
-
 public class FunctionalBellySteps {
-    
     @ArquillianResource
     private URL deploymentUrl;
     
@@ -40,7 +36,6 @@ public class FunctionalBellySteps {
     @Then("^I should have (\\d+) cukes in my belly$")
     public void shouldHaveThisMany(int cukes) {
         browser.captureScreenshot("target/screenshots/shouldHaveThisMany.png");
-        
         assertTrue(
             "Unexpected number of cukes!",
             browser.isElementPresent("xpath=//li[contains(text(), 'The belly ate " + cukes + " cukes!')]")

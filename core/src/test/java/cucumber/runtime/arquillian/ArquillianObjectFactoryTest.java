@@ -14,7 +14,6 @@ import org.jboss.arquillian.test.spi.TestEnricher;
 import org.junit.Test;
 
 public class ArquillianObjectFactoryTest {
-
     @Test
     public void shouldEnrichInstanceOnlyOnce() {
         ArquillianObjectFactory factory = new ArquillianObjectFactory();

@@ -1,6 +1,5 @@
 package cucumber.runtime.arquillian.junit;
 
-
 /**
  * Functional test category.
  */

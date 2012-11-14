@@ -7,7 +7,6 @@ import com.thoughtworks.selenium.DefaultSelenium;
 import cucumber.runtime.arquillian.junit.Cucumber;
 
 public abstract class FunctionalCucumber extends Cucumber {
-    
     /**
      * The Selenium driver.
      * 
