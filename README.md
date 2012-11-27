@@ -183,11 +183,11 @@ folder.
 The following command line properties allow you to specify the target server
 and browser:
 
-| Property   | Values          | Example                                    |
-|------------|-----------------|--------------------------------------------|
-| jbas7      | managed, remote | ```$ mvn verify -Djbas7=managed```         |
-| glassfish3 | managed         | ```$ mvn verify -Dglassfish3=managed```    |
-| browser    | [see here][]    | ```$ mvn verify -Dbrowser=*googlechrome``` |
+| Property   | Values          | Example                                |
+|------------|-----------------|----------------------------------------|
+| jbas7      | managed, remote | `$ mvn verify -Djbas7=managed`         |
+| glassfish3 | managed         | `$ mvn verify -Dglassfish3=managed`    |
+| browser    | [see here][]    | `$ mvn verify -Dbrowser=*googlechrome` |
 
 [see here]: http://stackoverflow.com/questions/2569977/list-of-selenium-rc-browser-launchers
 
@@ -195,23 +195,16 @@ and browser:
 
 ### Running examples in Mac OS X
 
-#### JBoss AS 7
+Max OS X requires that all container *_HOME environment variables be set in
+order to run the examples. The only workaround at this point is to manually
+define these variables:
 
-If JBOSS_HOME isn't defined in Mac OS X, then the example using JBoss AS will
-fail to run. There seems to be an issue with Arquillian being able to resolve
-JBOSS_HOME in Mac OS X, and the only workaround at this point is to manually
-define JBOSS_HOME from the command line prior to running the examples:
+| Server          | Command                                           |
+|-----------------|---------------------------------------------------|
+| JBoss AS 7      | `$ export JBOSS_HOME=target/jboss-as-7.1.1.Final` |
+| GlassFish 3.1.2 | `$ export GLASSFISH_HOME=target/glassfish3`       |
 
-```
-$ export JBOSS_HOME=target/jboss-as-7.1.1.Final
-```
-
-You won't need to do this if JBOSS_HOME is already defined and refers to a JBoss AS 7.1.1.Final instance.
-
-#### GlassFish 3.1.2
-
-Mac OS X has the same problem with GlassFish as it does JBoss AS:
-
-```
-$ export GLASSFISH_HOME=target/glassfish3
-```
+**NOTE:** The build process unzips the associated server into the `target/`
+folder. If the server *_HOME variables are already defined but point elsewhere,
+then Arquillian will launch the server indicated by the *_HOME variable and not
+the one in the `target/` folder.
