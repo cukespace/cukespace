@@ -9,6 +9,7 @@
     </parent>
 
     <artifactId>cukespace-weld</artifactId>
+    <name>Cukes in Space! Weld Extension</name>
 
     <dependencies>
         <dependency>
