@@ -28,6 +28,7 @@
         <module>core</module>
         <module>examples</module>
         <module>jbas7</module>
+        <module>weld</module>
     </modules>
     
     <properties>
