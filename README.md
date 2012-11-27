@@ -195,7 +195,7 @@ and browser:
 
 ### Running examples in Mac OS X
 
-Max OS X requires that all container *_HOME environment variables be set in
+Max OS X requires that all container `*_HOME` environment variables be set in
 order to run the examples. The only workaround at this point is to manually
 define these variables:
 
@@ -205,6 +205,6 @@ define these variables:
 | GlassFish 3.1.2 | `$ export GLASSFISH_HOME=target/glassfish3`       |
 
 **NOTE:** The build process unzips the associated server into the `target/`
-folder. If the server *_HOME variables are already defined but point elsewhere,
-then Arquillian will launch the server indicated by the *_HOME variable and not
-the one in the `target/` folder.
+folder. If the server `*_HOME` variables are already defined but point
+elsewhere, then Arquillian will launch the server indicated by the `*_HOME`
+variable and not the one in the `target/` folder.
