@@ -1,56 +1,58 @@
 package cucumber.runtime.arquillian;
 
 import static cucumber.runtime.arquillian.TestEnricherProvider.getTestEnrichers;
-import static java.lang.String.format;
 
-import java.lang.reflect.Constructor;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
-import java.util.Set;
+import java.util.ServiceLoader;
 import cucumber.runtime.CucumberException;
 import cucumber.runtime.java.ObjectFactory;
 import org.jboss.arquillian.test.spi.TestEnricher;
 
 public class ArquillianObjectFactory implements ObjectFactory {
-    private final Set<Class<?>> classes = new HashSet<Class<?>>();
-    private final Map<Class<?>, Object> instances = new HashMap<Class<?>, Object>();
+    private final Map<Class<?>, Object> instances;
+    private final ObjectFactoryExtension extension;
 
-    public void addClass(Class<?> clazz) {
-        classes.add(clazz);
+    public ArquillianObjectFactory() {
+        instances = new HashMap<Class<?>, Object>();
+        Iterator<ObjectFactoryExtension> iterator = ServiceLoader.load(ObjectFactoryExtension.class).iterator();
+        if (iterator.hasNext()) {
+            extension = iterator.next();
+            if (iterator.hasNext()) {
+                throw new CucumberException("Multiple implementations of ObjectFactoryExtension found");
+            }
+        } else {
+            extension = new DefaultObjectFactoryExtension();
+        }
     }
 
     @Override
-    public <T> T getInstance(Class<T> type) {
-        T instance = (T) instances.get(type);
-        if (instance == null) {
-            instance = cacheNewInstance(type);
-        }
-        return instance;
-    }
-
     public void start() {
-        // intentionally empty
+        extension.start();
     }
 
     @Override
     public void stop() {
+        extension.stop();
         instances.clear();
     }
 
-    private <T> T cacheNewInstance(Class<T> type) {
-        try {
-            Constructor<T> constructor = type.getConstructor();
-            T instance = constructor.newInstance();
+    @Override
+    public void addClass(Class<?> clazz) {
+        extension.addClass(clazz);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T> T getInstance(Class<T> type) {
+        if (!instances.containsKey(type)) {
+            T instance = extension.getInstance(type);
             for (TestEnricher testEnricher : getTestEnrichers()) {
                 testEnricher.enrich(instance);
             }
             instances.put(type, instance);
-            return instance;
-        } catch (NoSuchMethodException e) {
-            throw new CucumberException(format("%s doesn't have an empty constructor", type), e);
-        } catch (Exception e) {
-            throw new CucumberException(format("Failed to instantiate %s", type), e);
         }
+        return (T) instances.get(type);
     }
 }
