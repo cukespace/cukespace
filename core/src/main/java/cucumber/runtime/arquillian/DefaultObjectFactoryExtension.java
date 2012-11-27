@@ -28,7 +28,7 @@ public class DefaultObjectFactoryExtension implements ObjectFactoryExtension {
                     testEnricher.enrich(instance);
                 }
                 instances.put(type, instance);
-            } catch (ReflectiveOperationException exception) {
+            } catch (Exception exception) {
                 throw new CucumberException(format("Failed to instantiate %s", type), exception);
             }
         }
