@@ -7,7 +7,7 @@ import javax.interceptor.Interceptor;
 import javax.interceptor.InvocationContext;
 import org.jboss.arquillian.test.spi.TestEnricher;
 
-@RequiresEnrichment
+@Enriched
 @Interceptor
 public class EnricherInterceptor {
     @PostConstruct
