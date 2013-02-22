@@ -1,59 +1,37 @@
 package cucumber.runtime.arquillian.client;
 
-import static org.jboss.shrinkwrap.api.ShrinkWrap.create;
-import static org.jboss.shrinkwrap.resolver.api.DependencyResolvers.use;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Properties;
-
+import cucumber.runtime.arquillian.TestEnricherProvider;
+import cucumber.runtime.arquillian.container.CucumberContainerExtension;
+import cucumber.runtime.arquillian.junit.Cucumber;
+import cucumber.runtime.arquillian.stream.NotCloseablePrintStream;
+import cucumber.runtime.java.JavaBackend;
+import gherkin.util.Mapper;
 import org.jboss.arquillian.container.test.spi.RemoteLoadableExtension;
 import org.jboss.arquillian.container.test.spi.client.deployment.ApplicationArchiveProcessor;
 import org.jboss.arquillian.test.spi.TestClass;
 import org.jboss.shrinkwrap.api.Archive;
-import org.jboss.shrinkwrap.api.GenericArchive;
 import org.jboss.shrinkwrap.api.container.LibraryContainer;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
-import org.jboss.shrinkwrap.resolver.api.maven.MavenDependencyResolver;
 
-import cucumber.runtime.CucumberException;
-import cucumber.runtime.arquillian.TestEnricherProvider;
-import cucumber.runtime.arquillian.container.CucumberContainerExtension;
-import cucumber.runtime.arquillian.junit.Cucumber;
+import static cucumber.runtime.arquillian.locator.JarLocation.jarLocation;
+import static org.jboss.shrinkwrap.api.ShrinkWrap.create;
 
 public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
 
     @Override
-    public void process(Archive<?> applicationArchive, TestClass testClass) {
-        Properties properties = new Properties();
-        InputStream versionsStream = CucumberArchiveProcessor.class.getResourceAsStream("versions.properties");
-        
-        try {
-            properties.load(versionsStream);
-        } catch (IOException exception) {
-            throw new CucumberException(exception);
-        } finally {
-            try {
-                versionsStream.close();
-            } catch (IOException exception) {
-                // intentionally empty
-            }
-        }
-        
-        LibraryContainer<?> libraryContainer = (LibraryContainer<?>) applicationArchive;
-        
-        libraryContainer.addAsLibraries(
-            use(MavenDependencyResolver.class)
-                .artifact("info.cukes:cucumber-java:" + properties.getProperty("cucumber-jvm.version"))
-                .resolveAs(GenericArchive.class)
-        );
+    public void process(final Archive<?> applicationArchive, final TestClass testClass) {
+        final LibraryContainer<?> libraryContainer = (LibraryContainer<?>) applicationArchive;
+
+        // cucumber-java and cucumber-core
+        libraryContainer.addAsLibraries(jarLocation(JavaBackend.class), jarLocation(Mapper.class));
         
         libraryContainer.addAsLibrary(
-            create(JavaArchive.class)
+            create(JavaArchive.class, "cukespace-core.jar")
                 .addAsServiceProvider(RemoteLoadableExtension.class, CucumberContainerExtension.class)
                 .addPackage(Cucumber.class.getPackage())
+                .addPackage(NotCloseablePrintStream.class.getPackage())
+                .addPackage(TestEnricherProvider.class.getPackage())
                 .addClass(CucumberContainerExtension.class)
-                .addClass(TestEnricherProvider.class)
         );
     }
 }
