@@ -3,6 +3,7 @@ package cucumber.runtime.arquillian.client;
 import cucumber.runtime.arquillian.TestEnricherProvider;
 import cucumber.runtime.arquillian.container.CucumberContainerExtension;
 import cucumber.runtime.arquillian.junit.Cucumber;
+import cucumber.runtime.arquillian.stream.NotCloseablePrintStream;
 import cucumber.runtime.java.JavaBackend;
 import gherkin.util.Mapper;
 import org.jboss.arquillian.container.test.spi.RemoteLoadableExtension;
@@ -28,6 +29,7 @@ public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
             create(JavaArchive.class, "cukespace-core.jar")
                 .addAsServiceProvider(RemoteLoadableExtension.class, CucumberContainerExtension.class)
                 .addPackage(Cucumber.class.getPackage())
+                .addPackage(NotCloseablePrintStream.class.getPackage())
                 .addPackage(TestEnricherProvider.class.getPackage())
                 .addClass(CucumberContainerExtension.class)
         );
