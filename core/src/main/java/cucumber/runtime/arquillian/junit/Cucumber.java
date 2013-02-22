@@ -77,12 +77,33 @@ public abstract class Cucumber {
     }
     
     protected void initializeRuntimeOptions() { // default logic by convention
-        String basePackage = getClass().getPackage().getName().replace('.', '/');
+        final Class<? extends Cucumber> clazz = getClass();
+
+        String basePackage = clazz.getPackage().getName().replace('.', '/');
         if (basePackage.endsWith(FEATURE_PACKAGE)) {
             basePackage = basePackage.substring(0, basePackage.length() - FEATURE_PACKAGE.length());
         }
 
-        runtimeOptions.featurePaths.add(CLASSPATH_PREFIX + basePackage + FEATURE_PACKAGE);
+        final String classNameSubPackage = createClassNameSubPackage(clazz.getSimpleName());
+
+        // we generally don't want to run same feature N times
+        runtimeOptions.featurePaths.add(CLASSPATH_PREFIX + basePackage + FEATURE_PACKAGE + '/' + classNameSubPackage);
+        // glue classes can be shared so using base package
         runtimeOptions.glue.add(CLASSPATH_PREFIX + basePackage + GLUE_PACKAGE);
+    }
+
+    private static String createClassNameSubPackage(final String name) {
+        String result = name;
+        if (result.endsWith("Test")) {
+            result = result.substring(0, result.length() - "Test".length());
+        } else if (result.endsWith("IT")) {
+            result = result.substring(0, result.length() - "IT".length());
+        }
+
+        if (result.length() == 1) {
+            return result;
+        }
+
+        return Character.toLowerCase(result.charAt(0)) + result.substring(1);
     }
 }
