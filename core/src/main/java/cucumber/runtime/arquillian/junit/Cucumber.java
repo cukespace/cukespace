@@ -20,6 +20,9 @@ import java.util.Properties;
 public abstract class Cucumber {
     private final static PrintStream ORIGINAL_OUT = System.out;
     private final static PrintStream NOT_CLOSEABLE_OUT = new NotCloseablePrintStream(ORIGINAL_OUT);
+    private static final String CLASSPATH_PREFIX = "classpath:";
+    private static final String FEATURE_PACKAGE = "/feature";
+    private static final String GLUE_PACKAGE = "/glue";
 
     protected final RuntimeOptions runtimeOptions;
     
@@ -73,5 +76,13 @@ public abstract class Cucumber {
         return getClass().getClassLoader();
     }
     
-    protected abstract void initializeRuntimeOptions();
+    protected void initializeRuntimeOptions() { // default logic by convention
+        String basePackage = getClass().getPackage().getName().replace('.', '/');
+        if (basePackage.endsWith(FEATURE_PACKAGE)) {
+            basePackage = basePackage.substring(0, basePackage.length() - FEATURE_PACKAGE.length());
+        }
+
+        runtimeOptions.featurePaths.add(CLASSPATH_PREFIX + basePackage + FEATURE_PACKAGE);
+        runtimeOptions.glue.add(CLASSPATH_PREFIX + basePackage + GLUE_PACKAGE);
+    }
 }
