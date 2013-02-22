@@ -25,11 +25,11 @@ public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
         libraryContainer.addAsLibraries(jarLocation(JavaBackend.class), jarLocation(Mapper.class));
         
         libraryContainer.addAsLibrary(
-            create(JavaArchive.class)
+            create(JavaArchive.class, "cukespace-core.jar")
                 .addAsServiceProvider(RemoteLoadableExtension.class, CucumberContainerExtension.class)
                 .addPackage(Cucumber.class.getPackage())
+                .addPackage(TestEnricherProvider.class.getPackage())
                 .addClass(CucumberContainerExtension.class)
-                .addClass(TestEnricherProvider.class)
         );
     }
 }
