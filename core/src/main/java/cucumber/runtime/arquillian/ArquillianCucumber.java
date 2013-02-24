@@ -4,9 +4,10 @@ import cucumber.runtime.FeatureBuilder;
 import cucumber.runtime.RuntimeOptions;
 import cucumber.runtime.arquillian.backend.ArquillianBackend;
 import cucumber.runtime.arquillian.feature.Features;
-import cucumber.runtime.formatter.FormatterFactory;
+import cucumber.runtime.formatter.ColorAware;
 import cucumber.runtime.io.Resource;
 import cucumber.runtime.model.CucumberFeature;
+import cucumber.runtime.snippets.SummaryPrinter;
 import gherkin.formatter.Formatter;
 import gherkin.formatter.Reporter;
 import org.jboss.arquillian.junit.Arquillian;
@@ -90,17 +91,23 @@ public class ArquillianCucumber extends Arquillian {
         }
 
         builder.parse(featureResource, Collections.emptyList());
-        final CucumberFeature feature = cucumberFeatures.iterator().next();
 
-        final RuntimeOptions runtimeOptions = new RuntimeOptions(new Properties());
+        final RuntimeOptions runtimeOptions = new RuntimeOptions(new Properties(), "-f", "pretty", areColorsNotAvailable());
         runtimeOptions.strict = true;
-        runtimeOptions.monochrome = areColorsAvailable();
+
         final cucumber.runtime.Runtime runtime = new cucumber.runtime.Runtime(null, tccl, Arrays.asList(new ArquillianBackend(clazz, testInstance)), runtimeOptions);
+        for (final CucumberFeature feature : cucumberFeatures) {
+            final Formatter formatter = runtimeOptions.formatter(tccl);
+            final Reporter reporter = runtimeOptions.reporter(tccl);
 
-        final Formatter formatter = new FormatterFactory().create("pretty");
-        final Reporter reporter = runtimeOptions.reporter(tccl);
+            feature.run(formatter, reporter, runtime);
+        }
 
-        feature.run(formatter, reporter, runtime);
+        Formatter formatter = runtimeOptions.formatter(tccl);
+
+        formatter.done();
+        new SummaryPrinter(System.out).print(runtime);
+        formatter.close();
 
         final List<Throwable> errors = runtime.getErrors();
         if (!errors.isEmpty()) {
@@ -108,9 +115,12 @@ public class ArquillianCucumber extends Arquillian {
         }
     }
 
-    private static boolean areColorsAvailable() {
-        return !System.getProperty("os.name").toLowerCase(Locale.ENGLISH).contains("win") // windows: no comment
-                && !System.getProperty("java.class.path").contains("idea_rt"); // doesn't work in IDEa
+    private static String areColorsNotAvailable() {
+        if (System.getProperty("os.name").toLowerCase(Locale.ENGLISH).contains("win") // windows: no comment
+                || System.getProperty("java.class.path").contains("idea_rt")) { // doesn't work in IDEa
+            return "--monochrome";
+        }
+        return "--no-monochrome";
     }
 
     private static class ClassLoaderResource implements Resource {
