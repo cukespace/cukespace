@@ -25,12 +25,16 @@
     </properties>
 
     <dependencies>
-
         <dependency>
-            <groupId>org.jboss.spec</groupId>
-            <artifactId>jboss-javaee-6.0</artifactId>
-            <version>${jboss-spec.version}</version>
-            <type>pom</type>
+            <groupId>org.apache.openejb</groupId>
+            <artifactId>javaee-api</artifactId>
+            <version>6.0-4</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.myfaces.core</groupId>
+            <artifactId>myfaces-api</artifactId>
+            <version>2.1.10</version>
             <scope>provided</scope>
         </dependency>
         
@@ -67,18 +71,6 @@
         <dependency>
             <groupId>org.jboss.arquillian.protocol</groupId>
             <artifactId>arquillian-protocol-servlet</artifactId>
-            <scope>test</scope>
-        </dependency>
-        
-        <dependency>
-            <groupId>org.jboss.shrinkwrap.resolver</groupId>
-            <artifactId>shrinkwrap-resolver-api-maven</artifactId>
-            <scope>test</scope>
-        </dependency>
-        
-        <dependency>
-            <groupId>org.jboss.shrinkwrap.resolver</groupId>
-            <artifactId>shrinkwrap-resolver-impl-maven</artifactId>
             <scope>test</scope>
         </dependency>
 
@@ -149,6 +141,48 @@
     </build>
     
     <profiles>
+        <profile>
+            <id>tomee-remote</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <repositories>
+              <repository>
+                <id>apache-snapshot</id>
+                <name>Apache Snapshots</name>
+                <url>https://repository.apache.org/content/groups/snapshots/</url>
+              </repository>
+            </repositories>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <version>${maven-surefire.version}</version>
+                        <configuration>
+                            <systemPropertyVariables>
+                                <arquillian.qualifier>tomee-remote</arquillian.qualifier>
+                                <java.net.preferIPv4Stack>true</java.net.preferIPv4Stack>
+                            </systemPropertyVariables>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+            <dependencies>
+                <dependency>
+                    <groupId>org.apache.openejb</groupId>
+                    <artifactId>arquillian-tomee-remote</artifactId>
+                    <version>1.6.0-SNAPSHOT</version>
+                    <scope>test</scope>
+                </dependency>
+                <dependency>
+                    <groupId>org.apache.openejb</groupId>
+                    <artifactId>openejb-core</artifactId>
+                    <version>4.6.0-SNAPSHOT</version>
+                    <scope>test</scope>
+                </dependency>
+            </dependencies>
+        </profile>
         
         <profile>
             <id>glassfish3</id>
@@ -222,7 +256,6 @@
         <profile>
             <id>jbas7</id>
             <activation>
-                <activeByDefault>true</activeByDefault>
                 <property>
                     <name>jbas7</name>
                 </property>
@@ -230,20 +263,11 @@
             <properties>
                 <jboss-as.version>7.1.1.Final</jboss-as.version>
             </properties>
-            <dependencies>
-                <dependency>
-                    <groupId>com.github.cukespace</groupId>
-                    <artifactId>cukespace-jbas7</artifactId>
-                    <version>${project.version}</version>
-                    <scope>test</scope>
-                </dependency>
-            </dependencies>
         </profile>
         
         <profile>
             <id>jbas7-managed</id>
             <activation>
-                <activeByDefault>true</activeByDefault>
                 <property>
                     <name>jbas7</name>
                     <value>managed</value>
@@ -254,12 +278,6 @@
                     <groupId>org.jboss.as</groupId>
                     <artifactId>jboss-as-arquillian-container-managed</artifactId>
                     <version>${jboss-as.version}</version>
-                    <scope>test</scope>
-                </dependency>
-                <dependency>
-                    <groupId>com.github.cukespace</groupId>
-                    <artifactId>cukespace-jbas7</artifactId>
-                    <version>${project.version}</version>
                     <scope>test</scope>
                 </dependency>
             </dependencies>

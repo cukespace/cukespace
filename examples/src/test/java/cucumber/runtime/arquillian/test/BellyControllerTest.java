@@ -1,5 +1,14 @@
 package cucumber.runtime.arquillian.test;
 
+import cucumber.runtime.arquillian.controller.BellyController;
+import cucumber.runtime.arquillian.domain.Belly;
+import org.junit.Test;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
+
+import javax.faces.application.FacesMessage;
+import javax.faces.context.FacesContext;
+
 import static cucumber.runtime.arquillian.controller.BellyController.MSG_ERROR_HUNGRY;
 import static cucumber.runtime.arquillian.controller.BellyController.MSG_SUCCESS_NOT_HUNGRY;
 import static java.text.MessageFormat.format;
@@ -9,14 +18,6 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
-
-import javax.faces.application.FacesMessage;
-import javax.faces.context.FacesContext;
-import cucumber.runtime.arquillian.controller.BellyController;
-import cucumber.runtime.arquillian.domain.Belly;
-import org.junit.Test;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 public class BellyControllerTest {
     @Test

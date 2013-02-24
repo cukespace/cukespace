@@ -12,7 +12,18 @@
     <extension qualifier="selenium">
         <property name="browser">${browser}</property>
     </extension>
-    
+
+    <container qualifier="tomee-remote">
+        <configuration>
+            <property name="httpPort">-1</property>
+            <property name="ajpPort">-1</property>
+            <property name="stopPort">-1</property>
+            <property name="dir">target/tomee-remote</property>
+            <property name="appWorkingDir">target/arquillian-remote-working-dir</property>
+            <property name="cleanOnStartUp">true</property>
+        </configuration>
+    </container>
+
     <container qualifier="glassfish3-embedded">
         <configuration>
             <property name="bindHttpPort">9999</property>

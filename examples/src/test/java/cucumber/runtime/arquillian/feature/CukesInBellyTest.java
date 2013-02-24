@@ -1,32 +1,46 @@
 package cucumber.runtime.arquillian.feature;
 
-import static org.jboss.shrinkwrap.api.ShrinkWrap.create;
-
+import cucumber.api.java.en.Given;
+import cucumber.api.java.en.Then;
+import cucumber.api.java.en.When;
+import cucumber.runtime.arquillian.ArquillianCucumber;
 import cucumber.runtime.arquillian.domain.Belly;
-import cucumber.runtime.arquillian.glue.server.BellySteps;
-import cucumber.runtime.arquillian.junit.Cucumber;
-import cucumber.runtime.arquillian.junit.ServerSideTest;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.experimental.categories.Category;
+import org.junit.runner.RunWith;
 
-@Category(ServerSideTest.class)
-public class CukesInBellyTest extends Cucumber {
+import javax.inject.Inject;
+
+import static org.jboss.shrinkwrap.api.ShrinkWrap.create;
+import static org.junit.Assert.assertEquals;
+
+@RunWith(ArquillianCucumber.class)
+public class CukesInBellyTest {
     @Deployment
     public static Archive<?> createDeployment() {
         return create(WebArchive.class)
             .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml")
-            .addAsResource("cucumber/runtime/arquillian/feature/cukes.feature")
             .addClass(Belly.class)
-            .addClass(BellySteps.class)
             .addClass(CukesInBellyTest.class);
     }
-    
-    @Override
-    protected void initializeRuntimeOptions() {
-        runtimeOptions.featurePaths.add("classpath:cucumber/runtime/arquillian/feature");
-        runtimeOptions.glue.add("classpath:cucumber/runtime/arquillian/glue/server");
+
+    @Inject
+    private Belly belly;
+
+    @When("^I eat (\\d+) cukes$")
+    public void eatCukes(int cukes) {
+        belly.setCukes(cukes);
+    }
+
+    @Given("^I have a belly$")
+    public void setUpBelly() {
+        belly = new Belly();
+    }
+
+    @Then("^I should have (\\d+) cukes in my belly$")
+    public void shouldHaveThisMany(int cukes) {
+        assertEquals(cukes, belly.getCukes());
     }
 }
