@@ -47,7 +47,7 @@ public class ArquillianCucumber extends Arquillian {
 
     @Override
     public void filter(final Filter filter) throws NoTestsRemainException {
-        if (filter.describe().toString().startsWith("Method " + RUN_CUCUMBER_MTD + "(")) { // not the best test but it does the job
+        if (filter.describe().startsWith("Method " + RUN_CUCUMBER_MTD + "(")) { // not the best test but it does the job
             return;
         }
 
