@@ -2,6 +2,7 @@ package cucumber.runtime.arquillian.client;
 
 import cucumber.runtime.arquillian.ArquillianCucumber;
 import cucumber.runtime.arquillian.backend.ArquillianBackend;
+import cucumber.runtime.arquillian.config.Configs;
 import cucumber.runtime.arquillian.container.CucumberContainerExtension;
 import cucumber.runtime.arquillian.feature.Features;
 import cucumber.runtime.arquillian.glue.Glues;
@@ -62,6 +63,7 @@ public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
             builder.append(annotation.getName()).append(ln);
         }
         resourceJar.addAsResource(new StringAsset(builder.toString()), "cukespace-annotations.txt");
+        resourceJar.addAsResource(new StringAsset(Configs.COLORS + "=" + Configs.areColorsAvailables()), "cukespace-config.properties");
 
         libraryContainer.addAsLibrary(resourceJar);
 
@@ -86,6 +88,7 @@ public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
                 .addClass(CucumberLifecycle.class)
                 .addClass(Features.class)
                 .addClass(Glues.class)
+                .addClass(Configs.class)
                 .addClass(ArquillianCucumber.class)
                 .addClass(CucumberContainerExtension.class)
         );

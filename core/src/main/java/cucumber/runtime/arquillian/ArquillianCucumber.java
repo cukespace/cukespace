@@ -4,6 +4,7 @@ import cucumber.runtime.CucumberException;
 import cucumber.runtime.FeatureBuilder;
 import cucumber.runtime.RuntimeOptions;
 import cucumber.runtime.arquillian.backend.ArquillianBackend;
+import cucumber.runtime.arquillian.config.Configs;
 import cucumber.runtime.arquillian.feature.Features;
 import cucumber.runtime.arquillian.glue.Glues;
 import cucumber.runtime.io.Resource;
@@ -30,7 +31,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
 import java.util.Properties;
 
 public class ArquillianCucumber extends Arquillian {
@@ -99,7 +99,15 @@ public class ArquillianCucumber extends Arquillian {
             throw new IllegalArgumentException("No feature found");
         }
 
-        final RuntimeOptions runtimeOptions = new RuntimeOptions(new Properties(), "-f", "pretty", areColorsNotAvailable());
+        final InputStream configIs = tccl.getResourceAsStream("cukespace-config.properties");
+        final Properties cukespaceConfig = new Properties();
+        if (configIs != null) {
+            cukespaceConfig.load(configIs);
+        } else { // probably on the client side
+            Configs.initConfig(cukespaceConfig);
+        }
+
+        final RuntimeOptions runtimeOptions = new RuntimeOptions(new Properties(), "-f", "pretty", areColorsNotAvailable(cukespaceConfig));
         runtimeOptions.strict = true;
 
         final cucumber.runtime.Runtime runtime = new cucumber.runtime.Runtime(null, tccl, Arrays.asList(new ArquillianBackend(Glues.findGlues(clazz), clazz, testInstance)), runtimeOptions);
@@ -127,9 +135,8 @@ public class ArquillianCucumber extends Arquillian {
         }
     }
 
-    private static String areColorsNotAvailable() {
-        if (System.getProperty("os.name").toLowerCase(Locale.ENGLISH).contains("win") // windows: no comment
-                || System.getProperty("java.class.path").contains("idea_rt")) { // doesn't work in IDEa
+    private static String areColorsNotAvailable(final Properties cukespaceConfig) {
+        if (!Boolean.parseBoolean(cukespaceConfig.getProperty("colors", "false"))) {
             return "--monochrome";
         }
         return "--no-monochrome";
