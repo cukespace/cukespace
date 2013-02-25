@@ -1,10 +1,7 @@
 package cucumber.runtime.arquillian.controller;
 
-import static javax.faces.application.FacesMessage.SEVERITY_ERROR;
-import static javax.faces.application.FacesMessage.SEVERITY_INFO;
+import cucumber.runtime.arquillian.domain.Belly;
 
-import java.io.Serializable;
-import java.text.MessageFormat;
 import javax.enterprise.context.SessionScoped;
 import javax.enterprise.inject.New;
 import javax.enterprise.inject.Produces;
@@ -12,7 +9,11 @@ import javax.faces.application.FacesMessage;
 import javax.faces.context.FacesContext;
 import javax.inject.Inject;
 import javax.inject.Named;
-import cucumber.runtime.arquillian.domain.Belly;
+import java.io.Serializable;
+import java.text.MessageFormat;
+
+import static javax.faces.application.FacesMessage.SEVERITY_ERROR;
+import static javax.faces.application.FacesMessage.SEVERITY_INFO;
 
 @Named
 @SessionScoped

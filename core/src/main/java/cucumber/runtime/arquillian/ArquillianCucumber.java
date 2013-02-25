@@ -1,10 +1,11 @@
 package cucumber.runtime.arquillian;
 
+import cucumber.runtime.CucumberException;
 import cucumber.runtime.FeatureBuilder;
 import cucumber.runtime.RuntimeOptions;
 import cucumber.runtime.arquillian.backend.ArquillianBackend;
 import cucumber.runtime.arquillian.feature.Features;
-import cucumber.runtime.formatter.ColorAware;
+import cucumber.runtime.arquillian.glue.Glues;
 import cucumber.runtime.io.Resource;
 import cucumber.runtime.model.CucumberFeature;
 import cucumber.runtime.snippets.SummaryPrinter;
@@ -81,21 +82,27 @@ public class ArquillianCucumber extends Arquillian {
     private void runCucumber(final Object testInstance) throws Exception {
         final Class<?> clazz = getTestClass().getJavaClass();
         final ClassLoader tccl = Thread.currentThread().getContextClassLoader();
-        final String featurePath = Features.featurePath(clazz);
 
         final List<CucumberFeature> cucumberFeatures = new ArrayList<CucumberFeature>();
         final FeatureBuilder builder = new FeatureBuilder(cucumberFeatures);
-        final ClassLoaderResource featureResource = new ClassLoaderResource(tccl, featurePath);
-        if (!featureResource.exists()) {
-            return;
+
+        for (final String path : Features.findFeatures(clazz)) {
+            final ClassLoaderResource featureResource = new ClassLoaderResource(tccl, path);
+            if (!featureResource.exists()) {
+                continue;
+            }
+
+            builder.parse(featureResource, Collections.emptyList());
         }
 
-        builder.parse(featureResource, Collections.emptyList());
+        if (cucumberFeatures.isEmpty()) {
+            throw new IllegalArgumentException("No feature found");
+        }
 
         final RuntimeOptions runtimeOptions = new RuntimeOptions(new Properties(), "-f", "pretty", areColorsNotAvailable());
         runtimeOptions.strict = true;
 
-        final cucumber.runtime.Runtime runtime = new cucumber.runtime.Runtime(null, tccl, Arrays.asList(new ArquillianBackend(clazz, testInstance)), runtimeOptions);
+        final cucumber.runtime.Runtime runtime = new cucumber.runtime.Runtime(null, tccl, Arrays.asList(new ArquillianBackend(Glues.findGlues(clazz), clazz, testInstance)), runtimeOptions);
         for (final CucumberFeature feature : cucumberFeatures) {
             final Formatter formatter = runtimeOptions.formatter(tccl);
             final Reporter reporter = runtimeOptions.reporter(tccl);
@@ -103,13 +110,18 @@ public class ArquillianCucumber extends Arquillian {
             feature.run(formatter, reporter, runtime);
         }
 
-        Formatter formatter = runtimeOptions.formatter(tccl);
+        final Formatter formatter = runtimeOptions.formatter(tccl);
 
         formatter.done();
         new SummaryPrinter(System.out).print(runtime);
         formatter.close();
 
         final List<Throwable> errors = runtime.getErrors();
+
+        for (final String snippet : runtime.getSnippets()) {
+            errors.add(new CucumberException("Missing snippet: " + snippet));
+        }
+
         if (!errors.isEmpty()) {
             throw new MultipleFailureException(errors);
         }

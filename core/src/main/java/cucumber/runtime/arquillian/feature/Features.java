@@ -1,5 +1,12 @@
 package cucumber.runtime.arquillian.feature;
 
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
 public final class Features {
     private Features() {
         // no-op
@@ -8,6 +15,29 @@ public final class Features {
     public static String featurePath(final Class<?> javaClass) {
         return javaClass.getPackage().getName().replace('.', '/')
                 + '/' + createClassNameSubPackage(javaClass.getSimpleName()) + ".feature";
+    }
+
+    public static Map<String, URL> createFeatureMap(final Class<?> javaClass, final ClassLoader loader) {
+        final Map<String, URL> featureUrls = new HashMap<String, URL>();
+        for (final String path : findFeatures(javaClass)) {
+            final URL url = loader.getResource(path);
+            if (url != null) {
+                featureUrls.put(path, url);
+            }
+        }
+        return featureUrls;
+    }
+
+    public static Collection<String> findFeatures(final Class<?> javaClass) {
+        final Collection<String> featureUrls = new ArrayList<String>();
+        final String featurePath = Features.featurePath(javaClass);
+        featureUrls.add(featurePath);
+
+        final cucumber.runtime.arquillian.api.Features additionalFeaturesAnn = javaClass.getAnnotation(cucumber.runtime.arquillian.api.Features.class);
+        if (additionalFeaturesAnn != null) {
+            Collections.addAll(featureUrls, additionalFeaturesAnn.value());
+        }
+        return featureUrls;
     }
 
     private static String createClassNameSubPackage(final String name) {

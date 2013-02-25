@@ -2,9 +2,6 @@ package cucumber.runtime.arquillian.backend;
 
 import cucumber.api.java.After;
 import cucumber.api.java.Before;
-import cucumber.api.java.en.Given;
-import cucumber.api.java.en.Then;
-import cucumber.api.java.en.When;
 import cucumber.runtime.Backend;
 import cucumber.runtime.CucumberException;
 import cucumber.runtime.DuplicateStepDefinitionException;
@@ -18,9 +15,11 @@ import gherkin.formatter.model.Step;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 // patched to use the resource loader defined by this extension
@@ -28,28 +27,46 @@ import java.util.regex.Pattern;
 // completely listed feature/steps (glue) classes/resources
 public class ArquillianBackend implements Backend {
     private final SnippetGenerator snippetGenerator = new SnippetGenerator(new ArquillianSnippet());
-    private final Object instance;
-    private final Class<?> clazz;
+    private final Map<Class<?>, Object> instances = new HashMap<Class<?>, Object>();
+    private final Collection<Class<?>> glues = new ArrayList<Class<?>>();
     private Glue glue;
 
-    public ArquillianBackend(final Class<?> testClass, final Object testInstance) {
-        this.instance = testInstance;
-        this.clazz = testClass;
+    public ArquillianBackend(final Collection<Class<?>> classes, final Class<?> clazz, final Object testInstance) {
+        instances.put(clazz, testInstance);
+        glues.addAll(classes);
     }
 
     @Override
     public void loadGlue(final Glue glue, final List<String> gluePaths) {
         this.glue = glue;
+        initInstances();
+        scan(); // dedicated scanning
+    }
 
-        // dedicated scanning
-        for (final Method method : clazz.getMethods()) {
-            for (final Class<? extends Annotation> cucumberAnnotationClass : CucumberLifecycle.cucumberAnnotations()) {
-                final Annotation annotation = method.getAnnotation(cucumberAnnotationClass);
-                if (annotation != null) {
-                    if (isHookAnnotation(annotation)) {
-                        addHook(annotation, method);
-                    } else if (isStepdefAnnotation(annotation)) {
-                        addStepDefinition(annotation, method);
+    private void initInstances() {
+        for (final Class<?> glueClass : glues) {
+            final Object instance;
+            try {
+                instance = glueClass.newInstance();
+            } catch (final Exception e) {
+                throw new IllegalArgumentException("Can't instantiate " + glueClass.getName(), e);
+            }
+
+            instances.put(glueClass, CucumberLifecycle.enrich(instance));
+        }
+    }
+
+    private void scan() {
+        for (final Map.Entry<Class<?>, Object> clazz : instances.entrySet()) {
+            for (final Method method : clazz.getKey().getMethods()) {
+                for (final Class<? extends Annotation> cucumberAnnotationClass : CucumberLifecycle.cucumberAnnotations()) {
+                    final Annotation annotation = method.getAnnotation(cucumberAnnotationClass);
+                    if (annotation != null) {
+                        if (isHookAnnotation(annotation)) {
+                            addHook(annotation, method, clazz.getValue());
+                        } else if (isStepdefAnnotation(annotation)) {
+                            addStepDefinition(annotation, method, clazz.getValue());
+                        }
                     }
                 }
             }
@@ -66,7 +83,7 @@ public class ArquillianBackend implements Backend {
         return annotationClass.getAnnotation(StepDefAnnotation.class) != null;
     }
 
-    void addStepDefinition(final Annotation annotation, final Method method) {
+    private void addStepDefinition(final Annotation annotation, final Method method, final Object instance) {
         try {
             glue.addStepDefinition(new ArquillianStepDefinition(method, pattern(annotation), timeout(annotation), instance));
         } catch (DuplicateStepDefinitionException e) {
@@ -87,7 +104,7 @@ public class ArquillianBackend implements Backend {
         return (Integer) Utils.invoke(annotation, regexpMethod, 0);
     }
 
-    void addHook(Annotation annotation, Method method) {
+    private void addHook(final Annotation annotation, final Method method, final Object instance) {
         if (annotation.annotationType().equals(Before.class)) {
             final String[] tagExpressions = ((Before) annotation).value();
             final int timeout = ((Before) annotation).timeout();
