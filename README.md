@@ -10,16 +10,10 @@ The following application servers are supported. The artifact
 ```cukespace-core``` is required for all servers, and additional dependencies
 have been listed for each.
 
-| Server      | Additional Dependencies |
-|-------------|-------------------------|
-| JBoss AS 7  | cukespace-jbas7         |
-| Glassfish 3 |                         |
-
 # Quickstart
 
 This quickstart assumes you're already very familiar with [Arquillian][] and
-[Cucumber-JVM][], and that you've set up your Maven to use the
-[JBoss repository][].
+[Cucumber-JVM][], and that you've set up your Maven.
 
 [Arquillian]: http://www.arquillian.org/
 [Cucumber-JVM]: http://www.github.com/cucumber/cucumber-jvm
@@ -46,24 +40,10 @@ You'll want at least the following dependency in your pom.xml:
 </dependency>
 ```
 
-You'll also want to add dependencies for the application server you wish to
-test against. Here's an example dependency for JBoss AS 7:
-
-```xml
-<dependency>
-    <groupId>com.github.cukespace</groupId>
-    <artifactId>cukespace-jbas7</artifactId>
-    <version>{VERSION}</version>
-    <scope>test</scope>
-</dependency>
-```
-
 ## Creating Features
 
-### Server-Side Tests
-
-All you have to do is extend ```Cucumber```, create the test deployment, and
-tailor the Cucumber runtime options:
+All you have to do is to replace Arquillian runner by ```ArquillianCucumber```, create the test deployment, and
+write your steps in your test class:
 
 ```java
 package my.features;
@@ -72,7 +52,8 @@ import cucumber.runtime.arquillian.junit.Cucumber;
 import my.features.domain.Belly;
 import my.features.glue.BellySteps;
 
-public class CukesInBellyTest extends Cucumber {    
+@RunWith(ArquillianCucumber.class)
+public class CukesInBellyTest {
     @Deployment
     public static Archive<?> createDeployment() {
         return ShrinkWrap.create(WebArchive.class)
@@ -83,11 +64,15 @@ public class CukesInBellyTest extends Cucumber {
             .addClass(CukesInBellyFeature.class);
     }
     
-    @Override
-    protected void initializeRuntimeOptions() {
-        RuntimeOptions runtimeOptions = this.getRuntimeOptions();
-        runtimeOptions.featurePaths.add("classpath:my/features");
-        runtimeOptions.glue.add("classpath:my/features/glue");
+    @EJB
+    private CukeService service;
+
+    @Inject
+    private CukeLocator cukeLocator;
+
+    @When("^I persist my cuke$")
+    public void persistCuke() {
+        this.service.persist(this.cukeLocator.findCuke());
     }
 }
 ```
@@ -169,42 +154,27 @@ you've forgotten because you'll get the following error:
 java.lang.IllegalArgumentException: Drone Test context should not be null
 ```
 
-## Running the Examples
+### Externalize some common features/steps
+#### Features
 
-To run the default configuration with FireFox and JBoss AS 7:
+If you want to reuse some feature in multiple test you can specify it through @Features:
 
+```java
+@Features("org/foo/bar/scenarii.feature") // can support multiple features too
+@RunWith(ArquillianCucumber.class)
+public class MyFeatureTest {
+    ....
+}
 ```
-$ mvn verify
+
+#### Steps
+
+If you want to reuse some step classes you can using the annotation @Glues:
+
+```java
+@Glues(MySteps.class) // can support multiple steps classes too
+@RunWith(ArquillianCucumber.class)
+public class MyFeatureTest {
+    ....
+}
 ```
-
-The UI example will take screenshots and store them in the target/screenshots
-folder.
-
-The following command line properties allow you to specify the target server
-and browser:
-
-| Property   | Values          | Example                                |
-|------------|-----------------|----------------------------------------|
-| jbas7      | managed, remote | `$ mvn verify -Djbas7=managed`         |
-| glassfish3 | managed         | `$ mvn verify -Dglassfish3=managed`    |
-| browser    | [see here][]    | `$ mvn verify -Dbrowser=*googlechrome` |
-
-[see here]: http://stackoverflow.com/questions/2569977/list-of-selenium-rc-browser-launchers
-
-## Known Issues
-
-### Running examples in Mac OS X
-
-Max OS X requires that all container `*_HOME` environment variables be set in
-order to run the examples. The only workaround at this point is to manually
-define these variables:
-
-| Server          | Command                                           |
-|-----------------|---------------------------------------------------|
-| JBoss AS 7      | `$ export JBOSS_HOME=target/jboss-as-7.1.1.Final` |
-| GlassFish 3.1.2 | `$ export GLASSFISH_HOME=target/glassfish3`       |
-
-**NOTE:** The build process unzips the associated server into the `target/`
-folder. If the server `*_HOME` variables are already defined but point
-elsewhere, then Arquillian will launch the server indicated by the `*_HOME`
-variable and not the one in the `target/` folder.
