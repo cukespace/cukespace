@@ -19,6 +19,7 @@ import org.jboss.shrinkwrap.api.asset.Asset;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.container.LibraryContainer;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
+import org.jboss.shrinkwrap.impl.base.asset.AssetUtil;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -26,7 +27,9 @@ import java.io.InputStream;
 import java.lang.annotation.Annotation;
 import java.net.URL;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import static cucumber.runtime.arquillian.locator.JarLocation.jarLocation;
 import static org.jboss.shrinkwrap.api.ShrinkWrap.create;
@@ -72,6 +75,15 @@ public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
         if (!glues.isEmpty()) {
             final JavaArchive gluesJar = create(JavaArchive.class, "cukespace-glues.jar");
             gluesJar.addClasses(glues.toArray(new Class<?>[glues.size()]));
+            for (final Class<?> clazz : glues) {
+                Class<?> current = clazz.getSuperclass();
+                while (!Object.class.equals(current)) {
+                    if (!gluesJar.contains(AssetUtil.getFullPathForClassResource(current))) {
+                        gluesJar.addClass(current);
+                    }
+                    current = current.getSuperclass();
+                }
+            }
             libraryContainer.addAsLibrary(gluesJar);
         }
 
