@@ -1,9 +1,9 @@
 package cucumber.runtime.arquillian.client;
 
 import cucumber.runtime.arquillian.ArquillianCucumber;
-import cucumber.runtime.arquillian.api.Reportable;
 import cucumber.runtime.arquillian.backend.ArquillianBackend;
 import cucumber.runtime.arquillian.config.Configs;
+import cucumber.runtime.arquillian.config.CucumberConfiguration;
 import cucumber.runtime.arquillian.container.CucumberContainerExtension;
 import cucumber.runtime.arquillian.feature.Features;
 import cucumber.runtime.arquillian.glue.Glues;
@@ -15,6 +15,8 @@ import cucumber.runtime.java.JavaBackend;
 import gherkin.util.Mapper;
 import org.jboss.arquillian.container.test.spi.RemoteLoadableExtension;
 import org.jboss.arquillian.container.test.spi.client.deployment.ApplicationArchiveProcessor;
+import org.jboss.arquillian.core.api.Instance;
+import org.jboss.arquillian.core.api.annotation.Inject;
 import org.jboss.arquillian.test.spi.TestClass;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.asset.Asset;
@@ -35,6 +37,8 @@ import static cucumber.runtime.arquillian.locator.JarLocation.jarLocation;
 import static org.jboss.shrinkwrap.api.ShrinkWrap.create;
 
 public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
+    @Inject
+    private Instance<CucumberConfiguration> configuration;
 
     @Override
     public void process(final Archive<?> applicationArchive, final TestClass testClass) {
@@ -67,19 +71,20 @@ public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
         }
         resourceJar.addAsResource(new StringAsset(builder.toString()), "cukespace-annotations.txt");
 
-        final Reportable reportable = javaClass.getAnnotation(Reportable.class);
-        final String reportPath = Configs.reportablePath(reportable);
+        final boolean report = configuration.get().isReport();
+        final String reportDirectory = configuration.get().getReportDirectory();
+
         resourceJar.addAsResource(new StringAsset(
-                Configs.COLORS + "=" + Configs.areColorsAvailables() + "\n"
-                + Configs.REPORTABLE + " = " + Boolean.toString(reportable != null) + "\n"
-                + Configs.REPORTABLE_PATH + " = " + reportPath
+                Configs.COLORS + "=" + configuration.get().isColorized() + "\n"
+                + Configs.REPORTABLE + " = " + report + "\n"
+                + Configs.REPORTABLE_PATH + " = " + reportDirectory
             ),
             "cukespace-config.properties");
 
         libraryContainer.addAsLibrary(resourceJar);
 
-        if (reportable != null) {
-            CucumberReporter.addReport(Configs.reportFile(reportPath, javaClass));
+        if (report) {
+            CucumberReporter.addReport(Configs.reportFile(reportDirectory, javaClass));
         }
 
         // glues

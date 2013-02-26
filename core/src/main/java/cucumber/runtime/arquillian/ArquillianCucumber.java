@@ -5,6 +5,7 @@ import cucumber.runtime.FeatureBuilder;
 import cucumber.runtime.RuntimeOptions;
 import cucumber.runtime.arquillian.backend.ArquillianBackend;
 import cucumber.runtime.arquillian.config.Configs;
+import cucumber.runtime.arquillian.config.CucumberConfiguration;
 import cucumber.runtime.arquillian.feature.Features;
 import cucumber.runtime.arquillian.glue.Glues;
 import cucumber.runtime.arquillian.reporter.CucumberReporter;
@@ -108,7 +109,12 @@ public class ArquillianCucumber extends Arquillian {
         if (configIs != null) {
             cukespaceConfig.load(configIs);
         } else { // probably on the client side
-            Configs.initConfig(clazz, cukespaceConfig);
+            final CucumberConfiguration config = CucumberConfiguration.instance();
+            if (config.isInitialized()) {
+                cukespaceConfig.setProperty(CucumberConfiguration.COLORS, Boolean.toString(config.isColorized()));
+                cukespaceConfig.setProperty(CucumberConfiguration.REPORTABLE, Boolean.toString(config.isReport()));
+                cukespaceConfig.setProperty(CucumberConfiguration.REPORTABLE_PATH, config.getReportDirectory());
+            }
         }
 
         final RuntimeOptions runtimeOptions = new RuntimeOptions(new Properties(), "-f", "pretty", areColorsNotAvailable(cukespaceConfig));
