@@ -4,7 +4,6 @@ import cucumber.runtime.CucumberException;
 import cucumber.runtime.FeatureBuilder;
 import cucumber.runtime.RuntimeOptions;
 import cucumber.runtime.arquillian.backend.ArquillianBackend;
-import cucumber.runtime.arquillian.config.Configs;
 import cucumber.runtime.arquillian.config.CucumberConfiguration;
 import cucumber.runtime.arquillian.feature.Features;
 import cucumber.runtime.arquillian.glue.Glues;
@@ -114,14 +113,24 @@ public class ArquillianCucumber extends Arquillian {
                 cukespaceConfig.setProperty(CucumberConfiguration.COLORS, Boolean.toString(config.isColorized()));
                 cukespaceConfig.setProperty(CucumberConfiguration.REPORTABLE, Boolean.toString(config.isReport()));
                 cukespaceConfig.setProperty(CucumberConfiguration.REPORTABLE_PATH, config.getReportDirectory());
+                if (config.hasOptions()) {
+                    cukespaceConfig.setProperty(CucumberConfiguration.OPTIONS, config.getOptions());
+                }
             }
         }
 
-        final RuntimeOptions runtimeOptions = new RuntimeOptions(new Properties(), "-f", "pretty", areColorsNotAvailable(cukespaceConfig));
+        final String[] options;
+        if (cukespaceConfig.containsKey(CucumberConfiguration.OPTIONS)) { // override
+            options = cukespaceConfig.getProperty(CucumberConfiguration.OPTIONS).split(",");
+        } else {
+            options = new String[] { "-f", "pretty", areColorsNotAvailable(cukespaceConfig) };
+        }
+
+        final RuntimeOptions runtimeOptions = new RuntimeOptions(new Properties(), options);
         runtimeOptions.strict = true;
 
         final StringBuilder reportBuilder = new StringBuilder();
-        final boolean reported = Boolean.parseBoolean(cukespaceConfig.getProperty(Configs.REPORTABLE, "false"));
+        final boolean reported = Boolean.parseBoolean(cukespaceConfig.getProperty(CucumberConfiguration.REPORTABLE, "false"));
         if (reported) {
             runtimeOptions.formatters.add(new JSONFormatter(reportBuilder));
         }
@@ -141,9 +150,9 @@ public class ArquillianCucumber extends Arquillian {
         formatter.close();
 
         if (reported) {
-            final String path = cukespaceConfig.getProperty(Configs.REPORTABLE_PATH);
+            final String path = cukespaceConfig.getProperty(CucumberConfiguration.REPORTABLE_PATH);
             if (path != null) {
-                final File destination = Configs.reportFile(path, clazz);
+                final File destination = CucumberConfiguration.reportFile(path, clazz);
                 final File parentFile = destination.getParentFile();
                 if (!parentFile.exists() && !parentFile.mkdirs()) {
                     throw new IllegalArgumentException("Can't create " + parentFile.getAbsolutePath());
@@ -161,7 +170,7 @@ public class ArquillianCucumber extends Arquillian {
                 }
 
                 // add it here too for client case
-                CucumberReporter.addReport(Configs.reportFile(path, clazz));
+                CucumberReporter.addReport(CucumberConfiguration.reportFile(path, clazz));
             }
         }
 

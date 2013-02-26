@@ -2,7 +2,6 @@ package cucumber.runtime.arquillian.client;
 
 import cucumber.runtime.arquillian.ArquillianCucumber;
 import cucumber.runtime.arquillian.backend.ArquillianBackend;
-import cucumber.runtime.arquillian.config.Configs;
 import cucumber.runtime.arquillian.config.CucumberConfiguration;
 import cucumber.runtime.arquillian.container.CucumberContainerExtension;
 import cucumber.runtime.arquillian.feature.Features;
@@ -71,20 +70,25 @@ public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
         }
         resourceJar.addAsResource(new StringAsset(builder.toString()), "cukespace-annotations.txt");
 
-        final boolean report = configuration.get().isReport();
-        final String reportDirectory = configuration.get().getReportDirectory();
+        final CucumberConfiguration cucumberConfiguration = configuration.get();
+        final boolean report = cucumberConfiguration.isReport();
+        final String reportDirectory = cucumberConfiguration.getReportDirectory();
 
-        resourceJar.addAsResource(new StringAsset(
-                Configs.COLORS + "=" + configuration.get().isColorized() + "\n"
-                + Configs.REPORTABLE + " = " + report + "\n"
-                + Configs.REPORTABLE_PATH + " = " + reportDirectory
-            ),
+        final StringBuilder config = new StringBuilder();
+        config.append(CucumberConfiguration.COLORS).append("=").append(cucumberConfiguration.isColorized()).append("\n")
+            .append(CucumberConfiguration.REPORTABLE).append("=").append(report).append("\n")
+            .append(CucumberConfiguration.REPORTABLE_PATH).append("=").append(reportDirectory).append("\n");
+        if (cucumberConfiguration.hasOptions()) {
+            config.append(CucumberConfiguration.OPTIONS).append("=").append(cucumberConfiguration.getOptions());
+        }
+
+        resourceJar.addAsResource(new StringAsset(config.toString()),
             "cukespace-config.properties");
 
         libraryContainer.addAsLibrary(resourceJar);
 
         if (report) {
-            CucumberReporter.addReport(Configs.reportFile(reportDirectory, javaClass));
+            CucumberReporter.addReport(CucumberConfiguration.reportFile(reportDirectory, javaClass));
         }
 
         // glues
@@ -118,7 +122,7 @@ public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
                 .addClass(CucumberLifecycle.class)
                 .addClass(Features.class)
                 .addClass(Glues.class)
-                .addClass(Configs.class)
+                .addClass(CucumberConfiguration.class)
                 .addClass(ArquillianCucumber.class)
                 .addClass(CucumberContainerExtension.class)
         );
