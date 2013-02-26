@@ -1,12 +1,14 @@
 package cucumber.runtime.arquillian.client;
 
 import cucumber.runtime.arquillian.ArquillianCucumber;
+import cucumber.runtime.arquillian.api.Reportable;
 import cucumber.runtime.arquillian.backend.ArquillianBackend;
 import cucumber.runtime.arquillian.config.Configs;
 import cucumber.runtime.arquillian.container.CucumberContainerExtension;
 import cucumber.runtime.arquillian.feature.Features;
 import cucumber.runtime.arquillian.glue.Glues;
 import cucumber.runtime.arquillian.lifecycle.CucumberLifecycle;
+import cucumber.runtime.arquillian.reporter.CucumberReporter;
 import cucumber.runtime.arquillian.stream.NotCloseablePrintStream;
 import cucumber.runtime.io.ClasspathResourceLoader;
 import cucumber.runtime.java.JavaBackend;
@@ -27,9 +29,7 @@ import java.io.InputStream;
 import java.lang.annotation.Annotation;
 import java.net.URL;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 import static cucumber.runtime.arquillian.locator.JarLocation.jarLocation;
 import static org.jboss.shrinkwrap.api.ShrinkWrap.create;
@@ -66,9 +66,21 @@ public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
             builder.append(annotation.getName()).append(ln);
         }
         resourceJar.addAsResource(new StringAsset(builder.toString()), "cukespace-annotations.txt");
-        resourceJar.addAsResource(new StringAsset(Configs.COLORS + "=" + Configs.areColorsAvailables()), "cukespace-config.properties");
+
+        final Reportable reportable = javaClass.getAnnotation(Reportable.class);
+        final String reportPath = Configs.reportablePath(reportable);
+        resourceJar.addAsResource(new StringAsset(
+                Configs.COLORS + "=" + Configs.areColorsAvailables() + "\n"
+                + Configs.REPORTABLE + " = " + Boolean.toString(reportable != null) + "\n"
+                + Configs.REPORTABLE_PATH + " = " + reportPath
+            ),
+            "cukespace-config.properties");
 
         libraryContainer.addAsLibrary(resourceJar);
+
+        if (reportable != null) {
+            CucumberReporter.addReport(Configs.reportFile(reportPath, javaClass));
+        }
 
         // glues
         final Collection<Class<?>> glues = Glues.findGlues(javaClass);
@@ -97,6 +109,7 @@ public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
                 .addPackage(ArquillianBackend.class.getPackage())
                 .addPackage(cucumber.runtime.arquillian.api.Glues.class.getPackage())
                 .addClass(NotCloseablePrintStream.class)
+                .addClass(CucumberReporter.class)
                 .addClass(CucumberLifecycle.class)
                 .addClass(Features.class)
                 .addClass(Glues.class)

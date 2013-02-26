@@ -7,10 +7,12 @@ import cucumber.runtime.arquillian.backend.ArquillianBackend;
 import cucumber.runtime.arquillian.config.Configs;
 import cucumber.runtime.arquillian.feature.Features;
 import cucumber.runtime.arquillian.glue.Glues;
+import cucumber.runtime.arquillian.reporter.CucumberReporter;
 import cucumber.runtime.io.Resource;
 import cucumber.runtime.model.CucumberFeature;
 import cucumber.runtime.snippets.SummaryPrinter;
 import gherkin.formatter.Formatter;
+import gherkin.formatter.JSONFormatter;
 import gherkin.formatter.Reporter;
 import org.jboss.arquillian.junit.Arquillian;
 import org.junit.After;
@@ -23,6 +25,8 @@ import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.InitializationError;
 import org.junit.runners.model.Statement;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Method;
@@ -104,11 +108,17 @@ public class ArquillianCucumber extends Arquillian {
         if (configIs != null) {
             cukespaceConfig.load(configIs);
         } else { // probably on the client side
-            Configs.initConfig(cukespaceConfig);
+            Configs.initConfig(clazz, cukespaceConfig);
         }
 
         final RuntimeOptions runtimeOptions = new RuntimeOptions(new Properties(), "-f", "pretty", areColorsNotAvailable(cukespaceConfig));
         runtimeOptions.strict = true;
+
+        final StringBuilder reportBuilder = new StringBuilder();
+        final boolean reported = Boolean.parseBoolean(cukespaceConfig.getProperty(Configs.REPORTABLE, "false"));
+        if (reported) {
+            runtimeOptions.formatters.add(new JSONFormatter(reportBuilder));
+        }
 
         final cucumber.runtime.Runtime runtime = new cucumber.runtime.Runtime(null, tccl, Arrays.asList(new ArquillianBackend(Glues.findGlues(clazz), clazz, testInstance)), runtimeOptions);
         for (final CucumberFeature feature : cucumberFeatures) {
@@ -124,12 +134,35 @@ public class ArquillianCucumber extends Arquillian {
         new SummaryPrinter(System.out).print(runtime);
         formatter.close();
 
-        final List<Throwable> errors = runtime.getErrors();
+        if (reported) {
+            final String path = cukespaceConfig.getProperty(Configs.REPORTABLE_PATH);
+            if (path != null) {
+                final File destination = Configs.reportFile(path, clazz);
+                final File parentFile = destination.getParentFile();
+                if (!parentFile.exists() && !parentFile.mkdirs()) {
+                    throw new IllegalArgumentException("Can't create " + parentFile.getAbsolutePath());
+                }
 
+                FileWriter writer = null;
+                try {
+                    writer = new FileWriter(destination);
+                    writer.write(reportBuilder.toString());
+                    writer.flush();
+                } catch (final IOException e) {
+                    if (writer != null) {
+                        writer.close();
+                    }
+                }
+
+                // add it here too for client case
+                CucumberReporter.addReport(Configs.reportFile(path, clazz));
+            }
+        }
+
+        final List<Throwable> errors = runtime.getErrors();
         for (final String snippet : runtime.getSnippets()) {
             errors.add(new CucumberException("Missing snippet: " + snippet));
         }
-
         if (!errors.isEmpty()) {
             throw new MultipleFailureException(errors);
         }
