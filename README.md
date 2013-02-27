@@ -178,3 +178,19 @@ public class MyFeatureTest {
     ....
 }
 ```
+
+## Reporting
+
+Cukespace supports some basic reporting in html format.
+
+To activate it simply configure the cucumber arquillian extension in the file arquillian.xml:
+
+      <extension qualifier="cucumber">
+        <property name="report">true</property>
+        <property name="report-directory">target/cucumber-report</property>
+      </extension>
+
+The report file will be then logged. For instance:
+
+     INFO - Cucumber report available at /home/rmannibucau/dev/cukespacetest/target/cucumber-report/feature-overview.html
+
