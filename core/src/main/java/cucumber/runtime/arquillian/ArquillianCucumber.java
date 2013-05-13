@@ -121,7 +121,7 @@ public class ArquillianCucumber extends Arquillian {
 
         final String[] options;
         if (cukespaceConfig.containsKey(CucumberConfiguration.OPTIONS)) { // override
-            options = cukespaceConfig.getProperty(CucumberConfiguration.OPTIONS).split(",");
+            options = cukespaceConfig.getProperty(CucumberConfiguration.OPTIONS).split(" ");
         } else {
             options = new String[] { "-f", "pretty", areColorsNotAvailable(cukespaceConfig) };
         }
