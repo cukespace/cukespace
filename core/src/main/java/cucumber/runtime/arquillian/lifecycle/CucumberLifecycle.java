@@ -5,6 +5,7 @@ import cucumber.api.java.en.But;
 import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
+import cucumber.runtime.arquillian.shared.ClientServerFiles;
 import cucumber.runtime.arquillian.stream.NotCloseablePrintStream;
 import org.jboss.arquillian.core.api.Instance;
 import org.jboss.arquillian.core.api.annotation.Inject;
@@ -62,7 +63,7 @@ public class CucumberLifecycle {
 
         // cucumber annotations
         final ClassLoader tccl = Thread.currentThread().getContextClassLoader();
-        final InputStream is = tccl.getResourceAsStream("cukespace-annotations.txt");
+        final InputStream is = tccl.getResourceAsStream(ClientServerFiles.ANNOTATION_LIST);
         if (is != null) {
             String line;
             try {

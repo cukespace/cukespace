@@ -1,14 +1,18 @@
 package cucumber.runtime.arquillian;
 
+import cucumber.api.junit.Cucumber;
 import cucumber.runtime.CucumberException;
 import cucumber.runtime.FeatureBuilder;
 import cucumber.runtime.RuntimeOptions;
+import cucumber.runtime.arquillian.api.Tags;
 import cucumber.runtime.arquillian.backend.ArquillianBackend;
 import cucumber.runtime.arquillian.config.CucumberConfiguration;
 import cucumber.runtime.arquillian.feature.Features;
 import cucumber.runtime.arquillian.glue.Glues;
 import cucumber.runtime.arquillian.reporter.CucumberReporter;
+import cucumber.runtime.arquillian.shared.ClientServerFiles;
 import cucumber.runtime.io.Resource;
+import cucumber.runtime.junit.RuntimeOptionsFactory;
 import cucumber.runtime.model.CucumberFeature;
 import cucumber.runtime.snippets.SummaryPrinter;
 import gherkin.formatter.Formatter;
@@ -25,17 +29,22 @@ import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.InitializationError;
 import org.junit.runners.model.Statement;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
+import java.util.regex.Pattern;
 
 public class ArquillianCucumber extends Arquillian {
     private static final String RUN_CUCUMBER_MTD = "runCucumber";
@@ -90,20 +99,36 @@ public class ArquillianCucumber extends Arquillian {
         final List<CucumberFeature> cucumberFeatures = new ArrayList<CucumberFeature>();
         final FeatureBuilder builder = new FeatureBuilder(cucumberFeatures);
 
-        for (final String path : Features.findFeatures(clazz)) {
-            final ClassLoaderResource featureResource = new ClassLoaderResource(tccl, path);
-            if (!featureResource.exists()) {
-                continue;
-            }
+        final List<Object> filters = createFilters(testInstance);
 
-            builder.parse(featureResource, Collections.emptyList());
+        final InputStream featuresIs = tccl.getResourceAsStream(ClientServerFiles.FEATURES_LIST);
+        if (featuresIs != null) {
+            final BufferedReader reader = new BufferedReader(new InputStreamReader(featuresIs));
+            String line;
+
+            while ((line = reader.readLine()) != null) {
+                line = line.trim();
+                if (line.isEmpty()) {
+                    continue;
+                }
+
+                builder.parse(new ClassLoaderResource(tccl, line), filters);
+            }
+        } else { // client side
+            for (final Map.Entry<String, Collection<URL>> entry : Features.createFeatureMap(clazz, tccl).entrySet()) {
+                final String path = entry.getKey();
+
+                for (final URL url : entry.getValue()) {
+                    builder.parse(new URLResource(path, url), filters);
+                }
+            }
         }
 
         if (cucumberFeatures.isEmpty()) {
             throw new IllegalArgumentException("No feature found");
         }
 
-        final InputStream configIs = tccl.getResourceAsStream("cukespace-config.properties");
+        final InputStream configIs = tccl.getResourceAsStream(ClientServerFiles.CONFIG);
         final Properties cukespaceConfig = new Properties();
         if (configIs != null) {
             cukespaceConfig.load(configIs);
@@ -119,15 +144,19 @@ public class ArquillianCucumber extends Arquillian {
             }
         }
 
-        final String[] options;
-        if (cukespaceConfig.containsKey(CucumberConfiguration.OPTIONS)) { // override
-            options = cukespaceConfig.getProperty(CucumberConfiguration.OPTIONS).split(" ");
-        } else {
-            options = new String[] { "-f", "pretty", areColorsNotAvailable(cukespaceConfig) };
+        final RuntimeOptions runtimeOptions;
+        if (clazz.getAnnotation(Cucumber.Options.class) != null) { // by class setting
+            final RuntimeOptionsFactory runtimeOptionsFactory = new RuntimeOptionsFactory(clazz);
+            runtimeOptions = runtimeOptionsFactory.create();
+            cleanClasspathList(runtimeOptions.glue);
+            cleanClasspathList(runtimeOptions.featurePaths);
+        } else if (cukespaceConfig.containsKey(CucumberConfiguration.OPTIONS)) { // arquillian setting
+            runtimeOptions = new RuntimeOptions(new Properties(), cukespaceConfig.getProperty(CucumberConfiguration.OPTIONS).split(" "));
+            runtimeOptions.strict = true;
+        } else { // default
+            runtimeOptions = new RuntimeOptions(new Properties(), "-f", "pretty", areColorsNotAvailable(cukespaceConfig));
+            runtimeOptions.strict = true;
         }
-
-        final RuntimeOptions runtimeOptions = new RuntimeOptions(new Properties(), options);
-        runtimeOptions.strict = true;
 
         final StringBuilder reportBuilder = new StringBuilder();
         final boolean reported = Boolean.parseBoolean(cukespaceConfig.getProperty(CucumberConfiguration.REPORTABLE, "false"));
@@ -183,6 +212,45 @@ public class ArquillianCucumber extends Arquillian {
         }
     }
 
+    private static List<Object> createFilters(final Object testInstance) {
+        final List<Object> filters = new ArrayList<Object>();
+
+        final Class<?> clazz = testInstance.getClass();
+
+        { // our API
+            final Tags tags = clazz.getAnnotation(Tags.class);
+            if (tags != null) {
+                filters.addAll(Arrays.asList(tags.value()));
+            }
+        }
+
+        { // cucumber-junit
+            final Cucumber.Options options = clazz.getAnnotation(Cucumber.Options.class);
+            if (options != null) {
+                if (options.tags().length > 0) {
+                    filters.addAll(Arrays.asList(options.tags()));
+                }
+                if (options.name().length > 0) {
+                    for (final String name : options.name()) {
+                        filters.add(Pattern.compile(name));
+                    }
+                }
+            }
+        }
+
+        return filters;
+    }
+
+    // classpath: doesn't support scanning, it should be done on client side if supported, not server side
+    private static void cleanClasspathList(final List<String> list) {
+        final Iterator<String> it = list.iterator();
+        while (it.hasNext()) {
+            if (it.next().startsWith("classpath:")) {
+                it.remove();
+            }
+        }
+    }
+
     private static String areColorsNotAvailable(final Properties cukespaceConfig) {
         if (!Boolean.parseBoolean(cukespaceConfig.getProperty("colors", "false"))) {
             return "--monochrome";
@@ -215,6 +283,31 @@ public class ArquillianCucumber extends Arquillian {
 
         public boolean exists() {
             return loader.getResource(path) != null;
+        }
+
+        @Override
+        public String getClassName() {
+            return null;
+        }
+    }
+
+    private static class URLResource implements Resource {
+        private final URL url;
+        private final String path;
+
+        public URLResource(final String path, final URL url) {
+            this.url = url;
+            this.path = path;
+        }
+
+        @Override
+        public String getPath() {
+            return path;
+        }
+
+        @Override
+        public InputStream getInputStream() throws IOException {
+            return url.openStream();
         }
 
         @Override
