@@ -26,7 +26,7 @@ public final class Features {
                 + '/' + createClassNameSubPackage(javaClass.getSimpleName()) + ".feature";
     }
 
-    public static Map<String, Collection<URL>> createFeatureMap(final Class<?> javaClass, final ClassLoader loader) {
+    public static Map<String, Collection<URL>> createFeatureMap(final String featureHome, final Class<?> javaClass, final ClassLoader loader) {
         final Map<String, Collection<URL>> featureUrls = new HashMap<String, Collection<URL>>();
 
         for (final String path : findFeatures(javaClass)) {
@@ -54,25 +54,35 @@ public final class Features {
                 }
             }
 
+            { // from filesystem with featureHome
+                if (featureHome != null) {
+                    final File file = new File(featureHome, path);
+                    if (file.exists()) {
+                        try {
+                            list.add(file.toURI().toURL());
+                            featureUrls.put(path, list);
+                            continue;
+                        } catch (final MalformedURLException e) {
+                            // no-op
+                        }
+                    }
+                }
+            }
+
             // else try some special tricks
             // special wildcard extension
             if (path.endsWith(FEATURE_WILDCARD)) {
                 final String newPath = path.substring(0, path.length() - FEATURE_WILDCARD.length());
+
                 featureUrls.put(newPath, list);
 
                 final File f = new File(newPath);
                 if (f.exists() && f.isDirectory()) {
-                    final File[] children = f.listFiles();
-                    if (children != null) {
-                        for (final File c : children) {
-                            if (c.exists()) {
-                                try {
-                                    list.add(c.toURI().toURL());
-                                } catch (final MalformedURLException e) {
-                                    // no-op
-                                }
-                            }
-                        }
+                    listFeatures(list, f);
+                } else if (featureHome != null) {
+                    final File f2 = new File(featureHome, newPath);
+                    if (f2.exists() && f2.isDirectory()) {
+                        listFeatures(list, f2);
                     }
                 }
             } else {
@@ -82,6 +92,21 @@ public final class Features {
         }
 
         return featureUrls;
+    }
+
+    private static void listFeatures(final Collection<URL> list, final File f) {
+        final File[] children = f.listFiles();
+        if (children != null) {
+            for (final File c : children) {
+                if (c.exists()) {
+                    try {
+                        list.add(c.toURI().toURL());
+                    } catch (final MalformedURLException e) {
+                        // no-op
+                    }
+                }
+            }
+        }
     }
 
     public static Collection<String> findFeatures(final Class<?> javaClass) {

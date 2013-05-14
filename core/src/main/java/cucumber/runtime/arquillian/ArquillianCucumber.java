@@ -96,6 +96,28 @@ public class ArquillianCucumber extends Arquillian {
         final Class<?> clazz = getTestClass().getJavaClass();
         final ClassLoader tccl = Thread.currentThread().getContextClassLoader();
 
+        final InputStream configIs = tccl.getResourceAsStream(ClientServerFiles.CONFIG);
+        final Properties cukespaceConfig = new Properties();
+        if (configIs != null) {
+            cukespaceConfig.load(configIs);
+        } else { // probably on the client side
+            final CucumberConfiguration config = CucumberConfiguration.instance();
+            if (config.isInitialized()) {
+                cukespaceConfig.setProperty(CucumberConfiguration.COLORS, Boolean.toString(config.isColorized()));
+                cukespaceConfig.setProperty(CucumberConfiguration.REPORTABLE, Boolean.toString(config.isReport()));
+                cukespaceConfig.setProperty(CucumberConfiguration.REPORTABLE_PATH, config.getReportDirectory());
+                if (config.getFeatureHome() != null) {
+                    cukespaceConfig.setProperty(CucumberConfiguration.FEATURE_HOME, config.getFeatureHome());
+                }
+                if (config.hasOptions()) {
+                    cukespaceConfig.setProperty(CucumberConfiguration.OPTIONS, config.getOptions());
+                }
+                if (config.getFeatureHome() != null) {
+                    cukespaceConfig.setProperty(CucumberConfiguration.FEATURE_HOME, config.getFeatureHome());
+                }
+            }
+        }
+
         final List<CucumberFeature> cucumberFeatures = new ArrayList<CucumberFeature>();
         final FeatureBuilder builder = new FeatureBuilder(cucumberFeatures);
 
@@ -115,7 +137,7 @@ public class ArquillianCucumber extends Arquillian {
                 builder.parse(new ClassLoaderResource(tccl, line), filters);
             }
         } else { // client side
-            for (final Map.Entry<String, Collection<URL>> entry : Features.createFeatureMap(clazz, tccl).entrySet()) {
+            for (final Map.Entry<String, Collection<URL>> entry : Features.createFeatureMap(cukespaceConfig.getProperty(CucumberConfiguration.FEATURE_HOME), clazz, tccl).entrySet()) {
                 final String path = entry.getKey();
 
                 for (final URL url : entry.getValue()) {
@@ -126,22 +148,6 @@ public class ArquillianCucumber extends Arquillian {
 
         if (cucumberFeatures.isEmpty()) {
             throw new IllegalArgumentException("No feature found");
-        }
-
-        final InputStream configIs = tccl.getResourceAsStream(ClientServerFiles.CONFIG);
-        final Properties cukespaceConfig = new Properties();
-        if (configIs != null) {
-            cukespaceConfig.load(configIs);
-        } else { // probably on the client side
-            final CucumberConfiguration config = CucumberConfiguration.instance();
-            if (config.isInitialized()) {
-                cukespaceConfig.setProperty(CucumberConfiguration.COLORS, Boolean.toString(config.isColorized()));
-                cukespaceConfig.setProperty(CucumberConfiguration.REPORTABLE, Boolean.toString(config.isReport()));
-                cukespaceConfig.setProperty(CucumberConfiguration.REPORTABLE_PATH, config.getReportDirectory());
-                if (config.hasOptions()) {
-                    cukespaceConfig.setProperty(CucumberConfiguration.OPTIONS, config.getOptions());
-                }
-            }
         }
 
         final RuntimeOptions runtimeOptions;

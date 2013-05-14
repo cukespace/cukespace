@@ -11,12 +11,14 @@ public class CucumberConfiguration {
     public static final String REPORTABLE = "reportable";
     public static final String REPORTABLE_PATH = "reportablePath";
     public static final String OPTIONS = "options";
+    public static final String FEATURE_HOME = "featureHome";
 
     private boolean report;
     private boolean colorized;
     private boolean initialized;
     private String reportDirectory;
     private String options;
+    private String featureHome;
 
     private CucumberConfiguration() {
         // no-op
@@ -46,6 +48,10 @@ public class CucumberConfiguration {
         return options;
     }
 
+    public String getFeatureHome() {
+        return featureHome;
+    }
+
     public static File reportFile(final String path, final Class<?> clazz) {
         return new File(path, clazz.getName() + ".json");
     }
@@ -60,14 +66,14 @@ public class CucumberConfiguration {
             if (properties.containsKey("reportDirectory")) {
                 CONFIGURATION.reportDirectory = properties.get("reportDirectory");
             }
-            if (properties.containsKey("reportDirectory")) {
-                CONFIGURATION.reportDirectory = properties.get("reportDirectory");
+            if (properties.containsKey(COLORS)) {
+                CONFIGURATION.colorized = Boolean.parseBoolean(properties.get(COLORS));
             }
-            if (properties.containsKey("colors")) {
-                CONFIGURATION.colorized = Boolean.parseBoolean(properties.get("colors"));
+            if (properties.containsKey(OPTIONS)) {
+                CONFIGURATION.options = properties.get(OPTIONS);
             }
-            if (properties.containsKey("options")) {
-                CONFIGURATION.options = properties.get("options");
+            if (properties.containsKey(FEATURE_HOME)) {
+                CONFIGURATION.featureHome = properties.get(FEATURE_HOME);
             }
 
             CONFIGURATION.initialized = true;

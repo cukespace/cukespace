@@ -47,7 +47,7 @@ public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
         // try to find the feature
         final Class<?> javaClass = testClass.getJavaClass();
         final ClassLoader loader = Thread.currentThread().getContextClassLoader();
-        final Map<String, Collection<URL>> featureUrls = Features.createFeatureMap(javaClass, loader);
+        final Map<String, Collection<URL>> featureUrls = Features.createFeatureMap(configuration.get().getFeatureHome(), javaClass, loader);
 
         if (featureUrls.isEmpty()
                 || !LibraryContainer.class.isInstance(applicationArchive)) {
