@@ -11,10 +11,5 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Target(TYPE)
 @Retention(RUNTIME)
 public @interface Glues {
-    /**
-     * These classes doesn't need to be in the Archive since it will be added automatically.
-     *
-     * @return list of glues (excluding the test class)
-     */
     Class<?>[] value();
 }
