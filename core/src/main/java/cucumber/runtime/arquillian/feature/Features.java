@@ -18,6 +18,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.logging.Logger;
 
+import static cucumber.runtime.arquillian.shared.ClassLoaders.load;
+
 public final class Features {
     private static final Logger LOGGER = Logger.getLogger(Features.class.getName());
 
@@ -125,7 +127,7 @@ public final class Features {
 
     private static boolean isClient() {
         try {
-            Thread.currentThread().getContextClassLoader().loadClass("cucumber.runtime.arquillian.locator.JarLocation");
+            load("cucumber.runtime.arquillian.locator.JarLocation");
             return true;
         } catch (final Exception e) {
             return false;

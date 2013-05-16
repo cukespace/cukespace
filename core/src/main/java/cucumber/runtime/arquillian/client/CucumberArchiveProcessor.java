@@ -36,6 +36,7 @@ import java.util.Collection;
 import java.util.Map;
 
 import static cucumber.runtime.arquillian.locator.JarLocation.jarLocation;
+import static cucumber.runtime.arquillian.shared.ClassLoaders.load;
 import static org.jboss.shrinkwrap.api.ShrinkWrap.create;
 
 public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
@@ -151,12 +152,26 @@ public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
                 .addClass(Glues.class)
                 .addClass(CucumberConfiguration.class)
                 .addClass(ArquillianCucumber.class)
-                .addClass(ClientServerFiles.class)
+                .addPackage(ClientServerFiles.class.getPackage())
                 .addClass(CucumberContainerExtension.class)
                 // don't add JarLocation here or update Features#isServer()
         );
 
+        addCucumberScala(libraryContainer);
     }
+
+    private static void addCucumberScala(final LibraryContainer<?> container) {
+        try { // if scala dsl is here, add it
+            container.addAsLibraries(
+                    jarLocation(load("cucumber.api.scala.ScalaDsl")), // cucumber-scala
+                    jarLocation(load("scala.App")) // scala-library
+            );
+        } catch (final Exception e) {
+            // no-op
+        }
+    }
+
+
 
     private static String featureName(final URL url) {
         // file

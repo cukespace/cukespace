@@ -6,14 +6,18 @@ import cucumber.runtime.Backend;
 import cucumber.runtime.CucumberException;
 import cucumber.runtime.DuplicateStepDefinitionException;
 import cucumber.runtime.Glue;
+import cucumber.runtime.HookDefinition;
+import cucumber.runtime.StepDefinition;
 import cucumber.runtime.UnreportedStepExecutor;
 import cucumber.runtime.Utils;
 import cucumber.runtime.arquillian.lifecycle.CucumberLifecycle;
 import cucumber.runtime.java.StepDefAnnotation;
+import cucumber.runtime.snippets.Snippet;
 import cucumber.runtime.snippets.SnippetGenerator;
 import gherkin.formatter.model.Step;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -22,14 +26,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
+import static cucumber.runtime.arquillian.shared.ClassLoaders.load;
+
 // patched to use the resource loader defined by this extension
 // the best would probably to update cucumber-core to handle
 // completely listed feature/steps (glue) classes/resources
 public class ArquillianBackend implements Backend {
-    private final SnippetGenerator snippetGenerator = new SnippetGenerator(new ArquillianSnippet());
+    protected static enum GlueType {
+        JAVA, SCALA, UNKNOWN
+    }
+
+    private SnippetGenerator snippetGenerator;
     private final Map<Class<?>, Object> instances = new HashMap<Class<?>, Object>();
     private final Collection<Class<?>> glues = new ArrayList<Class<?>>();
     private Glue glue;
+    private GlueType glueType = GlueType.UNKNOWN;
 
     public ArquillianBackend(final Collection<Class<?>> classes, final Class<?> clazz, final Object testInstance) {
         instances.put(clazz, testInstance);
@@ -58,18 +69,60 @@ public class ArquillianBackend implements Backend {
 
     private void scan() {
         for (final Map.Entry<Class<?>, Object> clazz : instances.entrySet()) {
-            for (final Method method : clazz.getKey().getMethods()) {
-                for (final Class<? extends Annotation> cucumberAnnotationClass : CucumberLifecycle.cucumberAnnotations()) {
-                    final Annotation annotation = method.getAnnotation(cucumberAnnotationClass);
-                    if (annotation != null) {
-                        if (isHookAnnotation(annotation)) {
-                            addHook(annotation, method, clazz.getValue());
-                        } else if (isStepdefAnnotation(annotation)) {
-                            addStepDefinition(annotation, method, clazz.getValue());
-                        }
+            if (readFromJava(clazz)) {
+                glueType = GlueType.JAVA;
+            }
+            if (readFromScalaDsl(clazz.getValue()) && glueType != GlueType.JAVA) {
+                glueType = GlueType.SCALA;
+            }
+        }
+    }
+
+    private boolean readFromJava(Map.Entry<Class<?>, Object> clazz) {
+        boolean found = false;
+        for (final Method method : clazz.getKey().getMethods()) {
+            for (final Class<? extends Annotation> cucumberAnnotationClass : CucumberLifecycle.cucumberAnnotations()) {
+                final Annotation annotation = method.getAnnotation(cucumberAnnotationClass);
+                if (annotation != null) {
+                    if (isHookAnnotation(annotation)) {
+                        addHook(annotation, method, clazz.getValue());
+                        found = true;
+                    } else if (isStepdefAnnotation(annotation)) {
+                        addStepDefinition(annotation, method, clazz.getValue());
+                        found = true;
                     }
                 }
             }
+        }
+        return found;
+    }
+
+    private boolean readFromScalaDsl(final Object instance) {
+        try {
+            // ensure scala module is activated
+            load("cucumber.api.scala.ScalaDsl");
+
+            // read info directly {@see cucumber.api.scala.ScalaDsl}
+            final Class<?> clazz = instance.getClass();
+
+            final Collection<StepDefinition> stepDefinitions = readField(clazz, "stepDefinitions", instance, StepDefinition.class);
+            for (final StepDefinition sd : stepDefinitions) {
+                glue.addStepDefinition(StepDefinition.class.cast(sd));
+            }
+
+            final Collection<HookDefinition> beforeHooks = readField(clazz, "beforeHooks", instance, HookDefinition.class);
+            for (final HookDefinition sd : beforeHooks) {
+                glue.addBeforeHook(HookDefinition.class.cast(sd));
+            }
+
+            final Collection<HookDefinition> afterHooks = readField(clazz, "afterHooks", instance, HookDefinition.class);
+            for (final HookDefinition sd : afterHooks) {
+                glue.addAfterHook(HookDefinition.class.cast(sd));
+            }
+
+            return stepDefinitions.size() + beforeHooks.size() + afterHooks.size() > 0;
+        } catch (final Exception e) {
+            return false;
         }
     }
 
@@ -133,6 +186,40 @@ public class ArquillianBackend implements Backend {
 
     @Override
     public String getSnippet(final Step step) {
+        if (snippetGenerator == null) { // leaving a double if ATM if we need to add other language support
+            if (GlueType.SCALA.equals(glueType)) {
+                try {
+                    snippetGenerator = new SnippetGenerator(Snippet.class.cast(load("cucumber.runtime.scala.ScalaSnippetGenerator").newInstance()));
+                } catch (final Exception e) {
+                    // let use the default
+                }
+            }
+        }
+
+        if (snippetGenerator == null) { // JAVA is the default too
+            snippetGenerator = new SnippetGenerator(new ArquillianSnippet());
+        }
+
         return snippetGenerator.getSnippet(step);
+    }
+
+    private static <T> Collection<T> readField(final Class<?> clazz, final String field, final Object instance, final Class<T> cast) throws Exception {
+        final Field f = clazz.getDeclaredField(field);
+        f.setAccessible(true);
+        final Object o = f.get(instance);
+
+        final Class<?> arrayBuffer = load("scala.collection.mutable.ArrayBuffer");
+        if (arrayBuffer.isInstance(o)) {
+            final Object[] array = Object[].class.cast(arrayBuffer.getDeclaredMethod("array").invoke(o));
+            final Collection<T> result = new ArrayList<T>(array.length);
+            for (final Object i : array) {
+                if (cast.isInstance(i)) {
+                    result.add(cast.cast(i));
+                }
+            }
+            return result;
+        }
+
+        throw new IllegalArgumentException("expected an ArrayBuffer and got " + o);
     }
 }

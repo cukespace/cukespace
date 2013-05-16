@@ -11,6 +11,7 @@ import cucumber.runtime.arquillian.feature.Features;
 import cucumber.runtime.arquillian.glue.Glues;
 import cucumber.runtime.arquillian.reporter.CucumberReporter;
 import cucumber.runtime.arquillian.shared.ClientServerFiles;
+import cucumber.runtime.formatter.FormatterFactory;
 import cucumber.runtime.io.Resource;
 import cucumber.runtime.junit.RuntimeOptionsFactory;
 import cucumber.runtime.model.CucumberFeature;
@@ -35,6 +36,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.ArrayList;
@@ -150,6 +152,8 @@ public class ArquillianCucumber extends Arquillian {
             throw new IllegalArgumentException("No feature found");
         }
 
+        patchFormatterFactory();
+
         final RuntimeOptions runtimeOptions;
         if (clazz.getAnnotation(Cucumber.Options.class) != null) { // by class setting
             final RuntimeOptionsFactory runtimeOptionsFactory = new RuntimeOptionsFactory(clazz);
@@ -162,6 +166,15 @@ public class ArquillianCucumber extends Arquillian {
         } else { // default
             runtimeOptions = new RuntimeOptions(new Properties(), "-f", "pretty", areColorsNotAvailable(cukespaceConfig));
             runtimeOptions.strict = true;
+        }
+
+        { // issue with cucumber-jvm 1.1.3 -> https://github.com/cucumber/cucumber-jvm/issues/476
+            final Iterator<Formatter> it = runtimeOptions.formatters.iterator();
+            while (it.hasNext()) {
+                if (gherkin.formatter.PrettyFormatter.class.isInstance(it.next())) {
+                    it.remove();
+                }
+            }
         }
 
         final StringBuilder reportBuilder = new StringBuilder();
@@ -215,6 +228,17 @@ public class ArquillianCucumber extends Arquillian {
         }
         if (!errors.isEmpty()) {
             throw new MultipleFailureException(errors);
+        }
+    }
+
+    private static void patchFormatterFactory() {
+        try {
+            final Field field = FormatterFactory.class.getDeclaredField("FORMATTER_CLASSES");
+            field.setAccessible(true);
+            final Map<String, Class<? extends Formatter>> config = Map.class.cast(field.get(null));
+            //config.put("pretty", PatchedPrettyFormatter.class); // CucumberPrettyFactory is buggy in error case
+        } catch (final Exception e) {
+            // no-op: not very important
         }
     }
 
