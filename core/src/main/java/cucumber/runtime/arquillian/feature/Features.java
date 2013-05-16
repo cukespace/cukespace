@@ -1,21 +1,27 @@
 package cucumber.runtime.arquillian.feature;
 
 import cucumber.api.junit.Cucumber;
+import cucumber.runtime.io.FileResource;
+import cucumber.runtime.io.MultiLoader;
+import cucumber.runtime.io.Resource;
+import cucumber.runtime.io.ZipResource;
 
 import java.io.File;
+import java.lang.reflect.Field;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.logging.Logger;
 
 public final class Features {
     private static final Logger LOGGER = Logger.getLogger(Features.class.getName());
 
-    private static final String FEATURE_WILDCARD = "*.feature";
+    public static final String EXTENSION = ".feature";
 
     private Features() {
         // no-op
@@ -23,11 +29,20 @@ public final class Features {
 
     public static String featurePath(final Class<?> javaClass) {
         return javaClass.getPackage().getName().replace('.', '/')
-                + '/' + createClassNameSubPackage(javaClass.getSimpleName()) + ".feature";
+                + '/' + createClassNameSubPackage(javaClass.getSimpleName()) + EXTENSION;
     }
 
     public static Map<String, Collection<URL>> createFeatureMap(final String featureHome, final Class<?> javaClass, final ClassLoader loader) {
         final Map<String, Collection<URL>> featureUrls = new HashMap<String, Collection<URL>>();
+
+        final String home;
+        if (featureHome != null && !featureHome.endsWith("/")) {
+            home = featureHome + "/";
+        } else {
+            home = featureHome;
+        }
+
+        final boolean client = isClient();
 
         for (final String path : findFeatures(javaClass)) {
             final Collection<URL> list = new ArrayList<URL>();
@@ -41,57 +56,80 @@ public final class Features {
                 }
             }
 
-            { // from filesystem
-                final File file = new File(path);
-                if (file.exists()) {
-                    try {
-                        list.add(file.toURI().toURL());
-                        featureUrls.put(path, list);
-                        continue;
-                    } catch (final MalformedURLException e) {
-                        // no-op
-                    }
-                }
+            // from filesystem
+            if (urlFromFileSystem(featureUrls, list, path, path)) {
+                continue;
             }
 
-            { // from filesystem with featureHome
-                if (featureHome != null) {
-                    final File file = new File(featureHome, path);
-                    if (file.exists()) {
-                        try {
-                            list.add(file.toURI().toURL());
-                            featureUrls.put(path, list);
-                            continue;
-                        } catch (final MalformedURLException e) {
-                            // no-op
-                        }
-                    }
-                }
+            // from filesystem with featureHome
+            if (home != null && urlFromFileSystem(featureUrls, list, path, featureHome + path)) {
+                continue;
             }
 
-            // else try some special tricks
-            // special wildcard extension
-            if (path.endsWith(FEATURE_WILDCARD)) {
-                final String newPath = path.substring(0, path.length() - FEATURE_WILDCARD.length());
-
-                featureUrls.put(newPath, list);
-
-                final File f = new File(newPath);
-                if (f.exists() && f.isDirectory()) {
-                    listFeatures(list, f);
-                } else if (featureHome != null) {
-                    final File f2 = new File(featureHome, newPath);
-                    if (f2.exists() && f2.isDirectory()) {
-                        listFeatures(list, f2);
-                    }
+            if (client) { // scan on client side to avoid URL issues in the server
+                findWithCucumberSearcher(loader, path, list);
+                if (home != null) {
+                    findWithCucumberSearcher(loader, home + path, list);
                 }
-            } else {
-                // not found
-                LOGGER.warning("Can't find feature(s) " + path);
-            }
+                if (!list.isEmpty()) {
+                    featureUrls.put(path, list);
+                }
+            } // else already done on client side
         }
 
         return featureUrls;
+    }
+
+    private static boolean urlFromFileSystem(final Map<String, Collection<URL>> featureUrls, final Collection<URL> list, final String path, final String filePath) {
+        final File file = new File(filePath);
+        if (file.exists() && !file.isDirectory()) {
+            try {
+                list.add(file.toURI().toURL());
+                featureUrls.put(path, list);
+                return true;
+            } catch (final MalformedURLException e) {
+                // no-op
+            }
+        }
+        return false;
+    }
+
+    private static void findWithCucumberSearcher(ClassLoader loader, String path, Collection<URL> list) {
+        final MultiLoader multiLoader = new MultiLoader(loader);
+        final Iterator<Resource> resources;
+        try {
+            resources = multiLoader.resources(path, EXTENSION).iterator();
+        } catch (final IllegalArgumentException iae) { // not a directory...
+            return;
+        }
+
+        while (resources.hasNext()) {
+            final Resource resource = resources.next();
+
+            if (FileResource.class.isInstance(resource)) {
+                final FileResource fr = FileResource.class.cast(resource);
+                try {
+                    final Field field = FileResource.class.getDeclaredField("file");
+                    field.setAccessible(true);
+                    list.add(File.class.cast(field.get(fr)).toURI().toURL());
+                } catch (final Exception e) {
+                    // no-op
+                }
+            } else if (ZipResource.class.isInstance(resource)) {
+                list.add(loader.getResource(resource.getPath()));
+            } else {
+                LOGGER.warning("Resource " + resource + " ignored (unknown type).");
+            }
+        }
+    }
+
+    private static boolean isClient() {
+        try {
+            Thread.currentThread().getContextClassLoader().loadClass("cucumber.runtime.arquillian.locator.JarLocation");
+            return true;
+        } catch (final Exception e) {
+            return false;
+        }
     }
 
     private static void listFeatures(final Collection<URL> list, final File f) {

@@ -1,5 +1,4 @@
-@myTag
-Feature: Eat Cukes in Test mode
+Feature: Eat Cukes
 
   Scenario: Eating 4 cukes
 

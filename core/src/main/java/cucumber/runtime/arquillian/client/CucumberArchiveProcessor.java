@@ -153,16 +153,26 @@ public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
                 .addClass(ArquillianCucumber.class)
                 .addClass(ClientServerFiles.class)
                 .addClass(CucumberContainerExtension.class)
+                // don't add JarLocation here or update Features#isServer()
         );
 
     }
 
     private static String featureName(final URL url) {
+        // file
         final File f = new File(url.getFile());
         if (f.exists()) {
             return f.getName();
         }
-        return url.hashCode() + ".feature";
+
+        // classpath
+        final String path = url.getPath();
+        if (path.lastIndexOf("!") < path.lastIndexOf("/")) {
+            return path.substring(path.lastIndexOf("/") + 1);
+        }
+
+        // fallback
+        return Math.abs(url.hashCode()) + Features.EXTENSION;
     }
 
     private static byte[] slurp(final URL featureUrl) {

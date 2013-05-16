@@ -1,4 +1,4 @@
-@ignored-tag
+@ignored
 Feature: Ignored
 
   Scenario: S1

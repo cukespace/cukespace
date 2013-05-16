@@ -3,9 +3,7 @@ package cucumber.runtime.arquillian;
 import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
-import cucumber.api.junit.Cucumber;
 import cucumber.runtime.arquillian.api.Features;
-import cucumber.runtime.arquillian.api.Tags;
 import cucumber.runtime.arquillian.domain.Belly;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.shrinkwrap.api.Archive;
@@ -19,10 +17,8 @@ import static org.jboss.shrinkwrap.api.ShrinkWrap.create;
 import static org.junit.Assert.assertEquals;
 
 @RunWith(ArquillianCucumber.class)
-@Features("src/test/resources/cucumber/runtime/arquillian/feature") // folder on the file system
-@Tags("@myTag")
-@Cucumber.Options(strict = true)
-public class CukesInBellyWithByClassConfigTest {
+@Features("classpath:features")
+public class CukesInBellyWithClassPathScanningFeatureTest {
     @Deployment
     public static Archive<?> createDeployment() {
         return create(WebArchive.class)
