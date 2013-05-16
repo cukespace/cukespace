@@ -155,6 +155,48 @@ java.lang.IllegalArgumentException: Drone Test context should not be null
 ```
 
 ### Externalize some common features/steps
+
+### Configuration
+#### Arquillian.xml
+
+Cuke in Space! comes with an arquillian extension. We already saw the reporting configuration but you can go a bit further.
+Here are the complete properties:
+
+    <extension qualifier="cucumber">
+        <property name="report">true</property>
+        <property name="report-directory">target/cucumber-report</property>
+        <property name="options">--tags @foo</property>
+        <property name="featureHome">/home/test/features</property>
+    </extension>
+
+| Property name    | Value                                                                                     |
+| ---------------- |:-----------------------------------------------------------------------------------------:|
+| report           | boolean to activate the reporting                                                         |
+| report-directory | where to store the report on the filesystem                                               |
+| options          | cucumber options used when `cucumber.api.junit.Cucumber.Options` is not on the test class |
+| featureHome      | where to look for features (base path)                                                    |
+
+#### Reporting sample configuration
+
+Cukespace supports some basic reporting in html format.
+
+To activate it simply configure the cucumber arquillian extension in the file arquillian.xml :
+
+      <extension qualifier="cucumber">
+        <property name="report">true</property>
+        <property name="report-directory">target/cucumber-report</property>
+      </extension>
+
+The report file will be then logged. For instance:
+
+     INFO - Cucumber report available at /home/rmannibucau/dev/cukespacetest/target/cucumber-report/feature-overview.html
+
+
+
+#### Annotations
+
+Cuke in Space! API annotations are in the package `cucumber.runtime.arquillian.api`.
+
 #### Features
 
 If you want to reuse some feature in multiple test you can specify it through @Features:
@@ -179,58 +221,18 @@ public class MyFeatureTest {
 }
 ```
 
-## Reporting
-
-Cukespace supports some basic reporting in html format.
-
-To activate it simply configure the cucumber arquillian extension in the file arquillian.xml:
-
-      <extension qualifier="cucumber">
-        <property name="report">true</property>
-        <property name="report-directory">target/cucumber-report</property>
-      </extension>
-
-The report file will be then logged. For instance:
-
-     INFO - Cucumber report available at /home/rmannibucau/dev/cukespacetest/target/cucumber-report/feature-overview.html
-
-
-### Configuration
-#### Arquillian.xml
-
-Cuke in Space! comes with an arquillian extension. We already saw the reporting configuration but you can go a bit further.
-Here are the complete properties:
-
-    <extension qualifier="cucumber">
-        <property name="report">true</property>
-        <property name="report-directory">target/cucumber-report</property>
-        <property name="options">--tags @foo</property>
-        <property name="featureHome">/home/test/features</property>
-    </extension>
-
-| Property name    | Value                                                                                     |
-| ---------------- |:-----------------------------------------------------------------------------------------:|
-| report           | boolean to activate the reporting                                                         |
-| report-directory | where to store the report on the filesystem                                               |
-| options          | cucumber options used when `cucumber.api.junit.Cucumber.Options` is not on the test class |
-| featureHome      | where to look for features (base path)                                                    |
-
-#### Annotations
-
-Cuke in Space! API annotations are in the package `cucumber.runtime.arquillian.api`.
-
-##### @Features
-
-`@Features` is used to specify additional features path for the current class (default which matches the qualified class name
-is still tried).
-
-##### @Glues
-
-`@Glues` lists glue classes (classes containing steps).
-
 ##### @Tags
 
 `@Tags` let you filter features by tag.
+
+```java
+@Tags("@myTag") // can support multiple tags too
+@RunWith(ArquillianCucumber.class)
+public class MyFeatureTest {
+    ....
+}
+```
+
 
 #### @Cucumber.Options
 
