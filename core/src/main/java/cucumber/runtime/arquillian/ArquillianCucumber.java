@@ -18,6 +18,7 @@ import cucumber.runtime.model.CucumberFeature;
 import cucumber.runtime.snippets.SummaryPrinter;
 import gherkin.formatter.Formatter;
 import gherkin.formatter.JSONFormatter;
+import gherkin.formatter.PrettyFormatter;
 import gherkin.formatter.Reporter;
 import org.jboss.arquillian.junit.Arquillian;
 import org.junit.After;
@@ -37,7 +38,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -169,12 +172,30 @@ public class ArquillianCucumber extends Arquillian {
         }
 
         { // issue with cucumber-jvm 1.1.3 -> https://github.com/cucumber/cucumber-jvm/issues/476
-            final Iterator<Formatter> it = runtimeOptions.formatters.iterator();
-            while (it.hasNext()) {
-                if (gherkin.formatter.PrettyFormatter.class.isInstance(it.next())) {
-                    it.remove();
+            // this fix is not sexy but since the fix for 1.1.4 was sent (github PR) a workaround is enough here
+            final Collection<Formatter> newFormatters = new ArrayList<Formatter>();
+            for (final Formatter f : runtimeOptions.formatters) {
+                if (PrettyFormatter.class.isInstance(f)) {
+                    final Field indentations = PrettyFormatter.class.getDeclaredField("indentations");
+                    indentations.setAccessible(true);
+                    final List<Integer> list = List.class.cast(indentations.get(f));
+                    indentations.set(f, List.class.cast(Proxy.newProxyInstance(tccl, new Class<?>[] { List.class }, new InvocationHandler() {
+                        @Override
+                        public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
+                            final String m = method.getName();
+                            if ("get".equals(m) || "remove".equals(m)) {
+                                if (list.isEmpty()) {
+                                    return 0;
+                                }
+                            }
+                            return method.invoke(list, args);
+                        }
+                    })));
                 }
+                newFormatters.add(f);
             }
+            runtimeOptions.formatters.clear();
+            runtimeOptions.formatters.addAll(newFormatters);
         }
 
         final StringBuilder reportBuilder = new StringBuilder();
