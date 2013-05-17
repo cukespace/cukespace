@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.annotation.Annotation;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 
@@ -62,6 +63,56 @@ public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
         // add feature file + list of annotations
         final JavaArchive resourceJar = create(JavaArchive.class, "cukespace-resources.jar");
 
+        final CucumberConfiguration cucumberConfiguration = configuration.get();
+        final boolean report = cucumberConfiguration.isReport();
+        final String reportDirectory = cucumberConfiguration.getReportDirectory();
+
+        addFeatures(featureUrls, ln, resourceJar);
+        addCucumberAnnotations(loader, ln, resourceJar);
+        addConfiguration(resourceJar, cucumberConfiguration, report, reportDirectory);
+
+        libraryContainer.addAsLibrary(resourceJar);
+
+        if (report) {
+            CucumberReporter.addReport(CucumberConfiguration.reportFile(reportDirectory, javaClass));
+        }
+
+        // glues
+        enrichWithGlues(javaClass, libraryContainer);
+
+        // cucumber-java and cucumber-core
+        enrichWithDefaultCucumber(libraryContainer);
+
+        // cucumber-arquillian
+        enrichWithCukeSpace(libraryContainer);
+
+        // if scala module is available at classpath
+        tryToAdd(libraryContainer, "cucumber.api.scala.ScalaDsl", "scala.App");
+    }
+
+    private static void addConfiguration(final JavaArchive resourceJar, final CucumberConfiguration cucumberConfiguration, final boolean report, final String reportDirectory) {
+        final StringBuilder config = new StringBuilder();
+        config.append(CucumberConfiguration.COLORS).append("=").append(cucumberConfiguration.isColorized()).append("\n")
+            .append(CucumberConfiguration.REPORTABLE).append("=").append(report).append("\n")
+            .append(CucumberConfiguration.REPORTABLE_PATH).append("=").append(reportDirectory).append("\n");
+        if (cucumberConfiguration.hasOptions()) {
+            config.append(CucumberConfiguration.OPTIONS).append("=").append(cucumberConfiguration.getOptions());
+        }
+
+        resourceJar.addAsResource(new StringAsset(config.toString()), ClientServerFiles.CONFIG);
+    }
+
+    private static void addCucumberAnnotations(final ClassLoader loader, final String ln, final JavaArchive resourceJar) {
+        final ClasspathResourceLoader classpathResourceLoader = new ClasspathResourceLoader(loader);
+        final Collection<Class<? extends Annotation>> annotations = classpathResourceLoader.getAnnotations("cucumber.api");
+        final StringBuilder builder = new StringBuilder();
+        for (final Class<? extends Annotation> annotation : annotations) {
+            builder.append(annotation.getName()).append(ln);
+        }
+        resourceJar.addAsResource(new StringAsset(builder.toString()), ClientServerFiles.ANNOTATION_LIST);
+    }
+
+    private static void addFeatures(final Map<String, Collection<URL>> featureUrls, final String ln, final JavaArchive resourceJar) {
         final StringBuilder featuresPaths = new StringBuilder();
 
         for (final Map.Entry<String, Collection<URL>> feature : featureUrls.entrySet()) {
@@ -88,36 +139,15 @@ public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
         }
 
         resourceJar.addAsResource(new StringAsset(featuresPaths.toString()), ClientServerFiles.FEATURES_LIST);
+    }
 
-        final ClasspathResourceLoader classpathResourceLoader = new ClasspathResourceLoader(loader);
-        final Collection<Class<? extends Annotation>> annotations = classpathResourceLoader.getAnnotations("cucumber.api");
-        final StringBuilder builder = new StringBuilder();
-        for (final Class<? extends Annotation> annotation : annotations) {
-            builder.append(annotation.getName()).append(ln);
-        }
-        resourceJar.addAsResource(new StringAsset(builder.toString()), ClientServerFiles.ANNOTATION_LIST);
+    private static void enrichWithDefaultCucumber(final LibraryContainer<?> libraryContainer) {
+        libraryContainer.addAsLibraries(
+                jarLocation(Mapper.class),
+                jarLocation(JavaBackend.class), jarLocation(Cucumber.class));
+    }
 
-        final CucumberConfiguration cucumberConfiguration = configuration.get();
-        final boolean report = cucumberConfiguration.isReport();
-        final String reportDirectory = cucumberConfiguration.getReportDirectory();
-
-        final StringBuilder config = new StringBuilder();
-        config.append(CucumberConfiguration.COLORS).append("=").append(cucumberConfiguration.isColorized()).append("\n")
-            .append(CucumberConfiguration.REPORTABLE).append("=").append(report).append("\n")
-            .append(CucumberConfiguration.REPORTABLE_PATH).append("=").append(reportDirectory).append("\n");
-        if (cucumberConfiguration.hasOptions()) {
-            config.append(CucumberConfiguration.OPTIONS).append("=").append(cucumberConfiguration.getOptions());
-        }
-
-        resourceJar.addAsResource(new StringAsset(config.toString()), ClientServerFiles.CONFIG);
-
-        libraryContainer.addAsLibrary(resourceJar);
-
-        if (report) {
-            CucumberReporter.addReport(CucumberConfiguration.reportFile(reportDirectory, javaClass));
-        }
-
-        // glues
+    private static void enrichWithGlues(final Class<?> javaClass, final LibraryContainer<?> libraryContainer) {
         final Collection<Class<?>> glues = Glues.findGlues(javaClass);
         if (!glues.isEmpty()) {
             final JavaArchive gluesJar = create(JavaArchive.class, "cukespace-glues.jar");
@@ -133,13 +163,9 @@ public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
             }
             libraryContainer.addAsLibrary(gluesJar);
         }
+    }
 
-        // cucumber-java and cucumber-core
-        libraryContainer.addAsLibraries(
-                jarLocation(Mapper.class),
-                jarLocation(JavaBackend.class), jarLocation(Cucumber.class));
-
-        // cucumber-arquillian
+    private static void enrichWithCukeSpace(final LibraryContainer<?> libraryContainer) {
         libraryContainer.addAsLibrary(
             create(JavaArchive.class, "cukespace-core.jar")
                 .addAsServiceProvider(RemoteLoadableExtension.class, CucumberContainerExtension.class)
@@ -156,19 +182,19 @@ public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
                 .addClass(CucumberContainerExtension.class)
                 // don't add JarLocation here or update Features#isServer()
         );
-
-        addCucumberScala(libraryContainer);
     }
 
-    private static void addCucumberScala(final LibraryContainer<?> container) {
+    private static void tryToAdd(final LibraryContainer<?> container, final String... classes) {
+        final Collection<File> files = new ArrayList<File>();
         try { // if scala dsl is here, add it
-            container.addAsLibraries(
-                    jarLocation(load("cucumber.api.scala.ScalaDsl")), // cucumber-scala
-                    jarLocation(load("scala.App")) // scala-library
-            );
+            for (final String clazz : classes) {
+                files.add(jarLocation(load(clazz)));
+            }
         } catch (final Exception e) {
-            // no-op
+            return; // if any jar is missing don't add it
         }
+
+        container.addAsLibraries(files.toArray(new File[files.size()]));
     }
 
 
