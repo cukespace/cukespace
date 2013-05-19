@@ -20,11 +20,13 @@ import org.jboss.arquillian.core.api.Instance;
 import org.jboss.arquillian.core.api.annotation.Inject;
 import org.jboss.arquillian.test.spi.TestClass;
 import org.jboss.shrinkwrap.api.Archive;
+import org.jboss.shrinkwrap.api.ArchivePath;
 import org.jboss.shrinkwrap.api.asset.Asset;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.container.LibraryContainer;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.jboss.shrinkwrap.impl.base.asset.AssetUtil;
+import org.jboss.shrinkwrap.impl.base.filter.IncludeRegExpPaths;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -35,6 +37,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
 
 import static cucumber.runtime.arquillian.locator.JarLocation.jarLocation;
 import static cucumber.runtime.arquillian.shared.ClassLoaders.load;
@@ -87,7 +90,8 @@ public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
         enrichWithCukeSpace(libraryContainer);
 
         // if scala module is available at classpath
-        tryToAdd(libraryContainer, "cucumber.api.scala.ScalaDsl", "scala.App");
+        final Set<ArchivePath> libs = applicationArchive.getContent(new IncludeRegExpPaths("/WEB-INF/lib/.*jar")).keySet();
+        tryToAdd(libs, libraryContainer, "WEB-INF/lib/scala-library-", "cucumber.api.scala.ScalaDsl", "scala.App");
     }
 
     private static void addConfiguration(final JavaArchive resourceJar, final CucumberConfiguration cucumberConfiguration, final boolean report, final String reportDirectory) {
@@ -184,11 +188,25 @@ public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
         );
     }
 
-    private static void tryToAdd(final LibraryContainer<?> container, final String... classes) {
+    private static void tryToAdd(final Collection<ArchivePath> paths, final LibraryContainer<?> container, final String exclusion, final String... classes) {
         final Collection<File> files = new ArrayList<File>();
+
         try { // if scala dsl is here, add it
             for (final String clazz : classes) {
-                files.add(jarLocation(load(clazz)));
+                final File file = jarLocation(load(clazz));
+
+                boolean found = false;
+                for (final ArchivePath ap : paths) {
+                    final String path = ap.get();
+                    if (path.contains(exclusion) && path.endsWith(".jar")) {
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (!found) {
+                    files.add(file);
+                }
             }
         } catch (final Exception e) {
             return; // if any jar is missing don't add it
@@ -196,8 +214,6 @@ public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
 
         container.addAsLibraries(files.toArray(new File[files.size()]));
     }
-
-
 
     private static String featureName(final URL url) {
         // file
