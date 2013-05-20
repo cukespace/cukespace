@@ -13,14 +13,15 @@
         <property name="browser">${browser}</property>
     </extension>
 
-    <container qualifier="tomee-remote">
+    <container qualifier="tomee-remote" default="true">
         <configuration>
-            <property name="httpPort">-1</property>
-            <property name="ajpPort">-1</property>
-            <property name="stopPort">-1</property>
-            <property name="dir">target/tomee-remote</property>
-            <property name="appWorkingDir">target/arquillian-remote-working-dir</property>
-            <property name="cleanOnStartUp">true</property>
+          <property name="version">1.5.1</property>
+          <property name="httpPort">-1</property>
+          <property name="ajpPort">-1</property>
+          <property name="stopPort">-1</property>
+          <property name="dir">target/tomee-remote</property>
+          <property name="appWorkingDir">target/arquillian-remote-working-dir</property>
+          <property name="cleanOnStartUp">true</property>
         </configuration>
     </container>
 
