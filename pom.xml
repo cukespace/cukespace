@@ -13,7 +13,7 @@
     <groupId>com.github.cukespace</groupId>
     <artifactId>cukespace-parent</artifactId>
     <packaging>pom</packaging>
-    <version>1.5.0</version>
+    <version>1.5.1-SNAPSHOT</version>
     
     <name>Cukes in Space! Parent</name>
     <url>https://github.com/lmcgrath/cukespace</url>
