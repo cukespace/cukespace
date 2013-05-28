@@ -49,6 +49,10 @@ public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
 
     @Override
     public void process(final Archive<?> applicationArchive, final TestClass testClass) {
+        if (JavaArchive.class.isInstance(applicationArchive)) {
+            return;
+        }
+
         // try to find the feature
         final Class<?> javaClass = testClass.getJavaClass();
         final ClassLoader loader = Thread.currentThread().getContextClassLoader();
