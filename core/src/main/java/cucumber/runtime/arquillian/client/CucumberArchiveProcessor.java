@@ -27,6 +27,7 @@ import org.jboss.shrinkwrap.api.container.LibraryContainer;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.jboss.shrinkwrap.impl.base.asset.AssetUtil;
 import org.jboss.shrinkwrap.impl.base.filter.IncludeRegExpPaths;
+import org.junit.runner.RunWith;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -38,6 +39,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Logger;
 
 import static cucumber.runtime.arquillian.locator.JarLocation.jarLocation;
 import static cucumber.runtime.arquillian.shared.ClassLoaders.load;
@@ -60,7 +62,14 @@ public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
 
         if (featureUrls.isEmpty()
                 || !LibraryContainer.class.isInstance(applicationArchive)) {
-            return;
+            final RunWith runWith = testClass.getAnnotation(RunWith.class);
+            if (runWith == null || !ArquillianCucumber.class.equals(runWith.value())) {
+                // not a cucumber test so skip enrichment
+                return;
+            } else {
+                // else let enrich it to avoid type not found error
+                Logger.getLogger(CucumberArchiveProcessor.class.getName()).info("No feature found for " + javaClass.getName());
+            }
         }
 
         final String ln = System.getProperty("line.separator");
