@@ -49,23 +49,27 @@ public final class Features {
         for (final String path : findFeatures(javaClass)) {
             final Collection<URL> list = new ArrayList<URL>();
 
-            { // from classpath
-                final URL url = loader.getResource(path);
-                if (url != null) {
-                    list.add(url);
-                    featureUrls.put(path, list);
+            final boolean directResource = path.endsWith(".feature");
+
+            if (directResource) {
+                { // from classpath
+                    final URL url = loader.getResource(path);
+                    if (url != null) {
+                        list.add(url);
+                        featureUrls.put(path, list);
+                        continue;
+                    }
+                }
+
+                // from filesystem
+                if (urlFromFileSystem(featureUrls, list, path, path)) {
                     continue;
                 }
-            }
 
-            // from filesystem
-            if (urlFromFileSystem(featureUrls, list, path, path)) {
-                continue;
-            }
-
-            // from filesystem with featureHome
-            if (home != null && urlFromFileSystem(featureUrls, list, path, featureHome + path)) {
-                continue;
+                // from filesystem with featureHome
+                if (home != null && urlFromFileSystem(featureUrls, list, path, featureHome + path)) {
+                    continue;
+                }
             }
 
             if (client) { // scan on client side to avoid URL issues in the server
