@@ -26,10 +26,8 @@ import org.junit.Before;
 import org.junit.internal.runners.model.MultipleFailureException;
 import org.junit.runner.manipulation.Filter;
 import org.junit.runner.manipulation.NoTestsRemainException;
-import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.InitializationError;
-import org.junit.runners.model.Statement;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -46,6 +44,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -75,25 +74,24 @@ public class ArquillianCucumber extends Arquillian {
     }
 
     @Override
-    protected Statement childrenInvoker(final RunNotifier notifier) {
-        return new Statement() {
-            @Override
-            public void evaluate() {
-                // run @Test methods
-                for (final FrameworkMethod each : ArquillianCucumber.super.getChildren()) {
-                    ArquillianCucumber.super.runChild(each, notifier);
-                }
+    protected List<FrameworkMethod> computeTestMethods() {
+        final List<FrameworkMethod> methods = new LinkedList<FrameworkMethod>();
 
-                try { // run cucumber, this looks like a hack but that's to keep @Before/@After/... hooks behavior
-                    final Method runCucumber = ArquillianCucumber.class.getDeclaredMethod(RUN_CUCUMBER_MTD, Object.class);
-                    runCucumber.setAccessible(true);
-                    final InstanceControlledFrameworkMethod runCucumberMtdFramework = new InstanceControlledFrameworkMethod(ArquillianCucumber.this, runCucumber);
-                    ArquillianCucumber.super.runChild(runCucumberMtdFramework, notifier);
-                } catch (final NoSuchMethodException e) {
-                    // no-op: will not accur
-                }
-            }
-        };
+        // run @Test methods
+        for (final FrameworkMethod each : ArquillianCucumber.super.computeTestMethods()) {
+            methods.add(each);
+        }
+
+        try { // run cucumber, this looks like a hack but that's to keep @Before/@After/... hooks behavior
+            final Method runCucumber = ArquillianCucumber.class.getDeclaredMethod(RUN_CUCUMBER_MTD, Object.class);
+            runCucumber.setAccessible(true);
+            final InstanceControlledFrameworkMethod runCucumberMtdFramework = new InstanceControlledFrameworkMethod(ArquillianCucumber.this, runCucumber);
+            methods.add(runCucumberMtdFramework);
+        } catch (final NoSuchMethodException e) {
+            // no-op: will not accur...if so this exception is not your biggest issue
+        }
+
+        return methods;
     }
 
     // the cucumber test method, only used internally - see childrenInvoker
