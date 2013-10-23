@@ -24,8 +24,6 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.internal.runners.model.MultipleFailureException;
-import org.junit.runner.manipulation.Filter;
-import org.junit.runner.manipulation.NoTestsRemainException;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.InitializationError;
 
@@ -62,15 +60,6 @@ public class ArquillianCucumber extends Arquillian {
         validatePublicVoidNoArgMethods(After.class, false, errors);
         validatePublicVoidNoArgMethods(Before.class, false, errors);
         validateTestMethods(errors);
-    }
-
-    @Override
-    public void filter(final Filter filter) throws NoTestsRemainException {
-        if (filter.describe().startsWith("Method " + RUN_CUCUMBER_MTD + "(")) { // not the best test but it does the job
-            return;
-        }
-
-        super.filter(filter);
     }
 
     @Override
