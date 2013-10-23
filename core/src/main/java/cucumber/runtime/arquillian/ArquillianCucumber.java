@@ -21,8 +21,6 @@ import gherkin.formatter.JSONFormatter;
 import gherkin.formatter.PrettyFormatter;
 import gherkin.formatter.Reporter;
 import org.jboss.arquillian.junit.Arquillian;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.internal.runners.model.MultipleFailureException;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.InitializationError;
@@ -51,20 +49,19 @@ import java.util.regex.Pattern;
 public class ArquillianCucumber extends Arquillian {
     private static final String RUN_CUCUMBER_MTD = "runCucumber";
 
+    private List<FrameworkMethod> methods = null;
+
     public ArquillianCucumber(final Class<?> klass) throws InitializationError {
         super(klass);
     }
 
-    @Override // no @Test is not an error
-    protected void validateInstanceMethods(List<Throwable> errors) {
-        validatePublicVoidNoArgMethods(After.class, false, errors);
-        validatePublicVoidNoArgMethods(Before.class, false, errors);
-        validateTestMethods(errors);
-    }
-
     @Override
     protected List<FrameworkMethod> computeTestMethods() {
-        final List<FrameworkMethod> methods = new LinkedList<FrameworkMethod>();
+        if (methods != null) {
+            return methods;
+        }
+
+        methods = new LinkedList<FrameworkMethod>();
 
         // run @Test methods
         for (final FrameworkMethod each : ArquillianCucumber.super.computeTestMethods()) {
