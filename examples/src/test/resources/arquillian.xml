@@ -9,6 +9,11 @@
     <property name="deploymentExportPath">target/deployments</property>
   </engine>
 
+  <extension qualifier="cucumber">
+    <property name="report">true</property>
+    <property name="report-directory">target/cucumber-report</property>
+  </extension>
+
   <extension qualifier="webdriver">
     <property name="browser">chrome</property>
     <property name="remoteAddress">http://localhost:4444/wd/hub/</property>

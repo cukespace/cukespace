@@ -62,7 +62,7 @@ public class CucumberReporter {
             try {
                 new ReportBuilder(new ArrayList<String>(jsonReports),
                                 outputDir, "/", "#", findProjectName(),
-                                false, false, true, false)
+                                false, false, true, false, false, "", true)
                         .generateReports();
 
                 LOGGER.info("Cucumber report available at "

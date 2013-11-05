@@ -33,7 +33,7 @@
     <dependency>
       <groupId>net.masterthought</groupId>
       <artifactId>cucumber-reporting</artifactId>
-      <version>0.0.17</version>
+      <version>0.0.21</version>
       <exclusions>
         <exclusion>
           <groupId>geronimo-spec</groupId>
