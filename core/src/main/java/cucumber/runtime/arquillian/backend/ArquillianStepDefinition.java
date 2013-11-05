@@ -17,12 +17,12 @@ import java.util.regex.Pattern;
 public class ArquillianStepDefinition implements StepDefinition {
     private final Method method;
     private final Pattern pattern;
-    private final int timeout;
+    private final long timeout;
     private final JdkPatternArgumentMatcher argumentMatcher;
     private final Object instance;
     private List<ParameterInfo> parameterInfos;
 
-    public ArquillianStepDefinition(final Method method, final Pattern pattern, final int timeout, final Object instance) {
+    public ArquillianStepDefinition(final Method method, final Pattern pattern, final long timeout, final Object instance) {
         this.method = method;
         this.parameterInfos = ParameterInfo.fromMethod(method);
         this.pattern = pattern;

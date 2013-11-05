@@ -1,6 +1,7 @@
 package cucumber.runtime.arquillian.client;
 
 import cucumber.api.junit.Cucumber;
+import cucumber.deps.com.thoughtworks.xstream.converters.ConverterRegistry;
 import cucumber.runtime.arquillian.ArquillianCucumber;
 import cucumber.runtime.arquillian.backend.ArquillianBackend;
 import cucumber.runtime.arquillian.config.CucumberConfiguration;
@@ -11,7 +12,8 @@ import cucumber.runtime.arquillian.lifecycle.CucumberLifecycle;
 import cucumber.runtime.arquillian.reporter.CucumberReporter;
 import cucumber.runtime.arquillian.shared.ClientServerFiles;
 import cucumber.runtime.arquillian.stream.NotCloseablePrintStream;
-import cucumber.runtime.io.ClasspathResourceLoader;
+import cucumber.runtime.io.MultiLoader;
+import cucumber.runtime.io.ResourceLoaderClassFinder;
 import cucumber.runtime.java.JavaBackend;
 import gherkin.util.Mapper;
 import org.jboss.arquillian.container.test.spi.RemoteLoadableExtension;
@@ -46,6 +48,8 @@ import static cucumber.runtime.arquillian.shared.ClassLoaders.load;
 import static org.jboss.shrinkwrap.api.ShrinkWrap.create;
 
 public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
+    private static volatile StringAsset scannedAnnotations = null;
+
     @Inject
     private Instance<CucumberConfiguration> configuration;
 
@@ -120,13 +124,20 @@ public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
     }
 
     private static void addCucumberAnnotations(final ClassLoader loader, final String ln, final JavaArchive resourceJar) {
-        final ClasspathResourceLoader classpathResourceLoader = new ClasspathResourceLoader(loader);
-        final Collection<Class<? extends Annotation>> annotations = classpathResourceLoader.getAnnotations("cucumber.api");
-        final StringBuilder builder = new StringBuilder();
-        for (final Class<? extends Annotation> annotation : annotations) {
-            builder.append(annotation.getName()).append(ln);
+        if (scannedAnnotations == null) {
+            synchronized (CucumberArchiveProcessor.class) {
+                if (scannedAnnotations == null) {
+                    final ResourceLoaderClassFinder finder = new ResourceLoaderClassFinder(new MultiLoader(loader), loader);
+                    final Collection<Class<? extends Annotation>> annotations = finder.getDescendants(Annotation.class, "cucumber.api");
+                    final StringBuilder builder = new StringBuilder();
+                    for (final Class<? extends Annotation> annotation : annotations) {
+                        builder.append(annotation.getName()).append(ln);
+                    }
+                    scannedAnnotations = new StringAsset(builder.toString());
+                }
+            }
         }
-        resourceJar.addAsResource(new StringAsset(builder.toString()), ClientServerFiles.ANNOTATION_LIST);
+        resourceJar.addAsResource(scannedAnnotations, ClientServerFiles.ANNOTATION_LIST);
     }
 
     private static void addFeatures(final Map<String, Collection<URL>> featureUrls, final String ln, final JavaArchive resourceJar) {
@@ -161,7 +172,10 @@ public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
     private static void enrichWithDefaultCucumber(final LibraryContainer<?> libraryContainer) {
         libraryContainer.addAsLibraries(
                 jarLocation(Mapper.class),
-                jarLocation(JavaBackend.class), jarLocation(Cucumber.class));
+                jarLocation(ResourceLoaderClassFinder.class),
+                jarLocation(ConverterRegistry.class),
+                jarLocation(JavaBackend.class),
+                jarLocation(Cucumber.class));
     }
 
     private static void enrichWithGlues(final Class<?> javaClass, final LibraryContainer<?> libraryContainer) {
@@ -256,7 +270,7 @@ public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
             while ((length = is.read(buffer)) != -1) {
                 baos.write(buffer, 0, length);
             }
-        } catch (IOException e) {
+        } catch (final IOException e) {
             // no-op
         } finally {
             if (is != null) {

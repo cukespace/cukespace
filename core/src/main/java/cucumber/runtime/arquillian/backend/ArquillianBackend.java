@@ -12,6 +12,7 @@ import cucumber.runtime.UnreportedStepExecutor;
 import cucumber.runtime.Utils;
 import cucumber.runtime.arquillian.lifecycle.CucumberLifecycle;
 import cucumber.runtime.java.StepDefAnnotation;
+import cucumber.runtime.snippets.FunctionNameSanitizer;
 import cucumber.runtime.snippets.Snippet;
 import cucumber.runtime.snippets.SnippetGenerator;
 import gherkin.formatter.model.Step;
@@ -152,19 +153,19 @@ public class ArquillianBackend implements Backend {
         return Pattern.compile(regexpString);
     }
 
-    private int timeout(final Annotation annotation) throws Throwable {
+    private long timeout(final Annotation annotation) throws Throwable {
         final Method regexpMethod = annotation.getClass().getMethod("timeout");
-        return (Integer) Utils.invoke(annotation, regexpMethod, 0);
+        return (Long) Utils.invoke(annotation, regexpMethod, 0);
     }
 
     private void addHook(final Annotation annotation, final Method method, final Object instance) {
         if (annotation.annotationType().equals(Before.class)) {
             final String[] tagExpressions = ((Before) annotation).value();
-            final int timeout = ((Before) annotation).timeout();
+            final long timeout = ((Before) annotation).timeout();
             glue.addBeforeHook(new ArquillianHookDefinition(method, tagExpressions, ((Before) annotation).order(), timeout, instance));
         } else {
             final String[] tagExpressions = ((After) annotation).value();
-            final int timeout = ((After) annotation).timeout();
+            final long timeout = ((After) annotation).timeout();
             glue.addAfterHook(new ArquillianHookDefinition(method, tagExpressions, ((After) annotation).order(), timeout, instance));
         }
     }
@@ -185,7 +186,7 @@ public class ArquillianBackend implements Backend {
     }
 
     @Override
-    public String getSnippet(final Step step) {
+    public String getSnippet(final Step step, final FunctionNameSanitizer functionNameSanitizer) {
         if (snippetGenerator == null) { // leaving a double if ATM if we need to add other language support
             if (GlueType.SCALA.equals(glueType)) {
                 try {
@@ -200,7 +201,7 @@ public class ArquillianBackend implements Backend {
             snippetGenerator = new SnippetGenerator(new ArquillianSnippet());
         }
 
-        return snippetGenerator.getSnippet(step);
+        return snippetGenerator.getSnippet(step, functionNameSanitizer);
     }
 
     private static <T> Collection<T> readField(final Class<?> clazz, final String field, final Object instance, final Class<T> cast) throws Exception {

@@ -15,16 +15,16 @@ import static java.util.Arrays.asList;
 
 public class ArquillianHookDefinition implements HookDefinition {
     private final Method method;
-    private final int timeout;
+    private final long timeout;
     private final TagExpression tagExpression;
     private final int order;
     private final Object instance;
 
     public ArquillianHookDefinition(final Method method, final String[] tagExpressions,
-                                    final int order, final int timeout, final Object instance) {
+                                    final int order, final long timeout, final Object instance) {
         this.method = method;
         this.timeout = timeout;
-        tagExpression = new TagExpression(asList(tagExpressions));
+        this.tagExpression = new TagExpression(asList(tagExpressions));
         this.order = order;
         this.instance = instance;
     }
@@ -57,7 +57,7 @@ public class ArquillianHookDefinition implements HookDefinition {
 
     @Override
     public boolean matches(final Collection<Tag> tags) {
-        return tagExpression.eval(tags);
+        return tagExpression.evaluate(tags);
     }
 
     @Override

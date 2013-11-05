@@ -1,7 +1,7 @@
 package cucumber.runtime.arquillian.feature;
 
 import cucumber.api.java.fr.Alors;
-import cucumber.api.java.fr.Etantdonnée;
+import cucumber.api.java.fr.Etantdonné;
 import cucumber.api.java.fr.Quand;
 import cucumber.runtime.arquillian.ArquillianCucumber;
 import cucumber.runtime.arquillian.domain.Belly;
@@ -33,7 +33,7 @@ public class CukesInBellyFrTest {
         belly.setCukes(cukes);
     }
 
-    @Etantdonnée("^I have a belly$")
+    @Etantdonné("^I have a belly$")
     public void setUpBelly() {
         belly = new Belly();
     }
