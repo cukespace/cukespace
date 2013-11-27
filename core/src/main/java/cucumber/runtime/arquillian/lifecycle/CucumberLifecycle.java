@@ -7,6 +7,8 @@ import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
 import cucumber.runtime.arquillian.shared.ClientServerFiles;
 import cucumber.runtime.arquillian.stream.NotCloseablePrintStream;
+import cucumber.runtime.io.MultiLoader;
+import cucumber.runtime.io.ResourceLoaderClassFinder;
 import org.jboss.arquillian.core.api.Instance;
 import org.jboss.arquillian.core.api.annotation.Inject;
 import org.jboss.arquillian.core.api.annotation.Observes;
@@ -91,7 +93,15 @@ public class CucumberLifecycle {
         if (!CUCUMBER_ANNOTATIONS.isEmpty()) {
             return CUCUMBER_ANNOTATIONS;
         }
-        return Arrays.asList(Given.class, When.class, Then.class, And.class, But.class);
+
+        final ClassLoader loader = Thread.currentThread().getContextClassLoader();
+        final ResourceLoaderClassFinder finder = new ResourceLoaderClassFinder(new MultiLoader(loader), loader);
+        CUCUMBER_ANNOTATIONS.addAll(finder.getDescendants(Annotation.class, "cucumber.api"));
+
+        if (CUCUMBER_ANNOTATIONS.isEmpty()) {
+            return Arrays.asList(Given.class, When.class, Then.class, And.class, But.class);
+        }
+        return CUCUMBER_ANNOTATIONS;
     }
 
     public static Object enrich(final Object instance) {

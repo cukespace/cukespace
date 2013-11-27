@@ -127,10 +127,8 @@ public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
         if (scannedAnnotations == null) {
             synchronized (CucumberArchiveProcessor.class) {
                 if (scannedAnnotations == null) {
-                    final ResourceLoaderClassFinder finder = new ResourceLoaderClassFinder(new MultiLoader(loader), loader);
-                    final Collection<Class<? extends Annotation>> annotations = finder.getDescendants(Annotation.class, "cucumber.api");
                     final StringBuilder builder = new StringBuilder();
-                    for (final Class<? extends Annotation> annotation : annotations) {
+                    for (final Class<? extends Annotation> annotation : CucumberLifecycle.cucumberAnnotations()) {
                         builder.append(annotation.getName()).append(ln);
                     }
                     scannedAnnotations = new StringAsset(builder.toString());
