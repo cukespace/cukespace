@@ -142,7 +142,7 @@ public class ArquillianCucumber extends Arquillian {
         }
 
         final RuntimeOptions runtimeOptions;
-        if (clazz.getAnnotation(Cucumber.Options.class) != null) { // by class setting
+        if (clazz.getAnnotation(Cucumber.Options.class) != null || clazz.getAnnotation(CucumberOptions.class) != null) { // by class setting
             final RuntimeOptionsFactory runtimeOptionsFactory = new RuntimeOptionsFactory(clazz, OPTIONS_ANNOTATIONS);
             runtimeOptions = runtimeOptionsFactory.create();
             cleanClasspathList(runtimeOptions.getGlue());
