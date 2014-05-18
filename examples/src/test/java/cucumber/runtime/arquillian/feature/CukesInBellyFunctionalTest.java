@@ -21,7 +21,7 @@ import java.io.File;
 import static org.jboss.shrinkwrap.api.ShrinkWrap.create;
 
 @Glues(CukeBellyGlue.class)
-@Features("cucumber/runtime/arquillian/feature/cukes-in-belly.feature")
+@Features("cucumber/runtime/arquillian/feature/cukes-in-belly.feature:3")
 @RunWith(ArquillianCucumber.class)
 public class CukesInBellyFunctionalTest {
     @Deployment(testable = false)

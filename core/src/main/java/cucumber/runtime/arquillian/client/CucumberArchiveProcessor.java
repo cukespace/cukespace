@@ -3,6 +3,7 @@ package cucumber.runtime.arquillian.client;
 import cucumber.api.junit.Cucumber;
 import cucumber.deps.com.thoughtworks.xstream.converters.ConverterRegistry;
 import cucumber.runtime.arquillian.ArquillianCucumber;
+import cucumber.runtime.arquillian.CukeSpace;
 import cucumber.runtime.arquillian.backend.ArquillianBackend;
 import cucumber.runtime.arquillian.config.CucumberConfiguration;
 import cucumber.runtime.arquillian.container.CucumberContainerExtension;
@@ -67,7 +68,7 @@ public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
         if (featureUrls.isEmpty()
                 || !LibraryContainer.class.isInstance(applicationArchive)) {
             final RunWith runWith = testClass.getAnnotation(RunWith.class);
-            if (runWith == null || !ArquillianCucumber.class.equals(runWith.value())) {
+            if (runWith == null || (!ArquillianCucumber.class.equals(runWith.value()) && !CukeSpace.class.equals(runWith.value()))) {
                 // not a cucumber test so skip enrichment
                 return;
             } else {

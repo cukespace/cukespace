@@ -50,11 +50,12 @@ public final class Features {
         for (final String raw : findFeatures(javaClass)) {
             final Collection<URL> list = new ArrayList<URL>();
 
-            final int lineIdx = raw.lastIndexOf(':');
+            int lineIdx = raw.lastIndexOf(':');
             final String path;
-            if (lineIdx > 0) {
+            if (lineIdx > 0 && lineIdx + 1 != MultiLoader.CLASSPATH_SCHEME.length()) {
                 path = raw.substring(0, lineIdx);
             } else {
+                lineIdx = -1; // in classpath: case it is not already the case
                 path = raw;
             }
 

@@ -4,6 +4,7 @@ import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
 import cucumber.runtime.arquillian.ArquillianCucumber;
+import cucumber.runtime.arquillian.api.Features;
 import cucumber.runtime.arquillian.domain.Belly;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.shrinkwrap.api.Archive;
@@ -16,6 +17,7 @@ import javax.inject.Inject;
 import static org.jboss.shrinkwrap.api.ShrinkWrap.create;
 import static org.junit.Assert.assertEquals;
 
+@Features("cucumber/runtime/arquillian/feature/cukes-in-belly.feature:9") // only second scenario
 @RunWith(ArquillianCucumber.class)
 public class CukesInBellyTest {
     @Deployment

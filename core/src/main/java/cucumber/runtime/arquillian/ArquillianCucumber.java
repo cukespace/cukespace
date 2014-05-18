@@ -39,17 +39,19 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 import static java.util.Arrays.asList;
 
 public class ArquillianCucumber extends Arquillian {
-    private static final String RUN_CUCUMBER_MTD = "runCucumber";
+    private static final String RUN_CUCUMBER_MTD = "____Cucumber_Runner_Not_A_Test";
     private static final Class[] OPTIONS_ANNOTATIONS = new Class[]{CucumberOptions.class, Cucumber.Options.class};
 
     private List<FrameworkMethod> methods;
@@ -102,8 +104,8 @@ public class ArquillianCucumber extends Arquillian {
         super.runChild(method, notifier);
     }
 
-    // the cucumber test method, only used internally - see childrenInvoker
-    public void runCucumber(final Object testInstance, final RunNotifier runNotifier) throws Exception {
+    // the cucumber test method, only used internally - see childrenInvoker, public to avoid to setAccessible(true)
+    public void ____Cucumber_Runner_Not_A_Test(final Object testInstance, final RunNotifier runNotifier) throws Exception {
         final Class<?> clazz = getTestClass().getJavaClass();
         final ClassLoader tccl = Thread.currentThread().getContextClassLoader();
 
@@ -145,22 +147,28 @@ public class ArquillianCucumber extends Arquillian {
                     continue;
                 }
 
-                builder.parse(new ClassLoaderResource(tccl, line), filters);
+                final Set<Object> resourceFilters = new HashSet<Object>(filters);
+                final PathWithLines pathWithLines = new PathWithLines(line);
+                resourceFilters.addAll(pathWithLines.lines);
+                builder.parse(new ClassLoaderResource(tccl, pathWithLines.path), new ArrayList<Object>(resourceFilters));
             }
         } else { // client side
             for (final Map.Entry<String, Collection<URL>> entry : Features.createFeatureMap(cukespaceConfig.getProperty(CucumberConfiguration.FEATURE_HOME), clazz, tccl).entrySet()) {
                 final PathWithLines pathWithLines = new PathWithLines(entry.getKey());
                 for (final URL rawUrl : entry.getValue()) {
-                    filters.addAll(pathWithLines.lines);
+                    final Set<Object> resourceFilters = new HashSet<Object>(filters);
+                    resourceFilters.addAll(pathWithLines.lines);
                     final String path = rawUrl.getPath();
                     final PathWithLines pathWithLinesUrl = new PathWithLines(path);
+                    resourceFilters.addAll(pathWithLinesUrl.lines);
+
                     final URL url;
                     if (!pathWithLinesUrl.lines.isEmpty()) {
                         url = new URL(rawUrl.getProtocol(), rawUrl.getHost(), rawUrl.getPort(), pathWithLinesUrl.path);
                     } else {
                         url = rawUrl;
                     }
-                    builder.parse(new URLResource(pathWithLines.path, url), filters);
+                    builder.parse(new URLResource(pathWithLines.path, url), new ArrayList<Object>(resourceFilters));
                 }
             }
         }
@@ -350,7 +358,7 @@ public class ArquillianCucumber extends Arquillian {
 
         @Override
         public Object invokeExplosively(final Object target, final Object... params) throws Throwable {
-            instance.runCucumber(target, notifier == null ? new RunNotifier() : notifier);
+            instance.____Cucumber_Runner_Not_A_Test(target, notifier == null ? new RunNotifier() : notifier);
             return null;
         }
 
