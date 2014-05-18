@@ -20,7 +20,24 @@ public class CucumberConfiguration {
     private String options;
     private String featureHome;
 
-    private CucumberConfiguration() {
+    /**
+     * directory to dump resource loader from loaders
+     */
+    private String tempDir = guessDefaultTempDir();
+
+    private static String guessDefaultTempDir()
+    {
+        final String suffix = "/cukespace/features/";
+        if (new File("target").exists()) { // maven
+            return new File("target", suffix).getAbsolutePath();
+        }
+        if (new File("build").exists()) {
+            return new File("build", suffix).getAbsolutePath();
+        }
+        return System.getProperty("java.io.tmpdir") + suffix;
+    }
+
+    public CucumberConfiguration() {
         // no-op
     }
 
@@ -92,5 +109,13 @@ public class CucumberConfiguration {
 
     public static CucumberConfiguration instance() {
         return CONFIGURATION;
+    }
+
+    public String getTempDir() {
+        return tempDir;
+    }
+
+    public void setTempDir(final String tempDir) {
+        this.tempDir = tempDir;
     }
 }

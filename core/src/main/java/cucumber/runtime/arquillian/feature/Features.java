@@ -5,9 +5,11 @@ import cucumber.api.junit.Cucumber;
 import cucumber.runtime.io.FileResource;
 import cucumber.runtime.io.MultiLoader;
 import cucumber.runtime.io.Resource;
+import cucumber.runtime.io.ResourceLoader;
 import cucumber.runtime.io.ZipResource;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -16,10 +18,14 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.logging.Logger;
 
+import static cucumber.runtime.arquillian.client.IOs.dump;
+import static cucumber.runtime.arquillian.client.IOs.slurp;
 import static cucumber.runtime.arquillian.shared.ClassLoaders.load;
+import static java.util.Arrays.asList;
 
 public final class Features {
     private static final Logger LOGGER = Logger.getLogger(Features.class.getName());
@@ -35,7 +41,7 @@ public final class Features {
                 + '/' + createClassNameSubPackage(javaClass.getSimpleName()) + EXTENSION;
     }
 
-    public static Map<String, Collection<URL>> createFeatureMap(final String featureHome, final Class<?> javaClass, final ClassLoader loader) {
+    public static Map<String, Collection<URL>> createFeatureMap(final String tempDir, final String featureHome, final Class<?> javaClass, final ClassLoader loader) {
         final Map<String, Collection<URL>> featureUrls = new HashMap<String, Collection<URL>>();
 
         final String home;
@@ -46,55 +52,105 @@ public final class Features {
         }
 
         final boolean client = isClient();
+        final cucumber.runtime.arquillian.api.Features additionalFeaturesAnn = javaClass.getAnnotation(cucumber.runtime.arquillian.api.Features.class);
+        final Collection<ResourceLoader> customLoaders = new LinkedList<ResourceLoader>();
+        if (additionalFeaturesAnn != null) {
+            final Class<? extends ResourceLoader>[] userLoaders = additionalFeaturesAnn.loaders();
+            for (final Class<? extends ResourceLoader> resourceLoader : userLoaders) {
+                try {
+                    final ResourceLoader instance = resourceLoader.newInstance();
+                    customLoaders.add(instance);
+                } catch (final Exception e) {
+                    throw new IllegalArgumentException("can't create a " + resourceLoader.getName(), e);
+                }
+            }
+        }
 
         for (final String raw : findFeatures(javaClass)) {
             final Collection<URL> list = new ArrayList<URL>();
 
             int lineIdx = raw.lastIndexOf(':');
             final String path;
+            final String suffix;
             if (lineIdx > 0 && lineIdx + 1 != MultiLoader.CLASSPATH_SCHEME.length()) {
                 path = raw.substring(0, lineIdx);
+                suffix = raw.substring(lineIdx);
             } else {
-                lineIdx = -1; // in classpath: case it is not already the case
+                suffix = "";
                 path = raw;
             }
 
-            final boolean directResource = path.endsWith(".feature");
+            final boolean directResource = path.endsWith(EXTENSION);
 
             if (directResource) {
                 { // from classpath
                     final URL url = loader.getResource(path);
                     if (url != null) {
                         list.add(url);
-                        addSuffixToListIfNeeded(raw, list, lineIdx);
-                        featureUrls.put(raw, list);
+                        featureUrls.put(raw + suffix, list);
                         continue;
                     }
                 }
 
                 // from filesystem
-                if (urlFromFileSystem(featureUrls, list, path, path)) {
-                    addSuffixToListIfNeeded(raw, list, lineIdx);
+                if (urlFromFileSystem(featureUrls, list, path, path, suffix)) {
                     continue;
                 }
 
                 // from filesystem with featureHome
-                if (home != null && urlFromFileSystem(featureUrls, list, path, featureHome + path)) {
-                    addSuffixToListIfNeeded(raw, list, lineIdx);
+                if (home != null && urlFromFileSystem(featureUrls, list, path, featureHome + path, suffix)) {
                     continue;
                 }
             }
 
             if (client) { // scan on client side to avoid URL issues in the server
+                if (directResource) {
+                    for (final ResourceLoader instance : customLoaders) {
+                        for (final Resource r : instance.resources(path.substring(0, path.length() - EXTENSION.length()), EXTENSION)) {
+                            try {
+                                final String feature = new String(slurp(r.getInputStream()));
+                                final String featurePath = r.getPath();
+                                final File featureDump = dump(tempDir, javaClass.getName() + '/' + featurePath, feature);
+                                featureDump.deleteOnExit();
+                                featureUrls.put(featurePath, asList(featureDump.toURI().toURL()));
+                            } catch (final IOException e) {
+                                throw new IllegalStateException(e);
+                            }
+                        }
+                    }
+                }
+
                 findWithCucumberSearcher(loader, path, list);
                 if (home != null) {
                     findWithCucumberSearcher(loader, home + path, list);
                 }
+
                 if (!list.isEmpty()) {
-                    addSuffixToListIfNeeded(raw, list, lineIdx);
-                    featureUrls.put(path, list);
+                    featureUrls.put(path + suffix, list);
                 }
             } // else already done on client side
+        }
+
+        if (client) { // try to get custom loading without particular name
+            for (final ResourceLoader instance : customLoaders) {
+                try {
+                    for (final Resource r : instance.resources(null, EXTENSION)) {
+                        try {
+                            final String feature = new String(slurp(r.getInputStream()));
+                            final String featurePath = r.getPath();
+                            final File featureDump = dump(tempDir, javaClass.getName() + '/' + featurePath, feature);
+                            featureDump.deleteOnExit();
+                            featureUrls.put(featurePath, asList(featureDump.toURI().toURL()));
+                        } catch (final IOException e) {
+                            throw new IllegalStateException(e);
+                        }
+                    }
+                } catch (final NullPointerException npe) {
+                    // no-op: we call it with null, don't expect miracles
+                } catch (final IllegalArgumentException npe) {
+                    // no-op: we call it with null, don't expect miracles
+                }
+            }
         }
 
         LOGGER.fine("Features: " + featureUrls);
@@ -102,33 +158,13 @@ public final class Features {
         return featureUrls;
     }
 
-    private static void addSuffixToListIfNeeded(final String raw, final Collection<URL> list, final int lineIdx) {
-        if (lineIdx > 0 && !list.isEmpty()) {
-            final String suffix = raw.substring(lineIdx);
-            final Collection<URL> toAdd = new ArrayList<URL>();
-            final Iterator<URL> urls = list.iterator();
-            while (urls.hasNext()) {
-                final URL next = urls.next();
-                final String s = next.toExternalForm();
-                if (s.endsWith(".feature")) {
-                    try {
-                        toAdd.add(new URL(s + suffix));
-                        urls.remove();
-                    } catch (final MalformedURLException e) {
-                        // no-op
-                    }
-                }
-            }
-            list.addAll(toAdd);
-        }
-    }
-
-    private static boolean urlFromFileSystem(final Map<String, Collection<URL>> featureUrls, final Collection<URL> list, final String path, final String filePath) {
+    private static boolean urlFromFileSystem(final Map<String, Collection<URL>> featureUrls, final Collection<URL> list,
+                                             final String path, final String filePath, final String keySuffix) {
         final File file = new File(filePath);
         if (file.exists() && !file.isDirectory()) {
             try {
                 list.add(file.toURI().toURL());
-                featureUrls.put(path, list);
+                featureUrls.put(path + keySuffix, list);
                 return true;
             } catch (final MalformedURLException e) {
                 // no-op

@@ -44,6 +44,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
+import static cucumber.runtime.arquillian.client.IOs.slurp;
 import static cucumber.runtime.arquillian.locator.JarLocation.jarLocation;
 import static cucumber.runtime.arquillian.shared.ClassLoaders.load;
 import static org.jboss.shrinkwrap.api.ShrinkWrap.create;
@@ -63,7 +64,7 @@ public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
         // try to find the feature
         final Class<?> javaClass = testClass.getJavaClass();
         final ClassLoader loader = Thread.currentThread().getContextClassLoader();
-        final Map<String, Collection<URL>> featureUrls = Features.createFeatureMap(configuration.get().getFeatureHome(), javaClass, loader);
+        final Map<String, Collection<URL>> featureUrls = Features.createFeatureMap(configuration.get().getTempDir(), configuration.get().getFeatureHome(), javaClass, loader);
 
         if (featureUrls.isEmpty()
                 || !LibraryContainer.class.isInstance(applicationArchive)) {
@@ -256,30 +257,5 @@ public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
 
         // fallback
         return Math.abs(url.hashCode()) + Features.EXTENSION;
-    }
-
-    private static byte[] slurp(final URL featureUrl) {
-        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        InputStream is = null;
-        try {
-            is = featureUrl.openStream();
-
-            final byte[] buffer = new byte[1024];
-            int length;
-            while ((length = is.read(buffer)) != -1) {
-                baos.write(buffer, 0, length);
-            }
-        } catch (final IOException e) {
-            // no-op
-        } finally {
-            if (is != null) {
-                try {
-                    is.close();
-                } catch (IOException e) {
-                    // no-op
-                }
-            }
-        }
-        return baos.toByteArray();
     }
 }

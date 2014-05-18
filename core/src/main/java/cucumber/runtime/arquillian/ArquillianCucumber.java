@@ -153,21 +153,11 @@ public class ArquillianCucumber extends Arquillian {
                 builder.parse(new ClassLoaderResource(tccl, pathWithLines.path), new ArrayList<Object>(resourceFilters));
             }
         } else { // client side
-            for (final Map.Entry<String, Collection<URL>> entry : Features.createFeatureMap(cukespaceConfig.getProperty(CucumberConfiguration.FEATURE_HOME), clazz, tccl).entrySet()) {
+            for (final Map.Entry<String, Collection<URL>> entry : Features.createFeatureMap(CucumberConfiguration.instance().getTempDir(), cukespaceConfig.getProperty(CucumberConfiguration.FEATURE_HOME), clazz, tccl).entrySet()) {
                 final PathWithLines pathWithLines = new PathWithLines(entry.getKey());
-                for (final URL rawUrl : entry.getValue()) {
-                    final Set<Object> resourceFilters = new HashSet<Object>(filters);
-                    resourceFilters.addAll(pathWithLines.lines);
-                    final String path = rawUrl.getPath();
-                    final PathWithLines pathWithLinesUrl = new PathWithLines(path);
-                    resourceFilters.addAll(pathWithLinesUrl.lines);
-
-                    final URL url;
-                    if (!pathWithLinesUrl.lines.isEmpty()) {
-                        url = new URL(rawUrl.getProtocol(), rawUrl.getHost(), rawUrl.getPort(), pathWithLinesUrl.path);
-                    } else {
-                        url = rawUrl;
-                    }
+                final Set<Object> resourceFilters = new HashSet<Object>(filters);
+                resourceFilters.addAll(pathWithLines.lines);
+                for (final URL url : entry.getValue()) {
                     builder.parse(new URLResource(pathWithLines.path, url), new ArrayList<Object>(resourceFilters));
                 }
             }

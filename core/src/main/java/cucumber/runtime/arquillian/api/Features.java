@@ -1,5 +1,7 @@
 package cucumber.runtime.arquillian.api;
 
+import cucumber.runtime.io.ResourceLoader;
+
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
@@ -11,5 +13,13 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Target(TYPE)
 @Retention(RUNTIME)
 public @interface Features {
-    String[] value();
+    /**
+     * @return feature paths
+     */
+    String[] value() default {};
+
+    /**
+     * @return custom loaders
+     */
+    Class<? extends ResourceLoader>[] loaders() default {};
 }
