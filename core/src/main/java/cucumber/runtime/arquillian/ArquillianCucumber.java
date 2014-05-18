@@ -21,6 +21,7 @@ import gherkin.formatter.Formatter;
 import gherkin.formatter.JSONFormatter;
 import gherkin.formatter.Reporter;
 import org.jboss.arquillian.junit.Arquillian;
+import org.junit.runner.Description;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.InitializationError;
 import org.junit.runners.model.MultipleFailureException;
@@ -56,6 +57,16 @@ public class ArquillianCucumber extends Arquillian {
     }
 
     @Override
+    protected Description describeChild(final FrameworkMethod method)
+    {
+        if (!Boolean.getBoolean("cukespace.runner.standard-describe")
+                && InstanceControlledFrameworkMethod.class.isInstance(method)) {
+            return Description.createTestDescription(InstanceControlledFrameworkMethod.class.cast(method).getOriginalClass(), testName(method), method.getAnnotations());
+        }
+        return super.describeChild(method);
+    }
+
+    @Override
     protected List<FrameworkMethod> computeTestMethods() {
         if (methods != null) {
             return methods;
@@ -71,7 +82,7 @@ public class ArquillianCucumber extends Arquillian {
         try { // run cucumber, this looks like a hack but that's to keep @Before/@After/... hooks behavior
             final Method runCucumber = ArquillianCucumber.class.getDeclaredMethod(RUN_CUCUMBER_MTD, Object.class);
             runCucumber.setAccessible(true);
-            final InstanceControlledFrameworkMethod runCucumberMtdFramework = new InstanceControlledFrameworkMethod(ArquillianCucumber.this, runCucumber);
+            final InstanceControlledFrameworkMethod runCucumberMtdFramework = new InstanceControlledFrameworkMethod(ArquillianCucumber.this, getTestClass().getJavaClass(), runCucumber);
             methods.add(runCucumberMtdFramework);
         } catch (final NoSuchMethodException e) {
             // no-op: will not accur...if so this exception is not your biggest issue
@@ -307,9 +318,11 @@ public class ArquillianCucumber extends Arquillian {
 
     private static class InstanceControlledFrameworkMethod extends FrameworkMethod {
         private final ArquillianCucumber instance;
+        private final Class<?> originalClass;
 
-        public InstanceControlledFrameworkMethod(final ArquillianCucumber runner, final Method runCucumber) {
+        public InstanceControlledFrameworkMethod(final ArquillianCucumber runner, final Class<?> originalClass, final Method runCucumber) {
             super(runCucumber);
+            this.originalClass = originalClass;
             this.instance = runner;
         }
 
@@ -317,6 +330,10 @@ public class ArquillianCucumber extends Arquillian {
         public Object invokeExplosively(final Object target, final Object... params) throws Throwable {
             instance.runCucumber(target);
             return null;
+        }
+
+        public Class<?> getOriginalClass() {
+            return originalClass;
         }
     }
 }
