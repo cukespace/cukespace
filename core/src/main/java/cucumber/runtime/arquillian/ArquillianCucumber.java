@@ -186,18 +186,15 @@ public class ArquillianCucumber extends Arquillian {
         }
 
         final cucumber.runtime.Runtime runtime = new cucumber.runtime.Runtime(null, tccl, Arrays.asList(new ArquillianBackend(Glues.findGlues(clazz), clazz, testInstance)), runtimeOptions);
-        final JUnitReporter jUnitReporter = new JUnitReporter(runtimeOptions.reporter(tccl), runtimeOptions.formatter(tccl), runtimeOptions.isStrict());
+        final Formatter formatter = runtimeOptions.formatter(tccl);
+        final JUnitReporter jUnitReporter = new JUnitReporter(runtimeOptions.reporter(tccl), formatter, runtimeOptions.isStrict());
         for (final CucumberFeature feature : cucumberFeatures) {
             new FeatureRunner(feature, runtime, jUnitReporter).run(runNotifier);
         }
 
-        final Formatter formatter = runtimeOptions.formatter(tccl);
-
-        formatter.done();
         jUnitReporter.done();
         jUnitReporter.close();
         runtime.printSummary();
-        formatter.close();
 
         if (reported) {
             final String path = cukespaceConfig.getProperty(CucumberConfiguration.REPORTABLE_PATH);
