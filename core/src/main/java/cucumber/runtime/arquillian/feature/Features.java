@@ -1,5 +1,6 @@
 package cucumber.runtime.arquillian.feature;
 
+import cucumber.api.CucumberOptions;
 import cucumber.api.junit.Cucumber;
 import cucumber.runtime.io.FileResource;
 import cucumber.runtime.io.MultiLoader;
@@ -138,21 +139,6 @@ public final class Features {
         }
     }
 
-    private static void listFeatures(final Collection<URL> list, final File f) {
-        final File[] children = f.listFiles();
-        if (children != null) {
-            for (final File c : children) {
-                if (c.exists()) {
-                    try {
-                        list.add(c.toURI().toURL());
-                    } catch (final MalformedURLException e) {
-                        // no-op
-                    }
-                }
-            }
-        }
-    }
-
     public static Collection<String> findFeatures(final Class<?> javaClass) {
         final Collection<String> featureUrls = new ArrayList<String>();
 
@@ -168,8 +154,14 @@ public final class Features {
             }
         }
 
-        { // cucumber-junit API
+        { // cucumber-junit API (deprecated)
             final Cucumber.Options annotation = javaClass.getAnnotation(Cucumber.Options.class);
+            if (annotation != null && annotation.features() != null) {
+                Collections.addAll(featureUrls, annotation.features());
+            }
+        }
+        { // cucumber-junit API
+            final CucumberOptions annotation = javaClass.getAnnotation(CucumberOptions.class);
             if (annotation != null && annotation.features() != null) {
                 Collections.addAll(featureUrls, annotation.features());
             }

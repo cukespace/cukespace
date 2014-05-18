@@ -12,7 +12,7 @@ import cucumber.runtime.UnreportedStepExecutor;
 import cucumber.runtime.Utils;
 import cucumber.runtime.arquillian.lifecycle.CucumberLifecycle;
 import cucumber.runtime.java.StepDefAnnotation;
-import cucumber.runtime.snippets.FunctionNameSanitizer;
+import cucumber.runtime.snippets.FunctionNameGenerator;
 import cucumber.runtime.snippets.Snippet;
 import cucumber.runtime.snippets.SnippetGenerator;
 import gherkin.formatter.model.Step;
@@ -186,7 +186,7 @@ public class ArquillianBackend implements Backend {
     }
 
     @Override
-    public String getSnippet(final Step step, final FunctionNameSanitizer functionNameSanitizer) {
+    public String getSnippet(final Step step, final FunctionNameGenerator nameGenerator) {
         if (snippetGenerator == null) { // leaving a double if ATM if we need to add other language support
             if (GlueType.SCALA.equals(glueType)) {
                 try {
@@ -201,7 +201,7 @@ public class ArquillianBackend implements Backend {
             snippetGenerator = new SnippetGenerator(new ArquillianSnippet());
         }
 
-        return snippetGenerator.getSnippet(step, functionNameSanitizer);
+        return snippetGenerator.getSnippet(step, nameGenerator);
     }
 
     private static <T> Collection<T> readField(final Class<?> clazz, final String field, final Object instance, final Class<T> cast) throws Exception {

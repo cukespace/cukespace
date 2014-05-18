@@ -16,7 +16,7 @@ import cucumber.runtime.arquillian.reporter.CucumberReporter;
 import cucumber.runtime.arquillian.shared.ClientServerFiles;
 import cucumber.runtime.io.Resource;
 import cucumber.runtime.model.CucumberFeature;
-import cucumber.runtime.snippets.SummaryPrinter;
+import cucumber.runtime.SummaryPrinter;
 import gherkin.formatter.Formatter;
 import gherkin.formatter.JSONFormatter;
 import gherkin.formatter.PrettyFormatter;
@@ -46,6 +46,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.regex.Pattern;
+
+import static java.util.Arrays.asList;
 
 public class ArquillianCucumber extends Arquillian {
     private static final String RUN_CUCUMBER_MTD = "runCucumber";
@@ -148,42 +150,15 @@ public class ArquillianCucumber extends Arquillian {
             cleanClasspathList(runtimeOptions.getGlue());
             cleanClasspathList(runtimeOptions.getFeaturePaths());
         } else if (cukespaceConfig.containsKey(CucumberConfiguration.OPTIONS)) { // arquillian setting
-            runtimeOptions = new RuntimeOptions(new Env("cucumber-jvm"), (cukespaceConfig.getProperty(CucumberConfiguration.OPTIONS, "--strict") + " --strict").split(" "));
+            runtimeOptions = new RuntimeOptions(new Env("cucumber-jvm"), asList((cukespaceConfig.getProperty(CucumberConfiguration.OPTIONS, "--strict") + " --strict").split(" ")));
         } else { // default
-            runtimeOptions = new RuntimeOptions(new Env("cucumber-jvm"), "--strict", "-f", "pretty", areColorsNotAvailable(cukespaceConfig));
+            runtimeOptions = new RuntimeOptions(new Env("cucumber-jvm"), asList("--strict", "-f", "pretty", areColorsNotAvailable(cukespaceConfig)));
         }
 
-        { // issue with cucumber-jvm 1.1.3 -> https://github.com/cucumber/cucumber-jvm/issues/476
-            // this fix is not sexy but since the fix for 1.1.4 was sent (github PR) a workaround is enough here
-            final Collection<Formatter> newFormatters = new ArrayList<Formatter>();
-            for (final Formatter f : runtimeOptions.getFormatters()) {
-                if (PrettyFormatter.class.isInstance(f)) {
-                    final Field indentations = PrettyFormatter.class.getDeclaredField("indentations");
-                    indentations.setAccessible(true);
-                    final List<Integer> list = List.class.cast(indentations.get(f));
-                    indentations.set(f, List.class.cast(Proxy.newProxyInstance(tccl, new Class<?>[] { List.class }, new InvocationHandler() {
-                        @Override
-                        public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
-                            final String m = method.getName();
-                            if ("get".equals(m) || "remove".equals(m)) {
-                                if (list.isEmpty()) {
-                                    return 0;
-                                }
-                            }
-                            return method.invoke(list, args);
-                        }
-                    })));
-                }
-                newFormatters.add(f);
-            }
-            runtimeOptions.getFormatters().clear();
-            runtimeOptions.getFormatters().addAll(newFormatters);
-        }
-
-        final StringBuilder reportBuilder = new StringBuilder();
         final boolean reported = Boolean.parseBoolean(cukespaceConfig.getProperty(CucumberConfiguration.REPORTABLE, "false"));
+        final StringBuilder reportBuilder = new StringBuilder();
         if (reported) {
-            runtimeOptions.getFormatters().add(new JSONFormatter(reportBuilder));
+            runtimeOptions.addFormatter(new JSONFormatter(reportBuilder));
         }
 
         final cucumber.runtime.Runtime runtime = new cucumber.runtime.Runtime(null, tccl, Arrays.asList(new ArquillianBackend(Glues.findGlues(clazz), clazz, testInstance)), runtimeOptions);
@@ -304,7 +279,7 @@ public class ArquillianCucumber extends Arquillian {
         }
 
         @Override
-        public String getClassName() {
+        public String getClassName(final String extension) {
             return null;
         }
     }
@@ -329,7 +304,7 @@ public class ArquillianCucumber extends Arquillian {
         }
 
         @Override
-        public String getClassName() {
+        public String getClassName(final String extension) {
             return null;
         }
     }
