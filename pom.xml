@@ -13,7 +13,7 @@
   <groupId>com.github.cukespace</groupId>
   <artifactId>cukespace-parent</artifactId>
   <packaging>pom</packaging>
-  <version>1.5.6-SNAPSHOT</version>
+  <version>1.5.6</version>
 
   <name>Cukes in Space! Parent</name>
   <url>https://github.com/lmcgrath/cukespace</url>
@@ -151,7 +151,7 @@
               <id>enforce</id>
               <configuration>
                 <rules>
-                  <DependencyConvergence/>
+                  <DependencyConvergence />
                 </rules>
               </configuration>
               <goals>
