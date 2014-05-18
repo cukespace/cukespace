@@ -77,6 +77,9 @@ public class CucumberConfiguration {
         synchronized (CONFIGURATION) { // could it really be multithreaded?
             reset();
 
+            if (properties.containsKey("tempDir")) {
+                CONFIGURATION.tempDir = properties.get("tempDir");
+            }
             if (properties.containsKey("report")) {
                 CONFIGURATION.report = Boolean.parseBoolean(properties.get("report"));
             }
@@ -101,6 +104,7 @@ public class CucumberConfiguration {
     public static void reset() {
         CONFIGURATION.initialized = false;
         CONFIGURATION.reportDirectory = "target/cucumber-report/";
+        CONFIGURATION.tempDir = guessDefaultTempDir();
         CONFIGURATION.options = null;
         CONFIGURATION.report = false;
         CONFIGURATION.colorized = !System.getProperty("os.name").toLowerCase(Locale.ENGLISH).contains("win")
@@ -113,9 +117,5 @@ public class CucumberConfiguration {
 
     public String getTempDir() {
         return tempDir;
-    }
-
-    public void setTempDir(final String tempDir) {
-        this.tempDir = tempDir;
     }
 }

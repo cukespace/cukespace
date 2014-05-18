@@ -42,7 +42,7 @@ You'll want at least the following dependency in your pom.xml:
 
 ## Creating Features
 
-All you have to do is to replace Arquillian runner by ```ArquillianCucumber```, create the test deployment, and
+All you have to do is to replace Arquillian runner by ```CukeSpace```, create the test deployment, and
 write your steps in your test class:
 
 ```java
@@ -52,7 +52,7 @@ import cucumber.runtime.arquillian.junit.Cucumber;
 import my.features.domain.Belly;
 import my.features.glue.BellySteps;
 
-@RunWith(ArquillianCucumber.class)
+@RunWith(CukeSpace.class)
 public class CukesInBellyTest {
     @Deployment
     public static Archive<?> createDeployment() {
@@ -167,6 +167,7 @@ Here are the complete properties:
         <property name="report-directory">target/cucumber-report</property>
         <property name="options">--tags @foo</property>
         <property name="featureHome">/home/test/features</property>
+        <property name="tempDir">target/custom/features</property>
     </extension>
 
 | Property name    | Value                                                                                     |
@@ -175,6 +176,7 @@ Here are the complete properties:
 | report-directory | where to store the report on the filesystem                                               |
 | options          | cucumber options used when `cucumber.api.junit.Cucumber.Options` is not on the test class |
 | featureHome      | where to look for features (base path)                                                    |
+| tempDir          | where custom loaders dump their resources                                                 |
 
 #### Reporting sample configuration
 
@@ -203,7 +205,7 @@ If you want to reuse some feature in multiple test you can specify it through @F
 
 ```java
 @Features("org/foo/bar/scenarii.feature") // can support multiple features too
-@RunWith(ArquillianCucumber.class)
+@RunWith(CukeSpace.class)
 public class MyFeatureTest {
     ....
 }
@@ -215,7 +217,7 @@ If you want to reuse some step classes you can using the annotation @Glues:
 
 ```java
 @Glues(MySteps.class) // can support multiple steps classes too
-@RunWith(ArquillianCucumber.class)
+@RunWith(CukeSpace.class)
 public class MyFeatureTest {
     ....
 }
@@ -227,7 +229,7 @@ public class MyFeatureTest {
 
 ```java
 @Tags("@myTag") // can support multiple tags too
-@RunWith(ArquillianCucumber.class)
+@RunWith(CukeSpace.class)
 public class MyFeatureTest {
     ....
 }
