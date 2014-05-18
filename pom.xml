@@ -52,8 +52,8 @@
   </properties>
 
   <scm>
-    <connection>scm:git:git://github.com/cukespace/cukespace.git</connection>
-    <developerConnection>scm:git:git@github.com:cukespace/cukespace.git</developerConnection>
+    <connection>scm:git:https://github.com/cukespace/cukespace.git</connection>
+    <developerConnection>scm:git:https://github.com:cukespace/cukespace.git</developerConnection>
     <url>https://www.github.com/cukespace/cukespace</url>
     <tag>HEAD</tag>
   </scm>
