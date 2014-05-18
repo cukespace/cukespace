@@ -84,6 +84,8 @@ public final class Features {
             } // else already done on client side
         }
 
+        LOGGER.fine("Features: " + featureUrls);
+
         return featureUrls;
     }
 
