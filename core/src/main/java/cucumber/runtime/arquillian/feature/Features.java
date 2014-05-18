@@ -47,8 +47,16 @@ public final class Features {
 
         final boolean client = isClient();
 
-        for (final String path : findFeatures(javaClass)) {
+        for (final String raw : findFeatures(javaClass)) {
             final Collection<URL> list = new ArrayList<URL>();
+
+            final int lineIdx = raw.lastIndexOf(':');
+            final String path;
+            if (lineIdx > 0) {
+                path = raw.substring(0, lineIdx);
+            } else {
+                path = raw;
+            }
 
             final boolean directResource = path.endsWith(".feature");
 
@@ -57,18 +65,21 @@ public final class Features {
                     final URL url = loader.getResource(path);
                     if (url != null) {
                         list.add(url);
-                        featureUrls.put(path, list);
+                        addSuffixToListIfNeeded(raw, list, lineIdx);
+                        featureUrls.put(raw, list);
                         continue;
                     }
                 }
 
                 // from filesystem
                 if (urlFromFileSystem(featureUrls, list, path, path)) {
+                    addSuffixToListIfNeeded(raw, list, lineIdx);
                     continue;
                 }
 
                 // from filesystem with featureHome
                 if (home != null && urlFromFileSystem(featureUrls, list, path, featureHome + path)) {
+                    addSuffixToListIfNeeded(raw, list, lineIdx);
                     continue;
                 }
             }
@@ -79,6 +90,7 @@ public final class Features {
                     findWithCucumberSearcher(loader, home + path, list);
                 }
                 if (!list.isEmpty()) {
+                    addSuffixToListIfNeeded(raw, list, lineIdx);
                     featureUrls.put(path, list);
                 }
             } // else already done on client side
@@ -87,6 +99,27 @@ public final class Features {
         LOGGER.fine("Features: " + featureUrls);
 
         return featureUrls;
+    }
+
+    private static void addSuffixToListIfNeeded(final String raw, final Collection<URL> list, final int lineIdx) {
+        if (lineIdx > 0 && !list.isEmpty()) {
+            final String suffix = raw.substring(lineIdx);
+            final Collection<URL> toAdd = new ArrayList<URL>();
+            final Iterator<URL> urls = list.iterator();
+            while (urls.hasNext()) {
+                final URL next = urls.next();
+                final String s = next.toExternalForm();
+                if (s.endsWith(".feature")) {
+                    try {
+                        toAdd.add(new URL(s + suffix));
+                        urls.remove();
+                    } catch (final MalformedURLException e) {
+                        // no-op
+                    }
+                }
+            }
+            list.addAll(toAdd);
+        }
     }
 
     private static boolean urlFromFileSystem(final Map<String, Collection<URL>> featureUrls, final Collection<URL> list, final String path, final String filePath) {

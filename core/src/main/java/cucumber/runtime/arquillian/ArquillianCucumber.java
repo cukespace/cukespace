@@ -5,9 +5,9 @@ import cucumber.api.junit.Cucumber;
 import cucumber.runtime.CucumberException;
 import cucumber.runtime.Env;
 import cucumber.runtime.FeatureBuilder;
+import cucumber.runtime.PathWithLines;
 import cucumber.runtime.RuntimeOptions;
 import cucumber.runtime.RuntimeOptionsFactory;
-import cucumber.runtime.SummaryPrinter;
 import cucumber.runtime.arquillian.api.Tags;
 import cucumber.runtime.arquillian.backend.ArquillianBackend;
 import cucumber.runtime.arquillian.config.CucumberConfiguration;
@@ -16,12 +16,14 @@ import cucumber.runtime.arquillian.glue.Glues;
 import cucumber.runtime.arquillian.reporter.CucumberReporter;
 import cucumber.runtime.arquillian.shared.ClientServerFiles;
 import cucumber.runtime.io.Resource;
+import cucumber.runtime.junit.FeatureRunner;
+import cucumber.runtime.junit.JUnitReporter;
 import cucumber.runtime.model.CucumberFeature;
 import gherkin.formatter.Formatter;
 import gherkin.formatter.JSONFormatter;
-import gherkin.formatter.Reporter;
 import org.jboss.arquillian.junit.Arquillian;
 import org.junit.runner.Description;
+import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.InitializationError;
 import org.junit.runners.model.MultipleFailureException;
@@ -50,7 +52,7 @@ public class ArquillianCucumber extends Arquillian {
     private static final String RUN_CUCUMBER_MTD = "runCucumber";
     private static final Class[] OPTIONS_ANNOTATIONS = new Class[]{CucumberOptions.class, Cucumber.Options.class};
 
-    private List<FrameworkMethod> methods = null;
+    private List<FrameworkMethod> methods;
 
     public ArquillianCucumber(final Class<?> klass) throws InitializationError {
         super(klass);
@@ -61,7 +63,10 @@ public class ArquillianCucumber extends Arquillian {
     {
         if (!Boolean.getBoolean("cukespace.runner.standard-describe")
                 && InstanceControlledFrameworkMethod.class.isInstance(method)) {
-            return Description.createTestDescription(InstanceControlledFrameworkMethod.class.cast(method).getOriginalClass(), testName(method), method.getAnnotations());
+            return Description.createTestDescription(
+                    InstanceControlledFrameworkMethod.class.cast(method).getOriginalClass(),
+                    "____Cucumber_Runner_Not_A_Test",
+                    method.getAnnotations());
         }
         return super.describeChild(method);
     }
@@ -80,10 +85,8 @@ public class ArquillianCucumber extends Arquillian {
         }
 
         try { // run cucumber, this looks like a hack but that's to keep @Before/@After/... hooks behavior
-            final Method runCucumber = ArquillianCucumber.class.getDeclaredMethod(RUN_CUCUMBER_MTD, Object.class);
-            runCucumber.setAccessible(true);
-            final InstanceControlledFrameworkMethod runCucumberMtdFramework = new InstanceControlledFrameworkMethod(ArquillianCucumber.this, getTestClass().getJavaClass(), runCucumber);
-            methods.add(runCucumberMtdFramework);
+            final Method runCucumber = ArquillianCucumber.class.getDeclaredMethod(RUN_CUCUMBER_MTD, Object.class, RunNotifier.class);
+            methods.add(new InstanceControlledFrameworkMethod(this, getTestClass().getJavaClass(), runCucumber));
         } catch (final NoSuchMethodException e) {
             // no-op: will not accur...if so this exception is not your biggest issue
         }
@@ -91,8 +94,16 @@ public class ArquillianCucumber extends Arquillian {
         return methods;
     }
 
+    @Override
+    protected void runChild(final FrameworkMethod method, final RunNotifier notifier) {
+        if (InstanceControlledFrameworkMethod.class.isInstance(method)) {
+            InstanceControlledFrameworkMethod.class.cast(method).setNotifier(notifier);
+        }
+        super.runChild(method, notifier);
+    }
+
     // the cucumber test method, only used internally - see childrenInvoker
-    private void runCucumber(final Object testInstance) throws Exception {
+    public void runCucumber(final Object testInstance, final RunNotifier runNotifier) throws Exception {
         final Class<?> clazz = getTestClass().getJavaClass();
         final ClassLoader tccl = Thread.currentThread().getContextClassLoader();
 
@@ -138,10 +149,18 @@ public class ArquillianCucumber extends Arquillian {
             }
         } else { // client side
             for (final Map.Entry<String, Collection<URL>> entry : Features.createFeatureMap(cukespaceConfig.getProperty(CucumberConfiguration.FEATURE_HOME), clazz, tccl).entrySet()) {
-                final String path = entry.getKey();
-
-                for (final URL url : entry.getValue()) {
-                    builder.parse(new URLResource(path, url), filters);
+                final PathWithLines pathWithLines = new PathWithLines(entry.getKey());
+                for (final URL rawUrl : entry.getValue()) {
+                    filters.addAll(pathWithLines.lines);
+                    final String path = rawUrl.getPath();
+                    final PathWithLines pathWithLinesUrl = new PathWithLines(path);
+                    final URL url;
+                    if (!pathWithLinesUrl.lines.isEmpty()) {
+                        url = new URL(rawUrl.getProtocol(), rawUrl.getHost(), rawUrl.getPort(), pathWithLinesUrl.path);
+                    } else {
+                        url = rawUrl;
+                    }
+                    builder.parse(new URLResource(pathWithLines.path, url), filters);
                 }
             }
         }
@@ -169,17 +188,17 @@ public class ArquillianCucumber extends Arquillian {
         }
 
         final cucumber.runtime.Runtime runtime = new cucumber.runtime.Runtime(null, tccl, Arrays.asList(new ArquillianBackend(Glues.findGlues(clazz), clazz, testInstance)), runtimeOptions);
+        final JUnitReporter jUnitReporter = new JUnitReporter(runtimeOptions.reporter(tccl), runtimeOptions.formatter(tccl), runtimeOptions.isStrict());
         for (final CucumberFeature feature : cucumberFeatures) {
-            final Formatter formatter = runtimeOptions.formatter(tccl);
-            final Reporter reporter = runtimeOptions.reporter(tccl);
-
-            feature.run(formatter, reporter, runtime);
+            new FeatureRunner(feature, runtime, jUnitReporter).run(runNotifier);
         }
 
         final Formatter formatter = runtimeOptions.formatter(tccl);
 
         formatter.done();
-        new SummaryPrinter(System.out).print(runtime);
+        jUnitReporter.done();
+        jUnitReporter.close();
+        runtime.printSummary();
         formatter.close();
 
         if (reported) {
@@ -287,7 +306,8 @@ public class ArquillianCucumber extends Arquillian {
 
         @Override
         public String getClassName(final String extension) {
-            return null;
+            final String path = getPath();
+            return path.substring(0, path.length() - extension.length()).replace('/', '.');
         }
     }
 
@@ -312,13 +332,15 @@ public class ArquillianCucumber extends Arquillian {
 
         @Override
         public String getClassName(final String extension) {
-            return null;
+            final String path = getPath();
+            return path.substring(0, path.length() - extension.length()).replace('/', '.');
         }
     }
 
     private static class InstanceControlledFrameworkMethod extends FrameworkMethod {
         private final ArquillianCucumber instance;
         private final Class<?> originalClass;
+        private RunNotifier notifier;
 
         public InstanceControlledFrameworkMethod(final ArquillianCucumber runner, final Class<?> originalClass, final Method runCucumber) {
             super(runCucumber);
@@ -328,12 +350,16 @@ public class ArquillianCucumber extends Arquillian {
 
         @Override
         public Object invokeExplosively(final Object target, final Object... params) throws Throwable {
-            instance.runCucumber(target);
+            instance.runCucumber(target, notifier == null ? new RunNotifier() : notifier);
             return null;
         }
 
         public Class<?> getOriginalClass() {
             return originalClass;
+        }
+
+        public void setNotifier(final RunNotifier notifier) {
+            this.notifier = notifier;
         }
     }
 }
