@@ -38,15 +38,15 @@
 
     <!-- dependency and plugin versions -->
     <shrinkwrap.version>1.2.0</shrinkwrap.version>
-    <arquillian.version>1.1.1.Final</arquillian.version>
-    <arquillian-drone.version>1.2.0.Final</arquillian-drone.version>
+    <arquillian.version>1.1.4.Final</arquillian.version>
+    <arquillian-drone.version>1.3.0.Final</arquillian-drone.version>
     <cucumber-jvm.version>1.1.5</cucumber-jvm.version>
     <hamcrest.version>1.1</hamcrest.version>
     <junit.version>4.11</junit.version>
-    <maven-compiler.version>2.3.1</maven-compiler.version>
+    <maven-compiler.version>3.1</maven-compiler.version>
     <maven-jar.version>2.3.1</maven-jar.version>
-    <maven-surefire.version>2.12</maven-surefire.version>
-    <maven-war.version>2.2</maven-war.version>
+    <maven-surefire.version>2.17</maven-surefire.version>
+    <maven-war.version>2.4</maven-war.version>
     <mockito.version>1.9.0</mockito.version>
 
   </properties>
@@ -86,6 +86,12 @@
         <artifactId>arquillian-drone-impl</artifactId>
         <version>${arquillian-drone.version}</version>
         <scope>test</scope>
+        <exclusions>
+          <exclusion>
+            <groupId>org.jboss.arquillian.core</groupId>
+            <artifactId>arquillian-core-spi</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
 
       <dependency>
@@ -136,6 +142,24 @@
 
     <pluginManagement>
       <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-enforcer-plugin</artifactId>
+          <version>1.3.1</version>
+          <executions>
+            <execution>
+              <id>enforce</id>
+              <configuration>
+                <rules>
+                  <DependencyConvergence/>
+                </rules>
+              </configuration>
+              <goals>
+                <goal>enforce</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
 
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
