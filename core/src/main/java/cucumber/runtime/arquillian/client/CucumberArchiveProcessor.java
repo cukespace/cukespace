@@ -13,7 +13,6 @@ import cucumber.runtime.arquillian.lifecycle.CucumberLifecycle;
 import cucumber.runtime.arquillian.reporter.CucumberReporter;
 import cucumber.runtime.arquillian.shared.ClientServerFiles;
 import cucumber.runtime.arquillian.stream.NotCloseablePrintStream;
-import cucumber.runtime.io.MultiLoader;
 import cucumber.runtime.io.ResourceLoaderClassFinder;
 import cucumber.runtime.java.JavaBackend;
 import gherkin.util.Mapper;
@@ -32,10 +31,7 @@ import org.jboss.shrinkwrap.impl.base.asset.AssetUtil;
 import org.jboss.shrinkwrap.impl.base.filter.IncludeRegExpPaths;
 import org.junit.runner.RunWith;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
 import java.lang.annotation.Annotation;
 import java.net.URL;
 import java.util.ArrayList;
@@ -64,7 +60,8 @@ public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
         // try to find the feature
         final Class<?> javaClass = testClass.getJavaClass();
         final ClassLoader loader = Thread.currentThread().getContextClassLoader();
-        final Map<String, Collection<URL>> featureUrls = Features.createFeatureMap(configuration.get().getTempDir(), configuration.get().getFeatureHome(), javaClass, loader);
+        final Map<String, Collection<URL>> featureUrls = Features.createFeatureMap(
+                configuration.get().getTempDir(), configuration.get().getFeatureHome(), javaClass, loader);
 
         if (featureUrls.isEmpty()
                 || !LibraryContainer.class.isInstance(applicationArchive)) {
@@ -90,7 +87,7 @@ public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
         final String reportDirectory = cucumberConfiguration.getReportDirectory();
 
         addFeatures(featureUrls, ln, resourceJar);
-        addCucumberAnnotations(loader, ln, resourceJar);
+        addCucumberAnnotations(ln, resourceJar);
         addConfiguration(resourceJar, cucumberConfiguration, report, reportDirectory);
 
         libraryContainer.addAsLibrary(resourceJar);
@@ -100,7 +97,7 @@ public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
         }
 
         // glues
-        enrichWithGlues(javaClass, libraryContainer);
+        enrichWithGlues(javaClass, libraryContainer, ln);
 
         // cucumber-java and cucumber-core
         enrichWithDefaultCucumber(libraryContainer);
@@ -125,7 +122,7 @@ public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
         resourceJar.addAsResource(new StringAsset(config.toString()), ClientServerFiles.CONFIG);
     }
 
-    private static void addCucumberAnnotations(final ClassLoader loader, final String ln, final JavaArchive resourceJar) {
+    private static void addCucumberAnnotations(final String ln, final JavaArchive resourceJar) {
         if (scannedAnnotations == null) {
             synchronized (CucumberArchiveProcessor.class) {
                 if (scannedAnnotations == null) {
@@ -178,20 +175,32 @@ public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
                 jarLocation(Cucumber.class));
     }
 
-    private static void enrichWithGlues(final Class<?> javaClass, final LibraryContainer<?> libraryContainer) {
+    private static void enrichWithGlues(final Class<?> javaClass, final LibraryContainer<?> libraryContainer, final String ln) {
         final Collection<Class<?>> glues = Glues.findGlues(javaClass);
+        final StringBuilder gluesStr = new StringBuilder();
         if (!glues.isEmpty()) {
             final JavaArchive gluesJar = create(JavaArchive.class, "cukespace-glues.jar");
-            gluesJar.addClasses(glues.toArray(new Class<?>[glues.size()]));
-            for (final Class<?> clazz : glues) {
-                Class<?> current = clazz.getSuperclass();
-                while (!Object.class.equals(current)) {
-                    if (!gluesJar.contains(AssetUtil.getFullPathForClassResource(current))) {
-                        gluesJar.addClass(current);
+
+            { // glues txt file
+                for (final Class<?> g : glues) {
+                    gluesStr.append(g.getName()).append(ln);
+                }
+                gluesJar.add(new StringAsset(gluesStr.toString()), ClientServerFiles.GLUES_LIST);
+            }
+
+            { // classes
+                gluesJar.addClasses(glues.toArray(new Class<?>[glues.size()]));
+                for (final Class<?> clazz : glues) {
+                    Class<?> current = clazz.getSuperclass();
+                    while (!Object.class.equals(current)) {
+                        if (!gluesJar.contains(AssetUtil.getFullPathForClassResource(current))) {
+                            gluesJar.addClass(current);
+                        }
+                        current = current.getSuperclass();
                     }
-                    current = current.getSuperclass();
                 }
             }
+
             libraryContainer.addAsLibrary(gluesJar);
         }
     }
@@ -208,7 +217,7 @@ public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
                 .addClass(Features.class)
                 .addClass(Glues.class)
                 .addClass(CucumberConfiguration.class)
-                .addClass(ArquillianCucumber.class)
+                .addClasses(ArquillianCucumber.class, CukeSpace.class)
                 .addPackage(ClientServerFiles.class.getPackage())
                 .addClass(CucumberContainerExtension.class)
                 // don't add JarLocation here or update Features#isServer()

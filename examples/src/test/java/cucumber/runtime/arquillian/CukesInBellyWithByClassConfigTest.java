@@ -18,7 +18,7 @@ import javax.inject.Inject;
 import static org.jboss.shrinkwrap.api.ShrinkWrap.create;
 import static org.junit.Assert.assertEquals;
 
-@RunWith(ArquillianCucumber.class)
+@RunWith(CukeSpace.class)
 @Features("src/test/resources/cucumber/runtime/arquillian/feature") // folder on the file system
 @Tags("@myTag")
 @Cucumber.Options(strict = true)

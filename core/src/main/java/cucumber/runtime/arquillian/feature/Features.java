@@ -24,7 +24,6 @@ import java.util.logging.Logger;
 
 import static cucumber.runtime.arquillian.client.IOs.dump;
 import static cucumber.runtime.arquillian.client.IOs.slurp;
-import static cucumber.runtime.arquillian.shared.ClassLoaders.load;
 import static java.util.Arrays.asList;
 
 public final class Features {
@@ -41,7 +40,8 @@ public final class Features {
                 + '/' + createClassNameSubPackage(javaClass.getSimpleName()) + EXTENSION;
     }
 
-    public static Map<String, Collection<URL>> createFeatureMap(final String tempDir, final String featureHome, final Class<?> javaClass, final ClassLoader loader) {
+    public static Map<String, Collection<URL>> createFeatureMap(final String tempDir, final String featureHome,
+                                                                final Class<?> javaClass, final ClassLoader loader) {
         final Map<String, Collection<URL>> featureUrls = new HashMap<String, Collection<URL>>();
 
         final String home;
@@ -51,7 +51,6 @@ public final class Features {
             home = featureHome;
         }
 
-        final boolean client = isClient();
         final cucumber.runtime.arquillian.api.Features additionalFeaturesAnn = javaClass.getAnnotation(cucumber.runtime.arquillian.api.Features.class);
         final Collection<ResourceLoader> customLoaders = new LinkedList<ResourceLoader>();
         if (additionalFeaturesAnn != null) {
@@ -101,40 +100,9 @@ public final class Features {
                 if (home != null && urlFromFileSystem(featureUrls, list, path, featureHome + path, suffix)) {
                     continue;
                 }
-            }
 
-            if (client) { // scan on client side to avoid URL issues in the server
-                if (directResource) {
-                    for (final ResourceLoader instance : customLoaders) {
-                        for (final Resource r : instance.resources(path.substring(0, path.length() - EXTENSION.length()), EXTENSION)) {
-                            try {
-                                final String feature = new String(slurp(r.getInputStream()));
-                                final String featurePath = r.getPath();
-                                final File featureDump = dump(tempDir, javaClass.getName() + '/' + featurePath, feature);
-                                featureDump.deleteOnExit();
-                                featureUrls.put(featurePath, asList(featureDump.toURI().toURL()));
-                            } catch (final IOException e) {
-                                throw new IllegalStateException(e);
-                            }
-                        }
-                    }
-                }
-
-                findWithCucumberSearcher(loader, path, list);
-                if (home != null) {
-                    findWithCucumberSearcher(loader, home + path, list);
-                }
-
-                if (!list.isEmpty()) {
-                    featureUrls.put(path + suffix, list);
-                }
-            } // else already done on client side
-        }
-
-        if (client) { // try to get custom loading without particular name
-            for (final ResourceLoader instance : customLoaders) {
-                try {
-                    for (final Resource r : instance.resources(null, EXTENSION)) {
+                for (final ResourceLoader instance : customLoaders) {
+                    for (final Resource r : instance.resources(path.substring(0, path.length() - EXTENSION.length()), EXTENSION)) {
                         try {
                             final String feature = new String(slurp(r.getInputStream()));
                             final String featurePath = r.getPath();
@@ -145,11 +113,36 @@ public final class Features {
                             throw new IllegalStateException(e);
                         }
                     }
-                } catch (final NullPointerException npe) {
-                    // no-op: we call it with null, don't expect miracles
-                } catch (final IllegalArgumentException npe) {
-                    // no-op: we call it with null, don't expect miracles
                 }
+            }
+
+            findWithCucumberSearcher(loader, path, list);
+            if (home != null) {
+                findWithCucumberSearcher(loader, home + path, list);
+            }
+
+            if (!list.isEmpty()) {
+                featureUrls.put(path + suffix, list);
+            }
+        }
+
+        for (final ResourceLoader instance : customLoaders) {
+            try {
+                for (final Resource r : instance.resources(null, EXTENSION)) {
+                    try {
+                        final String feature = new String(slurp(r.getInputStream()));
+                        final String featurePath = r.getPath();
+                        final File featureDump = dump(tempDir, javaClass.getName() + '/' + featurePath, feature);
+                        featureDump.deleteOnExit();
+                        featureUrls.put(featurePath, asList(featureDump.toURI().toURL()));
+                    } catch (final IOException e) {
+                        throw new IllegalStateException(e);
+                    }
+                }
+            } catch (final NullPointerException npe) {
+                // no-op: we call it with null, don't expect miracles
+            } catch (final IllegalArgumentException npe) {
+                // no-op: we call it with null, don't expect miracles
             }
         }
 
@@ -199,15 +192,6 @@ public final class Features {
             } else {
                 LOGGER.warning("Resource " + resource + " ignored (unknown type).");
             }
-        }
-    }
-
-    private static boolean isClient() {
-        try {
-            load("cucumber.runtime.arquillian.locator.JarLocation");
-            return true;
-        } catch (final Exception e) {
-            return false;
         }
     }
 

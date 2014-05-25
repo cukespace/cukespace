@@ -34,6 +34,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.ArrayList;
@@ -46,13 +47,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 import static java.util.Arrays.asList;
 
 public class ArquillianCucumber extends Arquillian {
+    private static final Logger LOGGER = Logger.getLogger(ArquillianCucumber.class.getName());
+
     private static final String RUN_CUCUMBER_MTD = "____Cucumber_Runner_Not_A_Test";
-    private static final Class[] OPTIONS_ANNOTATIONS = new Class[]{CucumberOptions.class, Cucumber.Options.class};
+    private static final Class<? extends Annotation>[] OPTIONS_ANNOTATIONS = new Class[]{CucumberOptions.class, Cucumber.Options.class};
 
     private List<FrameworkMethod> methods;
 
@@ -185,10 +189,29 @@ public class ArquillianCucumber extends Arquillian {
             runtimeOptions.addFormatter(new JSONFormatter(reportBuilder));
         }
 
-        final cucumber.runtime.Runtime runtime = new cucumber.runtime.Runtime(null, tccl, Arrays.asList(new ArquillianBackend(Glues.findGlues(clazz), clazz, testInstance)), runtimeOptions);
+        final Collection<Class<?>> glues = new LinkedList<Class<?>>();
+        final InputStream gluesIs = tccl.getResourceAsStream(ClientServerFiles.GLUES_LIST);
+        if (gluesIs != null) {
+            final BufferedReader reader = new BufferedReader(new InputStreamReader(gluesIs));
+            String line;
+
+            while ((line = reader.readLine()) != null) {
+                line = line.trim();
+                if (line.isEmpty()) {
+                    continue;
+                }
+
+                glues.add(tccl.loadClass(line));
+            }
+        } else { // client side
+            glues.addAll(Glues.findGlues(clazz));
+        }
+
+        final cucumber.runtime.Runtime runtime = new cucumber.runtime.Runtime(null, tccl, Arrays.asList(new ArquillianBackend(glues, clazz, testInstance)), runtimeOptions);
         final Formatter formatter = runtimeOptions.formatter(tccl);
         final JUnitReporter jUnitReporter = new JUnitReporter(runtimeOptions.reporter(tccl), formatter, runtimeOptions.isStrict());
         for (final CucumberFeature feature : cucumberFeatures) {
+            LOGGER.info("Running " + feature.getPath());
             new FeatureRunner(feature, runtime, jUnitReporter).run(runNotifier);
         }
 
