@@ -8,6 +8,7 @@ import cucumber.runtime.arquillian.domain.Belly;
 import javax.inject.Inject;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 public class CukeSteps {
     @Inject
@@ -20,7 +21,7 @@ public class CukeSteps {
 
     @Given("^I have a belly$")
     public void setUpBelly() {
-        belly = new Belly();
+        assertNotNull(belly);
     }
 
     @Then("^I should have (\\d+) cukes in my belly$")
