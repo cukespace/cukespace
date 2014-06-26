@@ -56,34 +56,42 @@ public class CucumberLifecycle {
 
     // do it lazily to get the right classloader + be sure contexts are started (drone...)
     public void loadCucumberAnnotationsAndEnrichers(final @Observes(precedence = 1) Before before) {
-        if (!CUCUMBER_ANNOTATIONS.isEmpty()) { // don't do it N times
-            return;
+        // enrichers
+        if (TEST_ENRICHERS.isEmpty()) {
+            synchronized (TEST_ENRICHERS) {
+                if (TEST_ENRICHERS.isEmpty()) {
+                    TEST_ENRICHERS.addAll(serviceLoader.get().all(TestEnricher.class));
+                }
+            }
         }
 
-        // enrichers
-        TEST_ENRICHERS.addAll(serviceLoader.get().all(TestEnricher.class));
-
         // cucumber annotations
-        final ClassLoader tccl = Thread.currentThread().getContextClassLoader();
-        final InputStream is = tccl.getResourceAsStream(ClientServerFiles.ANNOTATION_LIST);
-        if (is != null) {
-            String line;
-            try {
-                final BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-                while ((line = reader.readLine()) != null) {
-                    try {
-                        CUCUMBER_ANNOTATIONS.add((Class<? extends Annotation>) tccl.loadClass(line));
-                    } catch (ClassNotFoundException e) {
-                        // no-op
+        if (CUCUMBER_ANNOTATIONS.isEmpty()) { // don't do it N times
+            synchronized (CUCUMBER_ANNOTATIONS) {
+                if (CUCUMBER_ANNOTATIONS.isEmpty()) { // don't do it N times
+                    final ClassLoader tccl = Thread.currentThread().getContextClassLoader();
+                    final InputStream is = tccl.getResourceAsStream(ClientServerFiles.ANNOTATION_LIST);
+                    if (is != null) {
+                        String line;
+                        try {
+                            final BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+                            while ((line = reader.readLine()) != null) {
+                                try {
+                                    CUCUMBER_ANNOTATIONS.add((Class<? extends Annotation>) tccl.loadClass(line));
+                                } catch (ClassNotFoundException e) {
+                                    // no-op
+                                }
+                            }
+                        } catch (final IOException e) {
+                            // no-op
+                        } finally {
+                            try {
+                                is.close();
+                            } catch (final IOException e) {
+                                // no-op
+                            }
+                       }
                     }
-                }
-            } catch (final IOException e) {
-                // no-op
-            } finally {
-                try {
-                    is.close();
-                } catch (final IOException e) {
-                    // no-op
                 }
             }
         }
@@ -94,14 +102,20 @@ public class CucumberLifecycle {
             return CUCUMBER_ANNOTATIONS;
         }
 
-        final ClassLoader loader = Thread.currentThread().getContextClassLoader();
-        final ResourceLoaderClassFinder finder = new ResourceLoaderClassFinder(new MultiLoader(loader), loader);
-        CUCUMBER_ANNOTATIONS.addAll(finder.getDescendants(Annotation.class, "cucumber.api"));
+        synchronized (CUCUMBER_ANNOTATIONS) {
+            if (!CUCUMBER_ANNOTATIONS.isEmpty()) {
+                return CUCUMBER_ANNOTATIONS;
+            }
 
-        if (CUCUMBER_ANNOTATIONS.isEmpty()) {
-            return Arrays.asList(Given.class, When.class, Then.class, And.class, But.class);
+            final ClassLoader loader = Thread.currentThread().getContextClassLoader();
+            final ResourceLoaderClassFinder finder = new ResourceLoaderClassFinder(new MultiLoader(loader), loader);
+            CUCUMBER_ANNOTATIONS.addAll(finder.getDescendants(Annotation.class, "cucumber.api"));
+
+            if (CUCUMBER_ANNOTATIONS.isEmpty()) {
+                return Arrays.asList(Given.class, When.class, Then.class, And.class, But.class);
+            }
+            return CUCUMBER_ANNOTATIONS;
         }
-        return CUCUMBER_ANNOTATIONS;
     }
 
     public static Object enrich(final Object instance) {
