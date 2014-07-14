@@ -70,6 +70,11 @@ public class ClientFeatureLoaderTest
                 }
 
                 @Override
+                public String getAbsolutePath() {
+                    return null;
+                }
+
+                @Override
                 public InputStream getInputStream() throws IOException {
                     return new ByteArrayInputStream(
                             ("Feature: Say hello\n" +

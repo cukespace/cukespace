@@ -5,7 +5,6 @@ import cucumber.api.junit.Cucumber;
 import cucumber.runtime.CucumberException;
 import cucumber.runtime.Env;
 import cucumber.runtime.FeatureBuilder;
-import cucumber.runtime.PathWithLines;
 import cucumber.runtime.RuntimeOptions;
 import cucumber.runtime.RuntimeOptionsFactory;
 import cucumber.runtime.arquillian.api.Tags;
@@ -19,6 +18,7 @@ import cucumber.runtime.io.Resource;
 import cucumber.runtime.junit.FeatureRunner;
 import cucumber.runtime.junit.JUnitReporter;
 import cucumber.runtime.model.CucumberFeature;
+import cucumber.runtime.model.PathWithLines;
 import gherkin.formatter.Formatter;
 import gherkin.formatter.JSONFormatter;
 import org.jboss.arquillian.junit.Arquillian;
@@ -314,6 +314,15 @@ public class ArquillianCucumber extends Arquillian {
         }
 
         @Override
+        public String getAbsolutePath() {
+            final URL resource = loader.getResource(path);
+            if (resource == null) {
+                throw new IllegalArgumentException(path + " doesn't exist");
+            }
+            return resource.toExternalForm();
+        }
+
+        @Override
         public InputStream getInputStream() throws IOException {
             final URL resource = loader.getResource(path);
             if (resource == null) {
@@ -341,6 +350,11 @@ public class ArquillianCucumber extends Arquillian {
         @Override
         public String getPath() {
             return path;
+        }
+
+        @Override
+        public String getAbsolutePath() {
+            return url.toExternalForm();
         }
 
         @Override
