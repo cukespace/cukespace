@@ -4,6 +4,7 @@ import cucumber.api.junit.Cucumber;
 import cucumber.deps.com.thoughtworks.xstream.converters.ConverterRegistry;
 import cucumber.runtime.arquillian.ArquillianCucumber;
 import cucumber.runtime.arquillian.CukeSpace;
+import cucumber.runtime.arquillian.api.event.StepEvent;
 import cucumber.runtime.arquillian.backend.ArquillianBackend;
 import cucumber.runtime.arquillian.config.CucumberConfiguration;
 import cucumber.runtime.arquillian.container.CucumberContainerExtension;
@@ -211,6 +212,7 @@ public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
                 .addAsServiceProvider(RemoteLoadableExtension.class, CucumberContainerExtension.class)
                 .addPackage(ArquillianBackend.class.getPackage())
                 .addPackage(cucumber.runtime.arquillian.api.Glues.class.getPackage())
+                .addPackage(StepEvent.class.getPackage())
                 .addClass(NotCloseablePrintStream.class)
                 .addClass(CucumberReporter.class)
                 .addClass(CucumberLifecycle.class)

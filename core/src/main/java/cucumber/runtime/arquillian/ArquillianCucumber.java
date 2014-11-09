@@ -8,19 +8,30 @@ import cucumber.runtime.FeatureBuilder;
 import cucumber.runtime.RuntimeOptions;
 import cucumber.runtime.RuntimeOptionsFactory;
 import cucumber.runtime.arquillian.api.Tags;
+import cucumber.runtime.arquillian.api.event.AfterAfterHooks;
+import cucumber.runtime.arquillian.api.event.AfterBeforeHooks;
+import cucumber.runtime.arquillian.api.event.AfterStep;
+import cucumber.runtime.arquillian.api.event.BeforeAfterHooks;
+import cucumber.runtime.arquillian.api.event.BeforeBeforeHooks;
+import cucumber.runtime.arquillian.api.event.BeforeStep;
 import cucumber.runtime.arquillian.backend.ArquillianBackend;
 import cucumber.runtime.arquillian.config.CucumberConfiguration;
 import cucumber.runtime.arquillian.feature.Features;
 import cucumber.runtime.arquillian.glue.Glues;
 import cucumber.runtime.arquillian.reporter.CucumberReporter;
 import cucumber.runtime.arquillian.shared.ClientServerFiles;
+import cucumber.runtime.arquillian.shared.EventHelper;
 import cucumber.runtime.io.Resource;
 import cucumber.runtime.junit.FeatureRunner;
 import cucumber.runtime.junit.JUnitReporter;
 import cucumber.runtime.model.CucumberFeature;
 import cucumber.runtime.model.PathWithLines;
+import gherkin.I18n;
 import gherkin.formatter.Formatter;
 import gherkin.formatter.JSONFormatter;
+import gherkin.formatter.Reporter;
+import gherkin.formatter.model.Step;
+import gherkin.formatter.model.Tag;
 import org.jboss.arquillian.junit.Arquillian;
 import org.junit.runner.Description;
 import org.junit.runner.notification.RunNotifier;
@@ -207,7 +218,29 @@ public class ArquillianCucumber extends Arquillian {
             glues.addAll(Glues.findGlues(clazz));
         }
 
-        final cucumber.runtime.Runtime runtime = new cucumber.runtime.Runtime(null, tccl, Arrays.asList(new ArquillianBackend(glues, clazz, testInstance)), runtimeOptions);
+        final cucumber.runtime.Runtime runtime = new cucumber.runtime.Runtime(null, tccl, Arrays.asList(new ArquillianBackend(glues, clazz, testInstance)), runtimeOptions) {
+            @Override
+            public void runStep(final String featurePath, final Step step, final Reporter reporter, final I18n i18n) {
+                EventHelper.fire(new BeforeStep(featurePath, step));
+                super.runStep(featurePath, step, reporter, i18n);
+                EventHelper.fire(new AfterStep(featurePath, step));
+            }
+
+            @Override
+            public void runBeforeHooks(final Reporter reporter, final Set<Tag> tags) {
+                EventHelper.fire(new BeforeBeforeHooks());
+                super.runBeforeHooks(reporter, tags);
+                EventHelper.fire(new AfterBeforeHooks());
+            }
+
+            @Override
+            public void runAfterHooks(final Reporter reporter, final Set<Tag> tags) {
+                EventHelper.fire(new BeforeAfterHooks());
+                super.runAfterHooks(reporter, tags);
+                EventHelper.fire(new AfterAfterHooks());
+            }
+        };
+
         final Formatter formatter = runtimeOptions.formatter(tccl);
         final JUnitReporter jUnitReporter = new JUnitReporter(runtimeOptions.reporter(tccl), formatter, runtimeOptions.isStrict());
         for (final CucumberFeature feature : cucumberFeatures) {
