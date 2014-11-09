@@ -7,6 +7,7 @@ import cucumber.runtime.Env;
 import cucumber.runtime.FeatureBuilder;
 import cucumber.runtime.RuntimeOptions;
 import cucumber.runtime.RuntimeOptionsFactory;
+import cucumber.runtime.StepDefinitionMatch;
 import cucumber.runtime.arquillian.api.Tags;
 import cucumber.runtime.arquillian.api.event.AfterAfterHooks;
 import cucumber.runtime.arquillian.api.event.AfterBeforeHooks;
@@ -30,6 +31,8 @@ import gherkin.I18n;
 import gherkin.formatter.Formatter;
 import gherkin.formatter.JSONFormatter;
 import gherkin.formatter.Reporter;
+import gherkin.formatter.model.Match;
+import gherkin.formatter.model.Result;
 import gherkin.formatter.model.Step;
 import gherkin.formatter.model.Tag;
 import org.jboss.arquillian.junit.Arquillian;
@@ -131,6 +134,7 @@ public class ArquillianCucumber extends Arquillian {
         } else { // probably on the client side
             final CucumberConfiguration config = CucumberConfiguration.instance();
             if (config.isInitialized()) {
+                cukespaceConfig.setProperty(CucumberConfiguration.PERSISTENCE_EVENTS, Boolean.toString(config.arePersistenceEventsActivated()));
                 cukespaceConfig.setProperty(CucumberConfiguration.COLORS, Boolean.toString(config.isColorized()));
                 cukespaceConfig.setProperty(CucumberConfiguration.REPORTABLE, Boolean.toString(config.isReport()));
                 cukespaceConfig.setProperty(CucumberConfiguration.REPORTABLE_PATH, config.getReportDirectory());
@@ -221,8 +225,41 @@ public class ArquillianCucumber extends Arquillian {
         final cucumber.runtime.Runtime runtime = new cucumber.runtime.Runtime(null, tccl, Arrays.asList(new ArquillianBackend(glues, clazz, testInstance)), runtimeOptions) {
             @Override
             public void runStep(final String featurePath, final Step step, final Reporter reporter, final I18n i18n) {
-                EventHelper.fire(new BeforeStep(featurePath, step));
-                super.runStep(featurePath, step, reporter, i18n);
+                super.runStep(featurePath, step, new Reporter() {
+                    @Override
+                    public void match(final Match match) { // lazy to get the method and instance
+                        if (StepDefinitionMatch.class.isInstance(match)) {
+                            EventHelper.matched(StepDefinitionMatch.class.cast(match));
+                            EventHelper.fire(new BeforeStep(featurePath, step));
+                        }
+                        reporter.match(match);
+                    }
+
+                    @Override
+                    public void before(final Match match, final Result result) {
+                        reporter.before(match, result);
+                    }
+
+                    @Override
+                    public void result(final Result result) {
+                        reporter.result(result);
+                    }
+
+                    @Override
+                    public void after(final Match match, final Result result) {
+                        reporter.after(match, result);
+                    }
+
+                    @Override
+                    public void embedding(final String mimeType, final byte[] data) {
+                        reporter.embedding(mimeType, data);
+                    }
+
+                    @Override
+                    public void write(final String text) {
+                        reporter.write(text);
+                    }
+                }, i18n);
                 EventHelper.fire(new AfterStep(featurePath, step));
             }
 

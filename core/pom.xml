@@ -29,6 +29,22 @@
       <artifactId>cucumber-junit</artifactId>
       <scope>compile</scope>
     </dependency>
+    <dependency>
+      <groupId>org.jboss.arquillian.extension</groupId>
+      <artifactId>arquillian-persistence-core</artifactId>
+      <version>1.0.0.Alpha7</version>
+      <scope>provided</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.jboss.arquillian.extension</groupId>
+          <artifactId>arquillian-transaction-jta</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.jboss.arquillian.extension</groupId>
+          <artifactId>arquillian-transaction-spi</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
 
     <dependency>
       <groupId>commons-collections</groupId>

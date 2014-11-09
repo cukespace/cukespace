@@ -7,6 +7,7 @@ import java.util.Map;
 public class CucumberConfiguration {
     private static final CucumberConfiguration CONFIGURATION = new CucumberConfiguration();
 
+    public static final String PERSISTENCE_EVENTS = "persistenceEventsActivated";
     public static final String COLORS = "colors";
     public static final String REPORTABLE = "reportable";
     public static final String REPORTABLE_PATH = "reportablePath";
@@ -24,6 +25,8 @@ public class CucumberConfiguration {
      * directory to dump resource loader from loaders
      */
     private String tempDir = guessDefaultTempDir();
+
+    private boolean persistenceEventsActivated = false;
 
     private static String guessDefaultTempDir()
     {
@@ -69,6 +72,10 @@ public class CucumberConfiguration {
         return featureHome;
     }
 
+    public boolean arePersistenceEventsActivated() {
+        return persistenceEventsActivated;
+    }
+
     public static File reportFile(final String path, final Class<?> clazz) {
         return new File(path, clazz.getName() + ".json");
     }
@@ -77,6 +84,9 @@ public class CucumberConfiguration {
         synchronized (CONFIGURATION) { // could it really be multithreaded?
             reset();
 
+            if (properties.containsKey(PERSISTENCE_EVENTS)) {
+                CONFIGURATION.persistenceEventsActivated = "true".equalsIgnoreCase(properties.get(PERSISTENCE_EVENTS));
+            }
             if (properties.containsKey("tempDir")) {
                 CONFIGURATION.tempDir = properties.get("tempDir");
             }
@@ -102,6 +112,7 @@ public class CucumberConfiguration {
     }
 
     public static void reset() {
+        CONFIGURATION.persistenceEventsActivated = false;
         CONFIGURATION.initialized = false;
         CONFIGURATION.reportDirectory = "target/cucumber-report/";
         CONFIGURATION.tempDir = guessDefaultTempDir();

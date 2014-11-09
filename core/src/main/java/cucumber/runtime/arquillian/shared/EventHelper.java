@@ -1,18 +1,27 @@
 package cucumber.runtime.arquillian.shared;
 
+import cucumber.runtime.StepDefinition;
+import cucumber.runtime.StepDefinitionMatch;
 import cucumber.runtime.arquillian.api.event.AfterAfterHooks;
 import cucumber.runtime.arquillian.api.event.AfterBeforeHooks;
 import cucumber.runtime.arquillian.api.event.AfterStep;
 import cucumber.runtime.arquillian.api.event.BeforeAfterHooks;
 import cucumber.runtime.arquillian.api.event.BeforeBeforeHooks;
 import cucumber.runtime.arquillian.api.event.BeforeStep;
+import cucumber.runtime.arquillian.backend.ArquillianStepDefinition;
 import org.jboss.arquillian.core.api.Event;
 import org.jboss.arquillian.core.api.annotation.Inject;
 import org.jboss.arquillian.core.api.annotation.Observes;
 import org.jboss.arquillian.test.spi.event.suite.AfterClass;
 import org.jboss.arquillian.test.spi.event.suite.BeforeClass;
+import org.jboss.arquillian.test.spi.event.suite.TestEvent;
+
+import java.lang.reflect.Field;
 
 public class EventHelper {
+    private static final ThreadLocal<TestEvent> TEST_EVENT = new ThreadLocal<TestEvent>();
+    private static final ThreadLocal<EventHelper> CURRENT = new ThreadLocal<EventHelper>();
+
     @Inject
     private Event<BeforeBeforeHooks> beforeBeforeHooksEvent;
 
@@ -31,14 +40,37 @@ public class EventHelper {
     @Inject
     private Event<AfterStep> afterStepEvent;
 
-    private static final ThreadLocal<EventHelper> CURRENT = new ThreadLocal<EventHelper>();
-
     public void capture(@Observes final BeforeClass ignored) {
         CURRENT.set(this);
     }
 
     public void reset(@Observes final AfterClass ignored) {
         CURRENT.remove();
+    }
+
+    public static void matched(final StepDefinitionMatch match) {
+        final TestEvent event;
+        try {
+            final Field field = StepDefinitionMatch.class.getDeclaredField("stepDefinition");
+            if (!field.isAccessible()) {
+                field.setAccessible(true);
+            }
+
+            final StepDefinition stepDefinition = StepDefinition.class.cast(field.get(match));
+            if (ArquillianStepDefinition.class.isInstance(stepDefinition)) {
+                final ArquillianStepDefinition arquillianStepDefinition = ArquillianStepDefinition.class.cast(stepDefinition);
+                event = new TestEvent(arquillianStepDefinition.getInstance(), arquillianStepDefinition.getMethod());
+            } else {
+                throw new IllegalStateException("Can't find ArquillianStepDefinition");
+            }
+        } catch (final Exception e) {
+            throw new IllegalStateException(e);
+        }
+        TEST_EVENT.set(event);
+    }
+
+    public static TestEvent currentEvent() {
+        return TEST_EVENT.get();
     }
 
     // we can't get injected arquillian Manager so using this facade

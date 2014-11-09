@@ -62,4 +62,12 @@ public class ArquillianStepDefinition implements StepDefinition {
     public String getPattern() {
         return pattern.pattern();
     }
+
+    public Object getInstance() {
+        return instance;
+    }
+
+    public Method getMethod() {
+        return method;
+    }
 }

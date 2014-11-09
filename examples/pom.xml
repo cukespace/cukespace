@@ -35,6 +35,38 @@
     </dependency>
 
     <dependency>
+      <groupId>org.jboss.arquillian.extension</groupId>
+      <artifactId>arquillian-persistence-core</artifactId>
+      <version>1.0.0.Alpha7</version>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.jboss.arquillian.extension</groupId>
+          <artifactId>arquillian-transaction-jta</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.jboss.arquillian.extension</groupId>
+          <artifactId>arquillian-transaction-spi</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.jboss.shrinkwrap</groupId>
+          <artifactId>shrinkwrap-impl-base</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.jboss.shrinkwrap.descriptors</groupId>
+          <artifactId>shrinkwrap-descriptors-spi</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.jboss.shrinkwrap.descriptors</groupId>
+          <artifactId>shrinkwrap-descriptors-api</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.jboss.shrinkwrap.descriptors</groupId>
+          <artifactId>shrinkwrap-descriptors-api-base</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
     </dependency>
