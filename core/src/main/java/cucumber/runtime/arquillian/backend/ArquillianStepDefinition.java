@@ -63,6 +63,11 @@ public class ArquillianStepDefinition implements StepDefinition {
         return pattern.pattern();
     }
 
+    @Override
+    public boolean isScenarioScoped() {
+        return false;
+    }
+
     public Object getInstance() {
         return instance;
     }

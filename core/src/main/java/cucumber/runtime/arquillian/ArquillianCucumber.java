@@ -1,7 +1,6 @@
 package cucumber.runtime.arquillian;
 
 import cucumber.api.CucumberOptions;
-import cucumber.api.junit.Cucumber;
 import cucumber.runtime.CucumberException;
 import cucumber.runtime.Env;
 import cucumber.runtime.FeatureBuilder;
@@ -48,7 +47,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.ArrayList;
@@ -70,7 +68,6 @@ public class ArquillianCucumber extends Arquillian {
     private static final Logger LOGGER = Logger.getLogger(ArquillianCucumber.class.getName());
 
     private static final String RUN_CUCUMBER_MTD = "____Cucumber_Runner_Not_A_Test";
-    private static final Class<? extends Annotation>[] OPTIONS_ANNOTATIONS = new Class[]{CucumberOptions.class, Cucumber.Options.class};
 
     private List<FrameworkMethod> methods;
 
@@ -187,8 +184,8 @@ public class ArquillianCucumber extends Arquillian {
         }
 
         final RuntimeOptions runtimeOptions;
-        if (clazz.getAnnotation(Cucumber.Options.class) != null || clazz.getAnnotation(CucumberOptions.class) != null) { // by class setting
-            final RuntimeOptionsFactory runtimeOptionsFactory = new RuntimeOptionsFactory(clazz, OPTIONS_ANNOTATIONS);
+        if (clazz.getAnnotation(CucumberOptions.class) != null) { // by class setting
+            final RuntimeOptionsFactory runtimeOptionsFactory = new RuntimeOptionsFactory(clazz);
             runtimeOptions = runtimeOptionsFactory.create();
             cleanClasspathList(runtimeOptions.getGlue());
             cleanClasspathList(runtimeOptions.getFeaturePaths());
@@ -201,7 +198,7 @@ public class ArquillianCucumber extends Arquillian {
         final boolean reported = Boolean.parseBoolean(cukespaceConfig.getProperty(CucumberConfiguration.REPORTABLE, "false"));
         final StringBuilder reportBuilder = new StringBuilder();
         if (reported) {
-            runtimeOptions.addFormatter(new JSONFormatter(reportBuilder));
+            runtimeOptions.addPlugin(new JSONFormatter(reportBuilder));
         }
 
         final Collection<Class<?>> glues = new LinkedList<Class<?>>();
@@ -336,7 +333,7 @@ public class ArquillianCucumber extends Arquillian {
         }
 
         { // cucumber-junit
-            final Cucumber.Options options = clazz.getAnnotation(Cucumber.Options.class);
+            final CucumberOptions options = clazz.getAnnotation(CucumberOptions.class);
             if (options != null) {
                 if (options.tags().length > 0) {
                     filters.addAll(Arrays.asList(options.tags()));

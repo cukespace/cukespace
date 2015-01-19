@@ -1,6 +1,7 @@
 package cucumber.runtime.arquillian.glue;
 
 import cucumber.api.CucumberOptions;
+import cucumber.api.StepDefinitionReporter;
 import cucumber.runtime.DuplicateStepDefinitionException;
 import cucumber.runtime.Glue;
 import cucumber.runtime.HookDefinition;
@@ -110,8 +111,13 @@ public final class Glues {
         }
 
         @Override
-        public void writeStepdefsJson(final ResourceLoader resourceLoader, final List<String> featurePaths, final URL dotCucumber) {
+        public void reportStepDefinitions(final StepDefinitionReporter stepDefinitionReporter) {
             throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void removeScenarioScopedGlue() {
+            // no-op
         }
     }
 }

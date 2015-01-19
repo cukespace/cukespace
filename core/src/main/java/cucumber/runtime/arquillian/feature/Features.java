@@ -1,7 +1,6 @@
 package cucumber.runtime.arquillian.feature;
 
 import cucumber.api.CucumberOptions;
-import cucumber.api.junit.Cucumber;
 import cucumber.runtime.io.FileResource;
 import cucumber.runtime.io.MultiLoader;
 import cucumber.runtime.io.Resource;
@@ -210,12 +209,6 @@ public final class Features {
             }
         }
 
-        { // cucumber-junit API (deprecated)
-            final Cucumber.Options annotation = javaClass.getAnnotation(Cucumber.Options.class);
-            if (annotation != null && annotation.features() != null) {
-                Collections.addAll(featureUrls, annotation.features());
-            }
-        }
         { // cucumber-junit API
             final CucumberOptions annotation = javaClass.getAnnotation(CucumberOptions.class);
             if (annotation != null && annotation.features() != null) {

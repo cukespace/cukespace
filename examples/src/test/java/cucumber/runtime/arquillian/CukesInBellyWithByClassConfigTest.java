@@ -1,5 +1,6 @@
 package cucumber.runtime.arquillian;
 
+import cucumber.api.CucumberOptions;
 import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
@@ -21,7 +22,7 @@ import static org.junit.Assert.assertEquals;
 @RunWith(CukeSpace.class)
 @Features("src/test/resources/cucumber/runtime/arquillian/feature") // folder on the file system
 @Tags("@myTag")
-@Cucumber.Options(strict = true)
+@CucumberOptions(strict = true)
 public class CukesInBellyWithByClassConfigTest {
     @Deployment
     public static Archive<?> createDeployment() {

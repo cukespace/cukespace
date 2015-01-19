@@ -1,9 +1,9 @@
 package cucumber.runtime.arquillian.feature;
 
+import cucumber.api.CucumberOptions;
 import cucumber.api.java.pt.Dado;
 import cucumber.api.java.pt.Entao;
 import cucumber.api.java.pt.Quando;
-import cucumber.api.junit.Cucumber;
 import cucumber.runtime.arquillian.ArquillianCucumber;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
@@ -15,7 +15,7 @@ import org.junit.runner.RunWith;
 import static org.junit.Assert.assertEquals;
 
 @RunWith(ArquillianCucumber.class)
-@Cucumber.Options(strict = true)
+@CucumberOptions(strict = true)
 public class PortugueseTest {
     @Deployment(testable = false)
     public static WebArchive createDeployment() {
