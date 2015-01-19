@@ -69,13 +69,13 @@ import static java.util.Arrays.asList;
 public class ArquillianCucumber extends Arquillian {
     private static final Logger LOGGER = Logger.getLogger(ArquillianCucumber.class.getName());
 
-    private static final String RUN_CUCUMBER_MTD = "____Cucumber_Runner_Not_A_Test";
+    private static final String RUN_CUCUMBER_MTD = "runCucumber";
     private static final Class<? extends Annotation>[] OPTIONS_ANNOTATIONS = new Class[]{CucumberOptions.class, Cucumber.Options.class};
 
     private List<FrameworkMethod> methods;
 
-    public ArquillianCucumber(final Class<?> klass) throws InitializationError {
-        super(klass);
+    public ArquillianCucumber(final Class<?> testClass) throws InitializationError {
+        super(testClass);
     }
 
     @Override
@@ -85,7 +85,7 @@ public class ArquillianCucumber extends Arquillian {
                 && InstanceControlledFrameworkMethod.class.isInstance(method)) {
             return Description.createTestDescription(
                     InstanceControlledFrameworkMethod.class.cast(method).getOriginalClass(),
-                    "____Cucumber_Runner_Not_A_Test",
+                    ArquillianCucumber.RUN_CUCUMBER_MTD,
                     method.getAnnotations());
         }
         return super.describeChild(method);
@@ -121,43 +121,25 @@ public class ArquillianCucumber extends Arquillian {
         }
         super.runChild(method, notifier);
     }
-
+    
+    
     // the cucumber test method, only used internally - see childrenInvoker, public to avoid to setAccessible(true)
-    public void ____Cucumber_Runner_Not_A_Test(final Object testInstance, final RunNotifier runNotifier) throws Exception {
-        final Class<?> clazz = getTestClass().getJavaClass();
-        final ClassLoader tccl = Thread.currentThread().getContextClassLoader();
+    public void runCucumber(final Object testInstance, final RunNotifier runNotifier) throws Exception {
+        final Class<?> javaTestClass = getTestClass().getJavaClass();
+        final ClassLoader threadContextClassLoader = Thread.currentThread().getContextClassLoader();
 
-        final InputStream configIs = tccl.getResourceAsStream(ClientServerFiles.CONFIG);
-        final Properties cukespaceConfig = new Properties();
-        if (configIs != null) {
-            cukespaceConfig.load(configIs);
-        } else { // probably on the client side
-            final CucumberConfiguration config = CucumberConfiguration.instance();
-            if (config.isInitialized()) {
-                cukespaceConfig.setProperty(CucumberConfiguration.PERSISTENCE_EVENTS, Boolean.toString(config.arePersistenceEventsActivated()));
-                cukespaceConfig.setProperty(CucumberConfiguration.COLORS, Boolean.toString(config.isColorized()));
-                cukespaceConfig.setProperty(CucumberConfiguration.REPORTABLE, Boolean.toString(config.isReport()));
-                cukespaceConfig.setProperty(CucumberConfiguration.REPORTABLE_PATH, config.getReportDirectory());
-                if (config.getFeatureHome() != null) {
-                    cukespaceConfig.setProperty(CucumberConfiguration.FEATURE_HOME, config.getFeatureHome());
-                }
-                if (config.hasOptions()) {
-                    cukespaceConfig.setProperty(CucumberConfiguration.OPTIONS, config.getOptions());
-                }
-                if (config.getFeatureHome() != null) {
-                    cukespaceConfig.setProperty(CucumberConfiguration.FEATURE_HOME, config.getFeatureHome());
-                }
-            }
-        }
+        final InputStream configurationInputStream = threadContextClassLoader.getResourceAsStream(ClientServerFiles.CONFIG);
+        
+        final Properties cukespaceConfigurationProperties = loadProperties(configurationInputStream);        
 
         final List<CucumberFeature> cucumberFeatures = new ArrayList<CucumberFeature>();
-        final FeatureBuilder builder = new FeatureBuilder(cucumberFeatures);
+        final FeatureBuilder featureBuilder = new FeatureBuilder(cucumberFeatures);
 
         final List<Object> filters = createFilters(testInstance);
 
-        final InputStream featuresIs = tccl.getResourceAsStream(ClientServerFiles.FEATURES_LIST);
-        if (featuresIs != null) {
-            final BufferedReader reader = new BufferedReader(new InputStreamReader(featuresIs));
+        final InputStream featuresInputStream = threadContextClassLoader.getResourceAsStream(ClientServerFiles.FEATURES_LIST);
+        if (featuresInputStream != null) {
+            final BufferedReader reader = new BufferedReader(new InputStreamReader(featuresInputStream));
             String line;
 
             while ((line = reader.readLine()) != null) {
@@ -169,15 +151,15 @@ public class ArquillianCucumber extends Arquillian {
                 final Set<Object> resourceFilters = new HashSet<Object>(filters);
                 final PathWithLines pathWithLines = new PathWithLines(line);
                 resourceFilters.addAll(pathWithLines.lines);
-                builder.parse(new ClassLoaderResource(tccl, pathWithLines.path), new ArrayList<Object>(resourceFilters));
+                featureBuilder.parse(new ClassLoaderResource(threadContextClassLoader, pathWithLines.path), new ArrayList<Object>(resourceFilters));
             }
         } else { // client side
-            for (final Map.Entry<String, Collection<URL>> entry : Features.createFeatureMap(CucumberConfiguration.instance().getTempDir(), cukespaceConfig.getProperty(CucumberConfiguration.FEATURE_HOME), clazz, tccl).entrySet()) {
+            for (final Map.Entry<String, Collection<URL>> entry : Features.createFeatureMap(CucumberConfiguration.instance().getTempDir(), cukespaceConfigurationProperties.getProperty(CucumberConfiguration.FEATURE_HOME), javaTestClass, threadContextClassLoader).entrySet()) {
                 final PathWithLines pathWithLines = new PathWithLines(entry.getKey());
                 final Set<Object> resourceFilters = new HashSet<Object>(filters);
                 resourceFilters.addAll(pathWithLines.lines);
                 for (final URL url : entry.getValue()) {
-                    builder.parse(new URLResource(pathWithLines.path, url), new ArrayList<Object>(resourceFilters));
+                    featureBuilder.parse(new URLResource(pathWithLines.path, url), new ArrayList<Object>(resourceFilters));
                 }
             }
         }
@@ -187,25 +169,25 @@ public class ArquillianCucumber extends Arquillian {
         }
 
         final RuntimeOptions runtimeOptions;
-        if (clazz.getAnnotation(Cucumber.Options.class) != null || clazz.getAnnotation(CucumberOptions.class) != null) { // by class setting
-            final RuntimeOptionsFactory runtimeOptionsFactory = new RuntimeOptionsFactory(clazz, OPTIONS_ANNOTATIONS);
+        if (javaTestClass.getAnnotation(Cucumber.Options.class) != null || javaTestClass.getAnnotation(CucumberOptions.class) != null) { // by class setting
+            final RuntimeOptionsFactory runtimeOptionsFactory = new RuntimeOptionsFactory(javaTestClass, OPTIONS_ANNOTATIONS);
             runtimeOptions = runtimeOptionsFactory.create();
             cleanClasspathList(runtimeOptions.getGlue());
             cleanClasspathList(runtimeOptions.getFeaturePaths());
-        } else if (cukespaceConfig.containsKey(CucumberConfiguration.OPTIONS)) { // arquillian setting
-            runtimeOptions = new RuntimeOptions(new Env("cucumber-jvm"), asList((cukespaceConfig.getProperty(CucumberConfiguration.OPTIONS, "--strict") + " --strict").split(" ")));
+        } else if (cukespaceConfigurationProperties.containsKey(CucumberConfiguration.OPTIONS)) { // arquillian setting
+            runtimeOptions = new RuntimeOptions(new Env("cucumber-jvm"), asList((cukespaceConfigurationProperties.getProperty(CucumberConfiguration.OPTIONS, "--strict") + " --strict").split(" ")));
         } else { // default
-            runtimeOptions = new RuntimeOptions(new Env("cucumber-jvm"), asList("--strict", "-f", "pretty", areColorsNotAvailable(cukespaceConfig)));
+            runtimeOptions = new RuntimeOptions(new Env("cucumber-jvm"), asList("--strict", "-f", "pretty", areColorsNotAvailable(cukespaceConfigurationProperties)));
         }
 
-        final boolean reported = Boolean.parseBoolean(cukespaceConfig.getProperty(CucumberConfiguration.REPORTABLE, "false"));
+        final boolean reported = Boolean.parseBoolean(cukespaceConfigurationProperties.getProperty(CucumberConfiguration.REPORTABLE, "false"));
         final StringBuilder reportBuilder = new StringBuilder();
         if (reported) {
             runtimeOptions.addFormatter(new JSONFormatter(reportBuilder));
         }
 
         final Collection<Class<?>> glues = new LinkedList<Class<?>>();
-        final InputStream gluesIs = tccl.getResourceAsStream(ClientServerFiles.GLUES_LIST);
+        final InputStream gluesIs = threadContextClassLoader.getResourceAsStream(ClientServerFiles.GLUES_LIST);
         if (gluesIs != null) {
             final BufferedReader reader = new BufferedReader(new InputStreamReader(gluesIs));
             String line;
@@ -216,13 +198,13 @@ public class ArquillianCucumber extends Arquillian {
                     continue;
                 }
 
-                glues.add(tccl.loadClass(line));
+                glues.add(threadContextClassLoader.loadClass(line));
             }
         } else { // client side
-            glues.addAll(Glues.findGlues(clazz));
+            glues.addAll(Glues.findGlues(javaTestClass));
         }
 
-        final cucumber.runtime.Runtime runtime = new cucumber.runtime.Runtime(null, tccl, Arrays.asList(new ArquillianBackend(glues, clazz, testInstance)), runtimeOptions) {
+        final cucumber.runtime.Runtime runtime = new cucumber.runtime.Runtime(null, threadContextClassLoader, Arrays.asList(new ArquillianBackend(glues, javaTestClass, testInstance)), runtimeOptions) {
             @Override
             public void runStep(final String featurePath, final Step step, final Reporter reporter, final I18n i18n) {
                 super.runStep(featurePath, step, new Reporter() {
@@ -278,8 +260,8 @@ public class ArquillianCucumber extends Arquillian {
             }
         };
 
-        final Formatter formatter = runtimeOptions.formatter(tccl);
-        final JUnitReporter jUnitReporter = new JUnitReporter(runtimeOptions.reporter(tccl), formatter, runtimeOptions.isStrict());
+        final Formatter formatter = runtimeOptions.formatter(threadContextClassLoader);
+        final JUnitReporter jUnitReporter = new JUnitReporter(runtimeOptions.reporter(threadContextClassLoader), formatter, runtimeOptions.isStrict());
         for (final CucumberFeature feature : cucumberFeatures) {
             LOGGER.info("Running " + feature.getPath());
             new FeatureRunner(feature, runtime, jUnitReporter).run(runNotifier);
@@ -290,9 +272,9 @@ public class ArquillianCucumber extends Arquillian {
         runtime.printSummary();
 
         if (reported) {
-            final String path = cukespaceConfig.getProperty(CucumberConfiguration.REPORTABLE_PATH);
+            final String path = cukespaceConfigurationProperties.getProperty(CucumberConfiguration.REPORTABLE_PATH);
             if (path != null) {
-                final File destination = CucumberConfiguration.reportFile(path, clazz);
+                final File destination = CucumberConfiguration.reportFile(path, javaTestClass);
                 final File parentFile = destination.getParentFile();
                 if (!parentFile.exists() && !parentFile.mkdirs()) {
                     throw new IllegalArgumentException("Can't create " + parentFile.getAbsolutePath());
@@ -310,7 +292,7 @@ public class ArquillianCucumber extends Arquillian {
                 }
 
                 // add it here too for client case
-                CucumberReporter.addReport(CucumberConfiguration.reportFile(path, clazz));
+                CucumberReporter.addReport(CucumberConfiguration.reportFile(path, javaTestClass));
             }
         }
 
@@ -321,6 +303,44 @@ public class ArquillianCucumber extends Arquillian {
         if (!errors.isEmpty()) {
             throw new MultipleFailureException(errors);
         }
+    }
+    
+    private Properties loadProperties(final InputStream configurationInputStream) throws Exception
+    {
+    	Properties configurationProperties = null;
+    	
+    	if (configurationInputStream != null) {
+    		configurationProperties = new Properties();
+            configurationProperties.load(configurationInputStream);
+            return configurationProperties;
+        }
+    	else
+    	{
+    		return loadProperties(CucumberConfiguration.instance());
+    	}
+    }
+    
+    private Properties loadProperties(final CucumberConfiguration cucumberConfiguration) throws Exception
+    {
+    	Properties configurationProperties = new Properties();
+    	
+    	if (cucumberConfiguration.isInitialized()) {
+            configurationProperties.setProperty(CucumberConfiguration.PERSISTENCE_EVENTS, Boolean.toString(cucumberConfiguration.arePersistenceEventsActivated()));
+            configurationProperties.setProperty(CucumberConfiguration.COLORS, Boolean.toString(cucumberConfiguration.isColorized()));
+            configurationProperties.setProperty(CucumberConfiguration.REPORTABLE, Boolean.toString(cucumberConfiguration.isReport()));
+            configurationProperties.setProperty(CucumberConfiguration.REPORTABLE_PATH, cucumberConfiguration.getReportDirectory());
+            if (cucumberConfiguration.getFeatureHome() != null) {
+                configurationProperties.setProperty(CucumberConfiguration.FEATURE_HOME, cucumberConfiguration.getFeatureHome());
+            }
+            if (cucumberConfiguration.hasOptions()) {
+                configurationProperties.setProperty(CucumberConfiguration.OPTIONS, cucumberConfiguration.getOptions());
+            }
+            if (cucumberConfiguration.getFeatureHome() != null) {
+                configurationProperties.setProperty(CucumberConfiguration.FEATURE_HOME, cucumberConfiguration.getFeatureHome());
+            }
+        }
+    	
+    	return configurationProperties;
     }
 
     private static List<Object> createFilters(final Object testInstance) {
@@ -452,7 +472,7 @@ public class ArquillianCucumber extends Arquillian {
 
         @Override
         public Object invokeExplosively(final Object target, final Object... params) throws Throwable {
-            instance.____Cucumber_Runner_Not_A_Test(target, notifier == null ? new RunNotifier() : notifier);
+            instance.runCucumber(target, notifier == null ? new RunNotifier() : notifier);
             return null;
         }
 
