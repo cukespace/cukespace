@@ -3,6 +3,7 @@ package cucumber.runtime.arquillian.backend;
 import cucumber.api.java.After;
 import cucumber.api.java.Before;
 import cucumber.runtime.Backend;
+import cucumber.runtime.ClassFinder;
 import cucumber.runtime.CucumberException;
 import cucumber.runtime.DuplicateStepDefinitionException;
 import cucumber.runtime.Glue;
@@ -10,7 +11,9 @@ import cucumber.runtime.HookDefinition;
 import cucumber.runtime.StepDefinition;
 import cucumber.runtime.UnreportedStepExecutor;
 import cucumber.runtime.Utils;
+import cucumber.runtime.arquillian.api.Lambda;
 import cucumber.runtime.arquillian.lifecycle.CucumberLifecycle;
+import cucumber.runtime.java.JavaBackend;
 import cucumber.runtime.java.StepDefAnnotation;
 import cucumber.runtime.snippets.FunctionNameGenerator;
 import cucumber.runtime.snippets.Snippet;
@@ -22,6 +25,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,7 +36,7 @@ import static cucumber.runtime.arquillian.shared.ClassLoaders.load;
 // patched to use the resource loader defined by this extension
 // the best would probably to update cucumber-core to handle
 // completely listed feature/steps (glue) classes/resources
-public class ArquillianBackend implements Backend {
+public class ArquillianBackend extends JavaBackend implements Backend {
     protected static enum GlueType {
         JAVA, SCALA, UNKNOWN
     }
@@ -43,14 +47,28 @@ public class ArquillianBackend implements Backend {
     private Glue glue;
     private GlueType glueType = GlueType.UNKNOWN;
 
+    public ArquillianBackend() { // no-op constructor but we need to be JavaBackend for java8 integration
+        super(null, new ClassFinder() {
+            @Override
+            public <T> Collection<Class<? extends T>> getDescendants(Class<T> parentType, String packageName) {
+                return Collections.emptyList();
+            }
+        });
+    }
+
     public ArquillianBackend(final Collection<Class<?>> classes, final Class<?> clazz, final Object testInstance) {
+        this();
         instances.put(clazz, testInstance);
         glues.addAll(classes);
     }
 
     @Override
     public void loadGlue(final Glue glue, final List<String> gluePaths) {
+        super.loadGlue(glue, Collections.<String>emptyList());
         this.glue = glue;
+        for (final Object i : instances.values()) {
+            initLambda(i);
+        }
         initInstances();
         scan(); // dedicated scanning
     }
@@ -59,12 +77,24 @@ public class ArquillianBackend implements Backend {
         for (final Class<?> glueClass : glues) {
             final Object instance;
             try {
-                instance = glueClass.newInstance();
+                instance = initLambda(glueClass.newInstance());
             } catch (final Exception e) {
                 throw new IllegalArgumentException("Can't instantiate " + glueClass.getName(), e);
             }
 
             instances.put(glueClass, CucumberLifecycle.enrich(instance));
+        }
+    }
+
+    private Object initLambda(final Object instance) {
+        beforeCreate();
+        try {
+            if (Lambda.class.isInstance(instance)) {
+                Lambda.class.cast(instance).define();
+            }
+            return instance;
+        } finally {
+            afterCreate();
         }
     }
 
@@ -173,6 +203,14 @@ public class ArquillianBackend implements Backend {
     @Override
     public void setUnreportedStepExecutor(UnreportedStepExecutor executor) {
         //Not used here yet
+    }
+
+    public void beforeCreate() {
+        INSTANCE.set(this);
+    }
+
+    public void afterCreate() {
+        INSTANCE.remove();
     }
 
     @Override

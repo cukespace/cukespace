@@ -60,8 +60,9 @@ public class EventHelper {
             if (ArquillianStepDefinition.class.isInstance(stepDefinition)) {
                 final ArquillianStepDefinition arquillianStepDefinition = ArquillianStepDefinition.class.cast(stepDefinition);
                 event = new TestEvent(arquillianStepDefinition.getInstance(), arquillianStepDefinition.getMethod());
-            } else {
-                throw new IllegalStateException("Can't find ArquillianStepDefinition");
+                TEST_EVENT.set(event);
+            } else { // mock to still fire events but just as marker, TODO: don't use TestEvent? -> java 8
+                event = new TestEvent(TEST_EVENT, EventHelper.class.getMethod("currentEvent"));
             }
         } catch (final Exception e) {
             throw new IllegalStateException(e);

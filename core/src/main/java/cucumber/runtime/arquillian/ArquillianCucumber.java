@@ -219,7 +219,8 @@ public class ArquillianCucumber extends Arquillian {
             glues.addAll(Glues.findGlues(clazz));
         }
 
-        final cucumber.runtime.Runtime runtime = new cucumber.runtime.Runtime(null, tccl, Arrays.asList(new ArquillianBackend(glues, clazz, testInstance)), runtimeOptions) {
+        final ArquillianBackend arquillianBackend = new ArquillianBackend(glues, clazz, testInstance);
+        final cucumber.runtime.Runtime runtime = new cucumber.runtime.Runtime(null, tccl, Arrays.asList(arquillianBackend), runtimeOptions) {
             @Override
             public void runStep(final String featurePath, final Step step, final Reporter reporter, final I18n i18n) {
                 super.runStep(featurePath, step, new Reporter() {

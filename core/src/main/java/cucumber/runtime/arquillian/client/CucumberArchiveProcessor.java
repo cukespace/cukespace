@@ -174,6 +174,12 @@ public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
                 jarLocation(ConverterRegistry.class),
                 jarLocation(JavaBackend.class),
                 jarLocation(Cucumber.class));
+        try {
+            final File j8 = jarLocation(Thread.currentThread().getContextClassLoader().loadClass("cucumber.runtime.java8.LambdaGlueBase"));
+            libraryContainer.addAsLibraries(j8);
+        } catch (final Exception e) {
+            // no-op
+        }
     }
 
     private static void enrichWithGlues(final Class<?> javaClass, final LibraryContainer<?> libraryContainer, final String ln) {
