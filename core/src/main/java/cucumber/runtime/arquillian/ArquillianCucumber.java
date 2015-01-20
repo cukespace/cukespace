@@ -349,8 +349,7 @@ public class ArquillianCucumber extends Arquillian {
     	for (final CucumberFeature feature : cucumberFeatures) {
             LOGGER.info("Running " + feature.getPath());
             new FeatureRunner(feature, cucumberRuntime, jUnitReporter).run(runNotifier);
-        }
-    	
+        }    	
     	jUnitReporter.done();
         jUnitReporter.close();
         cucumberRuntime.printSummary();
