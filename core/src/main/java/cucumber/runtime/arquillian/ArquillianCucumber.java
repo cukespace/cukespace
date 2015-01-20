@@ -137,10 +137,10 @@ public class ArquillianCucumber extends Arquillian {
         final InputStream configurationInputStream = threadContextClassLoader.getResourceAsStream(ClientServerFiles.CONFIG);        
         final Properties cukespaceConfigurationProperties = loadCucumberConfigurationProperties(configurationInputStream);
         
-        final HashSet<Object> filters = new HashSet<Object>(createFilters(testInstance));
+        final HashSet<Object> testFilters = new HashSet<Object>(createFilters(testInstance));
         final InputStream featuresInputStream = threadContextClassLoader.getResourceAsStream(ClientServerFiles.FEATURES_LIST);
         final Set<Entry<String, Collection<URL>>> featuresSet = Features.createFeatureMap(CucumberConfiguration.instance().getTempDir(),cukespaceConfigurationProperties.getProperty(CucumberConfiguration.FEATURE_HOME),javaTestClass,threadContextClassLoader).entrySet();
-        final List<CucumberFeature> cucumberFeatures = retrieveCucumberFeaturesList(filters,featuresInputStream,threadContextClassLoader, featuresSet);
+        final List<CucumberFeature> cucumberFeatures = retrieveCucumberFeatures(testFilters,featuresInputStream,threadContextClassLoader, featuresSet);
         
         final RuntimeOptions runtimeOptions = loadRuntimeOptions(javaTestClass, cukespaceConfigurationProperties);        
 
@@ -173,20 +173,23 @@ public class ArquillianCucumber extends Arquillian {
     
     private static Properties loadCucumberConfigurationProperties(final InputStream configurationInputStream) throws Exception
     {
-    	Properties configurationProperties = null;
-    	
     	if (configurationInputStream != null) {
-    		configurationProperties = new Properties();
-            configurationProperties.load(configurationInputStream);
-            return configurationProperties;
+    		return loadConfigurationPropertiesFromStream(configurationInputStream);
         }
     	else
     	{
-    		return loadCucumberConfigurationProperties(CucumberConfiguration.instance());
+    		return loadConfigurationPropertiesFromObject(CucumberConfiguration.instance());
     	}
     }
     
-    private static Properties loadCucumberConfigurationProperties(final CucumberConfiguration cucumberConfiguration) throws Exception
+    private static Properties loadConfigurationPropertiesFromStream(final InputStream configurationInputStream) throws Exception
+    {
+    	Properties configurationProperties = new Properties();
+        configurationProperties.load(configurationInputStream);
+        return configurationProperties;
+    }
+    
+    private static Properties loadConfigurationPropertiesFromObject(final CucumberConfiguration cucumberConfiguration) throws Exception
     {
     	Properties configurationProperties = new Properties();
     	
@@ -238,36 +241,18 @@ public class ArquillianCucumber extends Arquillian {
         return filters;
     }
     
-    private static List<CucumberFeature> retrieveCucumberFeaturesList(final Set<Object> resourceFilters, final InputStream featuresInputStream, final ClassLoader classLoader, final Set<Entry<String, Collection<URL>>> featuresSet) throws Exception
+    private static List<CucumberFeature> retrieveCucumberFeatures(final Set<Object> testFilters, final InputStream featuresInputStream, final ClassLoader classLoader, final Set<Entry<String, Collection<URL>>> featuresSet) throws Exception
     {
     	final List<CucumberFeature> cucumberFeatures = new ArrayList<CucumberFeature>();
         final FeatureBuilder featureBuilder = new FeatureBuilder(cucumberFeatures);
         
         if (featuresInputStream != null) {
             final BufferedReader featureFileReader = new BufferedReader(new InputStreamReader(featuresInputStream));
-            String line;
-
-            while ((line = featureFileReader.readLine()) != null) {
-                line = line.trim();
-                if (line.isEmpty()) {
-                    continue;
-                }
-
-                final PathWithLines pathWithLines = new PathWithLines(line);
-                resourceFilters.addAll(pathWithLines.lines);
-                featureBuilder.parse(new ClassLoaderResource(classLoader, pathWithLines.path), new ArrayList<Object>(resourceFilters));
-            }
+            buildFeatureListFromFile(featureFileReader, testFilters, featureBuilder, classLoader);            
         }
         else 
         {
-        	for (final Map.Entry<String, Collection<URL>> entry : featuresSet)
-        	{
-        		final PathWithLines pathWithLines = new PathWithLines(entry.getKey());
-        		resourceFilters.addAll(pathWithLines.lines);
-                for (final URL url : entry.getValue()) {
-                    featureBuilder.parse(new URLResource(pathWithLines.path, url), new ArrayList<Object>(resourceFilters));
-                }
-        	}        	
+        	buildFeatureListFromMap(featuresSet, testFilters, featureBuilder);
         }
         
         featureBuilder.close(); 
@@ -279,30 +264,30 @@ public class ArquillianCucumber extends Arquillian {
         return cucumberFeatures;
     }
     
-    public void buildFeatureListFromFile(final BufferedReader reader, final Set<Object> resourceFilters, final FeatureBuilder featureBuilder, final ClassLoader classLoader) throws Exception
+    private static void buildFeatureListFromFile(final BufferedReader featureFileReader, final Set<Object> testFilters, final FeatureBuilder featureBuilder, final ClassLoader classLoader) throws Exception
     {
-    	String line;
+    	String readerLine;
 
-        while ((line = reader.readLine()) != null) {
-            line = line.trim();
-            if (line.isEmpty()) {
+        while ((readerLine = featureFileReader.readLine()) != null) {
+            readerLine = readerLine.trim();
+            if (readerLine.isEmpty()) {
                 continue;
             }
 
-            final PathWithLines pathWithLines = new PathWithLines(line);
-            resourceFilters.addAll(pathWithLines.lines);
-            featureBuilder.parse(new ClassLoaderResource(classLoader, pathWithLines.path), new ArrayList<Object>(resourceFilters));
+            final PathWithLines pathWithLines = new PathWithLines(readerLine);
+            testFilters.addAll(pathWithLines.lines);
+            featureBuilder.parse(new ClassLoaderResource(classLoader, pathWithLines.path), new ArrayList<Object>(testFilters));
         }
     }
     
-    public void buildFeatureListFromMap(final Set<Entry<String, Collection<URL>>> featuresSet, final Set<Object> resourceFilters,  final FeatureBuilder featureBuilder)
+    private static void buildFeatureListFromMap(final Set<Entry<String, Collection<URL>>> featuresSet, final Set<Object> testFilters,  final FeatureBuilder featureBuilder)
     {
     	for (final Map.Entry<String, Collection<URL>> entry : featuresSet)
     	{
     		final PathWithLines pathWithLines = new PathWithLines(entry.getKey());
-    		resourceFilters.addAll(pathWithLines.lines);
+    		testFilters.addAll(pathWithLines.lines);
             for (final URL url : entry.getValue()) {
-                featureBuilder.parse(new URLResource(pathWithLines.path, url), new ArrayList<Object>(resourceFilters));
+                featureBuilder.parse(new URLResource(pathWithLines.path, url), new ArrayList<Object>(testFilters));
             }
     	}
     }
