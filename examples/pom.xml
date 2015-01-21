@@ -221,22 +221,15 @@
       <groupId>com.github.cukespace</groupId>
       <artifactId>cukespace-core</artifactId>
       <version>${project.version}</version>
+      <scope>test</scope>
       <exclusions>
         <exclusion>
           <groupId>com.google.guava</groupId>
           <artifactId>guava</artifactId>
         </exclusion>
       </exclusions>
-      <scope>test</scope>
     </dependency>
     
-    <dependency>
-		<groupId>net.sourceforge.cssparser</groupId>
-		<artifactId>cssparser</artifactId>
-		<version>0.9.11</version>
-	</dependency>
-    
-
   </dependencies>
 
   <build>
