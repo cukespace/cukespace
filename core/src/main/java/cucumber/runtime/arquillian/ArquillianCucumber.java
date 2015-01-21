@@ -76,7 +76,7 @@ import static java.util.Arrays.asList;
 public class ArquillianCucumber extends Arquillian {
     private static final Logger LOGGER = Logger.getLogger(ArquillianCucumber.class.getName());
 
-    private static final String RUN_CUCUMBER_MTD = "performCucumberOperations";
+    private static final String RUN_CUCUMBER_MTD = "performInternalCucumberOperations";
     private static final Class<? extends Annotation>[] OPTIONS_ANNOTATIONS = new Class[]{CucumberOptions.class, Cucumber.Options.class};
 
     private List<FrameworkMethod> methods;
@@ -129,7 +129,7 @@ public class ArquillianCucumber extends Arquillian {
     } 
     
     // the cucumber test method, only used internally - see childrenInvoker, public to avoid to setAccessible(true)
-    public void performCucumberOperations(final Object testInstance, final RunNotifier runNotifier) throws Exception {
+    public void performInternalCucumberOperations(final Object testInstance, final RunNotifier runNotifier) throws Exception {
         
     	final Class<?> javaTestClass = getTestClass().getJavaClass();
         final ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
@@ -456,7 +456,7 @@ public class ArquillianCucumber extends Arquillian {
 
         @Override
         public Object invokeExplosively(final Object target, final Object... params) throws Throwable {
-            instance.performCucumberOperations(target, notifier == null ? new RunNotifier() : notifier);
+            instance.performInternalCucumberOperations(target, notifier == null ? new RunNotifier() : notifier);
             return null;
         }
 
