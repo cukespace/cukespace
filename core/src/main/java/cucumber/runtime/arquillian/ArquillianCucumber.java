@@ -38,8 +38,6 @@ import gherkin.formatter.model.Result;
 import gherkin.formatter.model.Step;
 import gherkin.formatter.model.Tag;
 
-import org.apache.commons.io.input.NullInputStream;
-import org.apache.commons.lang.NullArgumentException;
 import org.jboss.arquillian.junit.Arquillian;
 import org.junit.runner.Description;
 import org.junit.runner.notification.RunNotifier;
@@ -53,7 +51,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.ObjectInputStream.GetField;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.net.URL;
