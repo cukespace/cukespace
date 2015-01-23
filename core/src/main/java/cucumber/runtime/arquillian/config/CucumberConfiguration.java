@@ -3,6 +3,7 @@ package cucumber.runtime.arquillian.config;
 import java.io.File;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Properties;
 
 public class CucumberConfiguration {
     private static final CucumberConfiguration CONFIGURATION = new CucumberConfiguration();
@@ -28,8 +29,7 @@ public class CucumberConfiguration {
 
     private boolean persistenceEventsActivated = false;
 
-    private static String guessDefaultTempDir()
-    {
+    private static String guessDefaultTempDir() {
         final String suffix = "/cukespace/features/";
         if (new File("target").exists()) { // maven
             return new File("target", suffix).getAbsolutePath();
@@ -128,5 +128,27 @@ public class CucumberConfiguration {
 
     public String getTempDir() {
         return tempDir;
+    }
+    
+    public Properties getConfigurationAsProperties() {
+    	final Properties configurationProperties = new Properties();
+    	
+    	if (this.isInitialized()) {    		
+            configurationProperties.setProperty(CucumberConfiguration.PERSISTENCE_EVENTS, Boolean.toString(persistenceEventsActivated));
+            configurationProperties.setProperty(CucumberConfiguration.COLORS, Boolean.toString(colorized));
+            configurationProperties.setProperty(CucumberConfiguration.REPORTABLE, Boolean.toString(report));
+            configurationProperties.setProperty(CucumberConfiguration.REPORTABLE_PATH, reportDirectory);
+            if (featureHome != null) {
+                configurationProperties.setProperty(CucumberConfiguration.FEATURE_HOME, featureHome);
+            }
+            if (this.hasOptions()) {
+                configurationProperties.setProperty(CucumberConfiguration.OPTIONS, options);
+            }
+            if (featureHome != null) {
+                configurationProperties.setProperty(CucumberConfiguration.FEATURE_HOME, featureHome);
+            }
+        }
+    	
+    	return configurationProperties;
     }
 }
