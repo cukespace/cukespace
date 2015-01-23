@@ -168,8 +168,7 @@ public class ArquillianCucumber extends Arquillian {
     private static Properties loadCucumberConfigurationProperties(final InputStream configurationInputStream) throws Exception {
     	if (configurationInputStream != null) {
     		return loadConfigurationPropertiesFromStream(configurationInputStream);
-        }
-    	else {
+        } else {
     		return loadConfigurationPropertiesFromObject(CucumberConfiguration.instance());
     	}
     }
@@ -226,8 +225,7 @@ public class ArquillianCucumber extends Arquillian {
         if (featuresInputStream != null) {
             
             buildFeatureListFromFile(featuresInputStream, testFilters, featureBuilder, classLoader);            
-        }
-        else {
+        } else {
         	buildFeatureListFromMap(featuresMap, testFilters, featureBuilder);
         }
         
@@ -278,11 +276,9 @@ public class ArquillianCucumber extends Arquillian {
             runtimeOptions = runtimeOptionsFactory.create();
             cleanClasspathList(runtimeOptions.getGlue());
             cleanClasspathList(runtimeOptions.getFeaturePaths());
-        } 
-    	else if (cukespaceConfigurationProperties.containsKey(CucumberConfiguration.OPTIONS)) { // arquillian setting
+        } else if (cukespaceConfigurationProperties.containsKey(CucumberConfiguration.OPTIONS)) { // arquillian setting
             runtimeOptions = new RuntimeOptions(new Env("cucumber-jvm"), asList((cukespaceConfigurationProperties.getProperty(CucumberConfiguration.OPTIONS, "--strict") + " --strict").split(" ")));
-        } 
-    	else { // default
+        } else { // default
             runtimeOptions = new RuntimeOptions(new Env("cucumber-jvm"), asList("--strict", "-f", "pretty", areColorsNotAvailable(cukespaceConfigurationProperties)));
         }
     	return runtimeOptions;
@@ -315,8 +311,7 @@ public class ArquillianCucumber extends Arquillian {
             }
             reader.close();
             
-        } 
-    	else { // client side
+        } else { // client side
             glues.addAll(Glues.findGlues(javaTestClass));
         }
     	
