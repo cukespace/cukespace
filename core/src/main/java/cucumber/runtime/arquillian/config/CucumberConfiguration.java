@@ -29,8 +29,7 @@ public class CucumberConfiguration {
 
     private boolean persistenceEventsActivated = false;
 
-    private static String guessDefaultTempDir()
-    {
+    private static String guessDefaultTempDir() {
         final String suffix = "/cukespace/features/";
         if (new File("target").exists()) { // maven
             return new File("target", suffix).getAbsolutePath();
@@ -131,8 +130,7 @@ public class CucumberConfiguration {
         return tempDir;
     }
     
-    public Properties getConfigurationAsProperties()
-    {
+    public Properties getConfigurationAsProperties() {
     	final Properties configurationProperties = new Properties();
     	
     	if (this.isInitialized()) {    		
