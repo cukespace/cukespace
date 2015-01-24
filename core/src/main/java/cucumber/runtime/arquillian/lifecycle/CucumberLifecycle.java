@@ -8,6 +8,7 @@ import cucumber.api.java.en.When;
 import cucumber.runtime.arquillian.shared.ClientServerFiles;
 import cucumber.runtime.arquillian.stream.NotCloseablePrintStream;
 import cucumber.runtime.io.MultiLoader;
+import cucumber.runtime.io.ResourceLoader;
 import cucumber.runtime.io.ResourceLoaderClassFinder;
 import org.jboss.arquillian.core.api.Instance;
 import org.jboss.arquillian.core.api.annotation.Inject;
@@ -24,9 +25,10 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.lang.annotation.Annotation;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.Collections;
 
 /**
  * These observers are for:
@@ -38,8 +40,9 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class CucumberLifecycle {
     private static final PrintStream ORIGINAL_OUT = System.out;
     private static final PrintStream NOT_CLOSEABLE_OUT = new NotCloseablePrintStream(ORIGINAL_OUT);
-    private static final Collection<Class<? extends Annotation>> CUCUMBER_ANNOTATIONS = new CopyOnWriteArrayList<Class<? extends Annotation>>();
-    private static final Collection<TestEnricher> TEST_ENRICHERS = new CopyOnWriteArrayList<TestEnricher>();
+    private static final Collection<Class<? extends Annotation>> CUCUMBER_ANNOTATIONS = new ArrayList<Class<? extends Annotation>>();
+    private static final Collection<TestEnricher> TEST_ENRICHERS = new ArrayList<TestEnricher>();
+    private static volatile Collection<ResourceLoader> RESOURCES_LOADERS = null;
 
     @Inject
     private Instance<ServiceLoader> serviceLoader;
@@ -52,6 +55,7 @@ public class CucumberLifecycle {
         System.setOut(ORIGINAL_OUT);
         CUCUMBER_ANNOTATIONS.clear();
         TEST_ENRICHERS.clear();
+        RESOURCES_LOADERS = null;
     }
 
     // do it lazily to get the right classloader + be sure contexts are started (drone...)
@@ -95,6 +99,19 @@ public class CucumberLifecycle {
                 }
             }
         }
+
+        // resource loaders
+        if (RESOURCES_LOADERS == null) {
+            synchronized (this) {
+                if (RESOURCES_LOADERS == null) {
+                    RESOURCES_LOADERS = new ArrayList<ResourceLoader>();
+                    RESOURCES_LOADERS.addAll(serviceLoader.get().all(ResourceLoader.class));
+                    for (final ResourceLoader l : java.util.ServiceLoader.load(ResourceLoader.class)) {
+                        RESOURCES_LOADERS.add(l);
+                    }
+                }
+            }
+        }
     }
 
     public static Collection<Class<? extends Annotation>> cucumberAnnotations() {
@@ -127,5 +144,12 @@ public class CucumberLifecycle {
             }
         }
         return instance;
+    }
+
+    public static Collection<ResourceLoader> resourceLoaders() {
+        if (RESOURCES_LOADERS == null) { // shouldn't happen
+            return Collections.emptyList();
+        }
+        return RESOURCES_LOADERS;
     }
 }

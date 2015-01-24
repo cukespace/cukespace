@@ -1,6 +1,7 @@
 package cucumber.runtime.arquillian.feature;
 
 import cucumber.api.CucumberOptions;
+import cucumber.runtime.arquillian.lifecycle.CucumberLifecycle;
 import cucumber.runtime.io.FileResource;
 import cucumber.runtime.io.MultiLoader;
 import cucumber.runtime.io.Resource;
@@ -52,6 +53,7 @@ public final class Features {
 
         final cucumber.runtime.arquillian.api.Features additionalFeaturesAnn = javaClass.getAnnotation(cucumber.runtime.arquillian.api.Features.class);
         final Collection<ResourceLoader> customLoaders = new LinkedList<ResourceLoader>();
+        customLoaders.addAll(CucumberLifecycle.resourceLoaders());
         if (additionalFeaturesAnn != null) {
             final Class<? extends ResourceLoader>[] userLoaders = additionalFeaturesAnn.loaders();
             for (final Class<? extends ResourceLoader> resourceLoader : userLoaders) {
