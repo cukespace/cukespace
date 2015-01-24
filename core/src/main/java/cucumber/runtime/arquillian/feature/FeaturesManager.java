@@ -1,6 +1,7 @@
 package cucumber.runtime.arquillian.feature;
 
 import cucumber.api.CucumberOptions;
+import cucumber.runtime.arquillian.api.Features;
 import cucumber.runtime.arquillian.lifecycle.CucumberLifecycle;
 import cucumber.runtime.io.FileResource;
 import cucumber.runtime.io.MultiLoader;
@@ -26,12 +27,12 @@ import static cucumber.runtime.arquillian.shared.IOs.dump;
 import static cucumber.runtime.arquillian.shared.IOs.slurp;
 import static java.util.Arrays.asList;
 
-public final class Features {
-    private static final Logger LOGGER = Logger.getLogger(Features.class.getName());
+public final class FeaturesManager {
+    private static final Logger LOGGER = Logger.getLogger(FeaturesManager.class.getName());
 
     public static final String EXTENSION = ".feature";
 
-    private Features() {
+    private FeaturesManager() {
         // no-op
     }
 
@@ -44,14 +45,9 @@ public final class Features {
                                                                 final Class<?> javaClass, final ClassLoader loader) {
         final Map<String, Collection<URL>> featureUrls = new HashMap<String, Collection<URL>>();
 
-        final String home;
-        if (featureHome != null && !featureHome.endsWith("/")) {
-            home = featureHome + "/";
-        } else {
-            home = featureHome;
-        }
+        final String home = addSlashToHome(featureHome);
 
-        final cucumber.runtime.arquillian.api.Features additionalFeaturesAnn = javaClass.getAnnotation(cucumber.runtime.arquillian.api.Features.class);
+        final Features additionalFeaturesAnn = javaClass.getAnnotation(Features.class);
         final Collection<ResourceLoader> customLoaders = new LinkedList<ResourceLoader>();
         customLoaders.addAll(CucumberLifecycle.resourceLoaders());
         if (additionalFeaturesAnn != null) {
@@ -151,6 +147,17 @@ public final class Features {
 
         return featureUrls;
     }
+    
+    private static String addSlashToHome(final String featureHome) {
+    	final String home;
+        if (featureHome != null && !featureHome.endsWith("/")) {
+            home = featureHome + "/";
+        } else {
+            home = featureHome;
+        }
+        return home;
+    }
+    
 
     private static boolean urlFromFileSystem(final Map<String, Collection<URL>> featureUrls, final Collection<URL> list,
                                              final String path, final String filePath, final String keySuffix) {
@@ -200,12 +207,12 @@ public final class Features {
         final Collection<String> featureUrls = new ArrayList<String>();
 
         { // convention
-            final String featurePath = Features.featurePath(javaClass);
+            final String featurePath = FeaturesManager.featurePath(javaClass);
             featureUrls.add(featurePath);
         }
 
         { // our API
-            final cucumber.runtime.arquillian.api.Features additionalFeaturesAnn = javaClass.getAnnotation(cucumber.runtime.arquillian.api.Features.class);
+            final Features additionalFeaturesAnn = javaClass.getAnnotation(Features.class);
             if (additionalFeaturesAnn != null) {
                 Collections.addAll(featureUrls, additionalFeaturesAnn.value());
             }
