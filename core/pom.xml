@@ -6,7 +6,7 @@
   <parent>
     <groupId>com.github.cukespace</groupId>
     <artifactId>cukespace-parent</artifactId>
-    <version>1.5.11-SNAPSHOT</version>
+    <version>1.6.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>cukespace-core</artifactId>
