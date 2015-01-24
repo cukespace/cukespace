@@ -41,7 +41,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
-import static cucumber.runtime.arquillian.client.IOs.slurp;
+import static cucumber.runtime.arquillian.shared.IOs.slurp;
 import static cucumber.runtime.arquillian.locator.JarLocation.jarLocation;
 import static cucumber.runtime.arquillian.shared.ClassLoaders.load;
 import static org.jboss.shrinkwrap.api.ShrinkWrap.create;

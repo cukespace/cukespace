@@ -21,8 +21,8 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import static cucumber.runtime.arquillian.client.IOs.dump;
-import static cucumber.runtime.arquillian.client.IOs.slurp;
+import static cucumber.runtime.arquillian.shared.IOs.dump;
+import static cucumber.runtime.arquillian.shared.IOs.slurp;
 import static java.util.Arrays.asList;
 
 public final class Features {
