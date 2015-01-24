@@ -1,6 +1,7 @@
 package cucumber.runtime.arquillian.feature;
 
 import cucumber.api.CucumberOptions;
+import cucumber.runtime.arquillian.lifecycle.CucumberLifecycle;
 import cucumber.runtime.io.FileResource;
 import cucumber.runtime.io.MultiLoader;
 import cucumber.runtime.io.Resource;
@@ -21,8 +22,8 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import static cucumber.runtime.arquillian.client.IOs.dump;
-import static cucumber.runtime.arquillian.client.IOs.slurp;
+import static cucumber.runtime.arquillian.shared.IOs.dump;
+import static cucumber.runtime.arquillian.shared.IOs.slurp;
 import static java.util.Arrays.asList;
 
 public final class Features {
@@ -52,6 +53,7 @@ public final class Features {
 
         final cucumber.runtime.arquillian.api.Features additionalFeaturesAnn = javaClass.getAnnotation(cucumber.runtime.arquillian.api.Features.class);
         final Collection<ResourceLoader> customLoaders = new LinkedList<ResourceLoader>();
+        customLoaders.addAll(CucumberLifecycle.resourceLoaders());
         if (additionalFeaturesAnn != null) {
             final Class<? extends ResourceLoader>[] userLoaders = additionalFeaturesAnn.loaders();
             for (final Class<? extends ResourceLoader> resourceLoader : userLoaders) {

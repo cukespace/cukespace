@@ -1,4 +1,4 @@
-package cucumber.runtime.arquillian.client;
+package cucumber.runtime.arquillian.shared;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
