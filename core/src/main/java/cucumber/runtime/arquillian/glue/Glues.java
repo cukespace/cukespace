@@ -8,14 +8,12 @@ import cucumber.runtime.HookDefinition;
 import cucumber.runtime.StepDefinition;
 import cucumber.runtime.StepDefinitionMatch;
 import cucumber.runtime.io.MultiLoader;
-import cucumber.runtime.io.ResourceLoader;
 import cucumber.runtime.java.JavaBackend;
 import gherkin.I18n;
 import gherkin.formatter.model.Step;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
