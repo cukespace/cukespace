@@ -8,7 +8,7 @@ import cucumber.runtime.arquillian.api.event.StepEvent;
 import cucumber.runtime.arquillian.backend.ArquillianBackend;
 import cucumber.runtime.arquillian.config.CucumberConfiguration;
 import cucumber.runtime.arquillian.container.CucumberContainerExtension;
-import cucumber.runtime.arquillian.feature.FeaturesManager;
+import cucumber.runtime.arquillian.feature.FeaturesFinder;
 import cucumber.runtime.arquillian.glue.Glues;
 import cucumber.runtime.arquillian.lifecycle.CucumberLifecycle;
 import cucumber.runtime.arquillian.reporter.CucumberReporter;
@@ -61,7 +61,7 @@ public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
         // try to find the feature
         final Class<?> javaClass = testClass.getJavaClass();
         final ClassLoader loader = Thread.currentThread().getContextClassLoader();
-        final Map<String, Collection<URL>> featureUrls = FeaturesManager.createFeatureMap(
+        final Map<String, Collection<URL>> featureUrls = FeaturesFinder.createFeatureMap(
                 configuration.get().getTempDir(), configuration.get().getFeatureHome(), javaClass, loader);
 
         if (featureUrls.isEmpty()
@@ -222,7 +222,7 @@ public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
                 .addClass(NotCloseablePrintStream.class)
                 .addClass(CucumberReporter.class)
                 .addClass(CucumberLifecycle.class)
-                .addClass(FeaturesManager.class)
+                .addClass(FeaturesFinder.class)
                 .addClass(Glues.class)
                 .addClass(CucumberConfiguration.class)
                 .addClasses(ArquillianCucumber.class, CukeSpace.class)
@@ -273,6 +273,6 @@ public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
         }
 
         // fallback
-        return Math.abs(url.hashCode()) + FeaturesManager.EXTENSION;
+        return Math.abs(url.hashCode()) + FeaturesFinder.EXTENSION;
     }
 }

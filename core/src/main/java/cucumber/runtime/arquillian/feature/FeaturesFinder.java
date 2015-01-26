@@ -28,27 +28,26 @@ import static cucumber.runtime.arquillian.shared.IOs.dump;
 import static cucumber.runtime.arquillian.shared.IOs.slurp;
 import static java.util.Arrays.asList;
 
-public final class FeaturesManager {
-    private static final Logger LOGGER = Logger.getLogger(FeaturesManager.class.getName());
+public final class FeaturesFinder {
+    private static final Logger LOGGER = Logger.getLogger(FeaturesFinder.class.getName());
 
     public static final String EXTENSION = ".feature";
 
-    private FeaturesManager() {
+    private FeaturesFinder() {
         // no-op
     }
 
     public static Map<String, Collection<URL>> createFeatureMap(final String tempDir, final String featureHome,
                                                                 final Class<?> javaClass, final ClassLoader classLoader) {
-        final Map<String, Collection<URL>> featuresMap = new HashMap<String, Collection<URL>>();
-
-        final String home = addSlashToHome(featureHome);
-
-        final Features additionalFeaturesAnnotations = javaClass.getAnnotation(Features.class);
-        final Collection<ResourceLoader> customResourceLoaders = retrieveCustomResourceLoaders(additionalFeaturesAnnotations);
-
-        for (final String rawFeatureURL : findFeatures(javaClass)) {
-        	featuresMap.putAll(extractUrlMapFromRawFeature(rawFeatureURL, home, tempDir, customResourceLoaders, classLoader, javaClass));        	           
-        }
+    	
+    	final Map<String, Collection<URL>> featuresMap = new HashMap<String, Collection<URL>>();
+    	final String home = addSlashToHome(featureHome);
+    	final Features additionalFeaturesAnnotations = javaClass.getAnnotation(Features.class);
+    	final Collection<ResourceLoader> customResourceLoaders = retrieveCustomResourceLoaders(additionalFeaturesAnnotations);
+    	
+    	for (final String rawFeatureURL : findFeatures(javaClass)) {
+    		featuresMap.putAll(extractUrlMapFromRawFeature(rawFeatureURL, home, tempDir, customResourceLoaders, classLoader, javaClass));
+    	}
         
         featuresMap.putAll(extractUrlMapFromResourceLoaders(customResourceLoaders, null, tempDir, javaClass));
         
@@ -139,15 +138,15 @@ public final class FeaturesManager {
     }
     
     private static Map<String, Collection<URL>> extractUrlMapFromRawFeature(final String rawFeatureURL, final String featureHome, final String tempDir, 
-    		final Collection<ResourceLoader> customResourceLoaders,final ClassLoader classLoader, final Class<?> javaClass) {
-
+    																		final Collection<ResourceLoader> customResourceLoaders,
+    																		final ClassLoader classLoader, final Class<?> javaClass) {
     	final Map<String, Collection<URL>> featureURLMap = new HashMap<String, Collection<URL>>();
-        final String urlPath = extractFeatureURLPath(getSeparatorIndex(rawFeatureURL), rawFeatureURL);
-        final boolean directResource = urlPath.endsWith(EXTENSION);
-        
-        if (directResource) {
-        	try {
-        		featureURLMap.putAll(extractUrlMapFromDirectResource(rawFeatureURL,featureHome,classLoader));            		
+    	final String urlPath = extractFeatureURLPath(getSeparatorIndex(rawFeatureURL), rawFeatureURL);
+    	final boolean directResource = urlPath.endsWith(EXTENSION);
+    	
+    	if (directResource) {
+    		try {
+    			featureURLMap.putAll(extractUrlMapFromDirectResource(rawFeatureURL,featureHome,classLoader));            		
         		return featureURLMap;
         	} catch(IllegalStateException ise)
         	{
@@ -230,8 +229,8 @@ public final class FeaturesManager {
         throw new NullPointerException();
     }
 
-    private static Map<String, Collection<URL>> extractUrlMapFromResourceLoaders(final Collection<ResourceLoader> resourceLoaders, 
-    		final String resourcePath, final String tempDir, final Class<?> javaClass) {
+    private static Map<String, Collection<URL>> extractUrlMapFromResourceLoaders(final Collection<ResourceLoader> resourceLoaders, final String resourcePath,
+    																			 final String tempDir, final Class<?> javaClass) {
     	final Map<String, Collection<URL>> featureURLMap = new HashMap<String, Collection<URL>>();
     	for (final ResourceLoader resourceLoader : resourceLoaders) {
     		try {
