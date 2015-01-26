@@ -46,10 +46,11 @@ public final class FeaturesFinder {
     	final Collection<ResourceLoader> customResourceLoaders = retrieveCustomResourceLoaders(additionalFeaturesAnnotations);
     	
     	for (final String rawFeatureURL : findFeatures(javaClass)) {
-    		featuresMap.putAll(extractUrlMapFromRawFeature(rawFeatureURL, home, tempDir, customResourceLoaders, classLoader, javaClass));
+    		final FeatureSearchData featureData = new FeatureSearchData(home, tempDir, rawFeatureURL);
+    		featuresMap.putAll(extractURLMapFromRawFeature(featureData, customResourceLoaders, classLoader, javaClass));
     	}
         
-        featuresMap.putAll(extractUrlMapFromResourceLoaders(customResourceLoaders, null, tempDir, javaClass));
+        featuresMap.putAll(extractURLMapFromResourceLoaders(customResourceLoaders, null, tempDir, javaClass));
         
         LOGGER.fine("Features: " + featuresMap);
 
@@ -137,50 +138,44 @@ public final class FeaturesFinder {
         return s;
     }
     
-    private static Map<String, Collection<URL>> extractUrlMapFromRawFeature(final String rawFeatureURL, final String featureHome, final String tempDir, 
-    																		final Collection<ResourceLoader> customResourceLoaders,
+    private static Map<String, Collection<URL>> extractURLMapFromRawFeature(final FeatureSearchData featureData, final Collection<ResourceLoader> customResourceLoaders,
     																		final ClassLoader classLoader, final Class<?> javaClass) {
     	final Map<String, Collection<URL>> featureURLMap = new HashMap<String, Collection<URL>>();
-    	final String urlPath = extractFeatureURLPath(getSeparatorIndex(rawFeatureURL), rawFeatureURL);
-    	final boolean directResource = urlPath.endsWith(EXTENSION);
+    	final boolean directResource = featureData.getURLPath().endsWith(EXTENSION);
     	
     	if (directResource) {
     		try {
-    			featureURLMap.putAll(extractUrlMapFromDirectResource(rawFeatureURL,featureHome,classLoader));            		
+    			featureURLMap.putAll(extractUrlMapFromDirectResource(featureData,classLoader));            		
         		return featureURLMap;
         	} catch(IllegalStateException ise)
         	{
         		//do nothing
         	}
             
-            final String resourcePath=urlPath.substring(0, urlPath.length() - EXTENSION.length());
-            featureURLMap.putAll(extractUrlMapFromResourceLoaders(customResourceLoaders, resourcePath, tempDir, javaClass));                
+            final String resourcePath=featureData.getURLPath().substring(0, featureData.getURLPath().length() - EXTENSION.length());
+            featureURLMap.putAll(extractURLMapFromResourceLoaders(customResourceLoaders, resourcePath, featureData.getTempDir(), javaClass));                
         }
         
         try {
-        	featureURLMap.putAll(extractUrlMapFromCucumberSearcher(classLoader, rawFeatureURL, featureHome));            	
+        	featureURLMap.putAll(extractURLMapFromCucumberSearcher(classLoader, featureData));            	
         } catch (IllegalStateException ise) {
         	//do nothing
         }
         return featureURLMap;
     }
     
-    private static Map<String, Collection<URL>> extractUrlMapFromDirectResource(final String rawFeatureURL, final String featureHome, final ClassLoader classLoader) throws IllegalStateException {
+    private static Map<String, Collection<URL>> extractUrlMapFromDirectResource(final FeatureSearchData featureData, final ClassLoader classLoader) throws IllegalStateException {
     	final Map<String, Collection<URL>> featureURLMap = new HashMap<String, Collection<URL>>();
     	
-    	int lineSeparatorIndex = getSeparatorIndex(rawFeatureURL);
-        final String urlPath = extractFeatureURLPath(lineSeparatorIndex, rawFeatureURL);
-        final String urlSuffix = extractFeatureURLSuffix(lineSeparatorIndex, rawFeatureURL);
-    	
         try {
-    		featureURLMap.put(rawFeatureURL + urlSuffix, createUrlsListFromClassPath(classLoader, urlPath));
+    		featureURLMap.put(featureData.getRawFeatureURL() + featureData.getURLSuffix(), createUrlsListFromClassPath(classLoader, featureData.getURLPath()));
     		return featureURLMap;
     	} catch(NullPointerException npe) {
     		//do nothing
     	}
     	
     	try {
-    		featureURLMap.put(urlPath + urlSuffix, createUrlsListFromFileSystem(urlPath));
+    		featureURLMap.put(featureData.getURLPath() + featureData.getURLSuffix(), createUrlsListFromFileSystem(featureData.getURLPath()));
     		return featureURLMap;    		
     	} catch(NullPointerException npe) {
     		//do nothing
@@ -188,7 +183,7 @@ public final class FeaturesFinder {
 
         // from filesystem with featureHome
     	try {
-    		featureURLMap.put(urlPath + urlSuffix, createUrlsListFromFileSystem(featureHome + urlPath));
+    		featureURLMap.put(featureData.getURLPath() + featureData.getURLSuffix(), createUrlsListFromFileSystem(featureData.getFeatureHome() + featureData.getURLPath()));
     		return featureURLMap;
     	} catch(NullPointerException npe) {
     		//do nothing
@@ -204,7 +199,7 @@ public final class FeaturesFinder {
     
     private static URL extractURLFromClassPath(final ClassLoader classLoader, final String urlPath) throws NullPointerException {
     	final URL url = classLoader.getResource(urlPath);
-    	if(url==null) {
+    	if (url==null) {
     		throw new NullPointerException();
     	}
         return url;
@@ -229,7 +224,7 @@ public final class FeaturesFinder {
         throw new NullPointerException();
     }
 
-    private static Map<String, Collection<URL>> extractUrlMapFromResourceLoaders(final Collection<ResourceLoader> resourceLoaders, final String resourcePath,
+    private static Map<String, Collection<URL>> extractURLMapFromResourceLoaders(final Collection<ResourceLoader> resourceLoaders, final String resourcePath,
     																			 final String tempDir, final Class<?> javaClass) {
     	final Map<String, Collection<URL>> featureURLMap = new HashMap<String, Collection<URL>>();
     	for (final ResourceLoader resourceLoader : resourceLoaders) {
@@ -259,26 +254,23 @@ public final class FeaturesFinder {
         return featureFileDump;
     }
     
-    private static Map<String, Collection<URL>> extractUrlMapFromCucumberSearcher(final ClassLoader classLoader, final String rawFeatureURL, final String featureHome) throws IllegalStateException {
+    private static Map<String, Collection<URL>> extractURLMapFromCucumberSearcher(final ClassLoader classLoader, final FeatureSearchData featureData) throws IllegalStateException {
     	final Map<String, Collection<URL>> featureURLMap = new HashMap<String, Collection<URL>>();    	
-    	int lineSeparatorIndex = getSeparatorIndex(rawFeatureURL);
-        final String urlPath = extractFeatureURLPath(lineSeparatorIndex, rawFeatureURL);
-        final String urlSuffix = extractFeatureURLSuffix(lineSeparatorIndex, rawFeatureURL);    	
-        featureURLMap.put(urlPath + urlSuffix, createListFromCucumberSearcher(classLoader, featureHome, urlPath));    	
+    	featureURLMap.put(featureData.getURLPath() + featureData.getURLSuffix(), createListFromCucumberSearcher(classLoader, featureData));    	
         return featureURLMap;
     }
     
-    private static List<URL> createListFromCucumberSearcher(final ClassLoader classLoader, final String featuresHome, final String urlPath) throws IllegalStateException {
+    private static List<URL> createListFromCucumberSearcher(final ClassLoader classLoader, final FeatureSearchData featureData) throws IllegalStateException {
     	final List<URL> urlsList = new ArrayList<URL>();        
         try {
-        	urlsList.addAll(createUrlsListFromResource(classLoader, urlPath));
+        	urlsList.addAll(createUrlsListFromResource(classLoader, featureData.getURLPath()));
         } catch(Exception e)
         {
         	//do nothing
         }
         
         try {
-        	urlsList.addAll(createUrlsListFromResource(classLoader, featuresHome+urlPath));
+        	urlsList.addAll(createUrlsListFromResource(classLoader, featureData.getFeatureHome()+featureData.getURLPath()));
         } catch(Exception e)
         {
         	//do nothing
@@ -302,7 +294,7 @@ public final class FeaturesFinder {
 
         while (resources.hasNext()) {
             final Resource resource = resources.next();
-            final URL extractedURL = extractUrlFromResource(resource, classLoader);
+            final URL extractedURL = extractURLFromResource(resource, classLoader);
             
             if(extractedURL!=null) {
             	urlsList.add(extractedURL);
@@ -317,17 +309,17 @@ public final class FeaturesFinder {
         return urlsList;
     }
     
-    private static URL extractUrlFromResource(final Resource resource, final ClassLoader classLoader) {    	
+    private static URL extractURLFromResource(final Resource resource, final ClassLoader classLoader) {    	
     	if (FileResource.class.isInstance(resource)) {            
-            return extractUrlFromFileResource(FileResource.class.cast(resource));
+            return extractURLFromFileResource(FileResource.class.cast(resource));
         } else if (ZipResource.class.isInstance(resource)) {
-            return extractUrlFromZipResource(resource, classLoader);
+            return extractURLFromZipResource(resource, classLoader);
         } else {
             return null;
         }
     }
     
-    private static URL extractUrlFromFileResource(final FileResource fileResource) {    	
+    private static URL extractURLFromFileResource(final FileResource fileResource) {    	
     	try {
             final Field field = FileResource.class.getDeclaredField("file");
             field.setAccessible(true);
@@ -338,32 +330,74 @@ public final class FeaturesFinder {
         }
     }
     
-    private static URL extractUrlFromZipResource(final Resource resource, final ClassLoader classLoader) {
+    private static URL extractURLFromZipResource(final Resource resource, final ClassLoader classLoader) {
     	final URL url = classLoader.getResource(resource.getPath());
         return url;
     }
     
-    private static int getSeparatorIndex(final String rawFeatureURL) {
-    	return rawFeatureURL.lastIndexOf(':');
-    }
+    private static class FeatureSearchData {
+    	
+    	private String featureHome;
+    	private String tempDir;
+    	private String rawFeatureURL;
+    	private String urlPath;
+    	private String urlSuffix;
+    	
+    	public FeatureSearchData(final String featureHome, final String tempDir, final String rawFeatureUrl) {    		
+    		this.featureHome = featureHome;
+    		this.tempDir = tempDir;
+    		this.rawFeatureURL = rawFeatureUrl;
+    		
+    		int lineSeparatorIndex = getSeparatorIndex(rawFeatureUrl);
+    		this.urlPath = extractFeatureURLPath(lineSeparatorIndex, rawFeatureUrl);
+    		this.urlSuffix = extractFeatureURLSuffix(lineSeparatorIndex, rawFeatureUrl);
+    	}
+    	
+    	private int getSeparatorIndex(final String rawFeatureURL) {
+        	return rawFeatureURL.lastIndexOf(':');
+        }
+            
+        private String extractFeatureURLPath(final int lineSeparatorIndex, final String rawFeatureURL) {
+        	final String path;     	
+        	if (lineSeparatorIndex > 0 && lineSeparatorIndex + 1 != MultiLoader.CLASSPATH_SCHEME.length()) {
+                 path = rawFeatureURL.substring(0, lineSeparatorIndex);             
+            } else {             
+                 path = rawFeatureURL;
+            }    	
+        	return path;
+        }
         
-    private static String extractFeatureURLPath(final int lineSeparatorIndex, final String rawFeatureURL) {
-    	final String path;     	
-    	if (lineSeparatorIndex > 0 && lineSeparatorIndex + 1 != MultiLoader.CLASSPATH_SCHEME.length()) {
-             path = rawFeatureURL.substring(0, lineSeparatorIndex);             
-        } else {             
-             path = rawFeatureURL;
-        }    	
-    	return path;
-    }
-    
-    private static String extractFeatureURLSuffix(final int lineSeparatorIndex, final String rawFeatureURL) {
-    	final String suffix;    	
-    	if (lineSeparatorIndex > 0 && lineSeparatorIndex + 1 != MultiLoader.CLASSPATH_SCHEME.length()) {
-             suffix = rawFeatureURL.substring(lineSeparatorIndex);
-        } else {
-             suffix = "";
-        }    	
-    	return suffix;
-    }
+        private String extractFeatureURLSuffix(final int lineSeparatorIndex, final String rawFeatureURL) {
+        	final String suffix;    	
+        	if (lineSeparatorIndex > 0 && lineSeparatorIndex + 1 != MultiLoader.CLASSPATH_SCHEME.length()) {
+                 suffix = rawFeatureURL.substring(lineSeparatorIndex);
+            } else {
+                 suffix = "";
+            }    	
+        	return suffix;
+        }
+
+		public String getFeatureHome() {
+			return featureHome;
+		}
+		
+		public String getTempDir() {
+			return tempDir;
+		}
+		
+		public String getRawFeatureURL() {
+			return rawFeatureURL;
+		}
+		
+
+		public String getURLPath() {
+			return urlPath;
+		}
+
+		public String getURLSuffix() {
+			return urlSuffix;
+		}
+		
+		
+	}
 }
