@@ -318,16 +318,12 @@ public final class FeaturesFinder {
     		this.tempDir = tempDir;
     		this.rawFeatureURL = rawFeatureUrl;
     		
-    		int lineSeparatorIndex = getSeparatorIndex(rawFeatureUrl);
+    		int lineSeparatorIndex = rawFeatureURL.lastIndexOf(':');
     		this.urlPath = extractFeatureURLPath(lineSeparatorIndex, rawFeatureUrl);
     		this.urlSuffix = extractFeatureURLSuffix(lineSeparatorIndex, rawFeatureUrl);
     	}
     	
-    	private int getSeparatorIndex(final String rawFeatureURL) {
-        	return rawFeatureURL.lastIndexOf(':');
-        }
-            
-        private String extractFeatureURLPath(final int lineSeparatorIndex, final String rawFeatureURL) {
+    	private String extractFeatureURLPath(final int lineSeparatorIndex, final String rawFeatureURL) {
         	final String path;     	
         	if (lineSeparatorIndex > 0 && lineSeparatorIndex + 1 != MultiLoader.CLASSPATH_SCHEME.length()) {
                  path = rawFeatureURL.substring(0, lineSeparatorIndex);
