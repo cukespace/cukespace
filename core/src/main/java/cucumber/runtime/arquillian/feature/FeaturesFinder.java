@@ -40,7 +40,14 @@ public final class FeaturesFinder {
     public static Map<String, Collection<URL>> createFeatureMap(final String tempDir, final String featureHome,
                                                                 final Class<?> javaClass, final ClassLoader classLoader) {
     	final Map<String, Collection<URL>> featuresMap = new HashMap<String, Collection<URL>>();
-    	final String home = addSlashToHome(featureHome);
+    	
+    	final String home;    	
+    	if (featureHome != null && !featureHome.endsWith("/")) {
+    		home = featureHome + "/";
+    	} else {
+    		home = featureHome;
+    	}
+    	
     	final Features additionalFeaturesAnnotations = javaClass.getAnnotation(Features.class);
     	final Collection<ResourceLoader> customResourceLoaders = retrieveCustomResourceLoaders(additionalFeaturesAnnotations);
     	
@@ -52,14 +59,6 @@ public final class FeaturesFinder {
     	
     	LOGGER.fine("Features: " + featuresMap);
     	return featuresMap;
-    }
-    
-    private static String addSlashToHome(final String featureHome) {
-    	if (featureHome != null && !featureHome.endsWith("/")) {
-    		return featureHome + "/";
-    	} else {
-    		return featureHome;
-    	}
     }
     
     private static Collection<ResourceLoader> retrieveCustomResourceLoaders(final Features features) {
@@ -82,7 +81,7 @@ public final class FeaturesFinder {
     private static Collection<String> findFeatures(final Class<?> javaClass) {
     	final Collection<String> featureUrls = new ArrayList<String>();
         { // convention
-        	final String featurePath = getfeaturePath(javaClass);
+        	final String featurePath = javaClass.getPackage().getName().replace('.', '/') + '/' + createClassNameSubPackage(javaClass.getSimpleName()) + EXTENSION;
         	featureUrls.add(featurePath);
         }
         { // our API
@@ -98,10 +97,6 @@ public final class FeaturesFinder {
         	}
         }
         return featureUrls;
-    }
-    
-    private static String getfeaturePath(final Class<?> javaClass) {
-    	return javaClass.getPackage().getName().replace('.', '/') + '/' + createClassNameSubPackage(javaClass.getSimpleName()) + EXTENSION;
     }
     
     private static String createClassNameSubPackage(final String name) {
@@ -189,38 +184,30 @@ public final class FeaturesFinder {
     }
     
     private static List<URL> createUrlsListFromClassPath(final ClassLoader classLoader, final String urlPath) throws NullPointerException {
-    	final List<URL> urlsList = new ArrayList<URL>();
-    	urlsList.add(extractURLFromClassPath(classLoader, urlPath));
-    	return urlsList;
-    }
-    
-    private static URL extractURLFromClassPath(final ClassLoader classLoader, final String urlPath) throws NullPointerException {
     	final URL url = classLoader.getResource(urlPath);
     	if (url==null) {
     		throw new NullPointerException();
     	}
-        return url;
-    }
-    
-    private static List<URL> createUrlsListFromFileSystem(final String filePath) throws NullPointerException {
     	final List<URL> urlsList = new ArrayList<URL>();
-    	urlsList.add(extractURLFromFileSystem(filePath));
+    	urlsList.add(url);
     	return urlsList;
     }
     
-    private static URL extractURLFromFileSystem(final String filePath) throws NullPointerException {
+    private static List<URL> createUrlsListFromFileSystem(final String filePath) throws NullPointerException {
     	final File file = new File(filePath);
         if (file.exists() && !file.isDirectory()) {
             try {
                 final URL url = file.toURI().toURL();
-                return url;
+                final List<URL> urlsList = new ArrayList<URL>();
+                urlsList.add(url);
+                return urlsList;
             } catch (final MalformedURLException e) {
-                //do nothing
+            	//do nothing
             }
         }
         throw new NullPointerException();
     }
-
+    
     private static Map<String, Collection<URL>> extractURLMapFromResourceLoaders(final Collection<ResourceLoader> resourceLoaders, final String resourcePath,
     																			 final String tempDir, final Class<?> javaClass) {
     	final Map<String, Collection<URL>> featureURLMap = new HashMap<String, Collection<URL>>();
@@ -228,7 +215,10 @@ public final class FeaturesFinder {
     		try {
     			for (final Resource resource : resourceLoader.resources(resourcePath, EXTENSION)) {
     				try {
-    					final File featureFileDump = getFeatureFileDumpFromResource(resource, tempDir, javaClass);
+    					final String feature = new String(slurp(resource.getInputStream()));
+    			        final String featurePath = resource.getPath();
+    			        final File featureFileDump = dump(tempDir, javaClass.getName() + '/' + featurePath, feature);
+    			        featureFileDump.deleteOnExit();
     					featureURLMap.put(resource.getPath(), asList(featureFileDump.toURI().toURL()));
     				} catch (final IOException e) {
     					throw new IllegalStateException(e);
@@ -243,21 +233,13 @@ public final class FeaturesFinder {
     	return featureURLMap;
     }
     
-    private static File getFeatureFileDumpFromResource(final Resource resource, final String tempDir, final Class<?> javaClass) throws IOException {
-    	final String feature = new String(slurp(resource.getInputStream()));
-        final String featurePath = resource.getPath();
-        final File featureFileDump = dump(tempDir, javaClass.getName() + '/' + featurePath, feature);
-        featureFileDump.deleteOnExit();
-        return featureFileDump;
-    }
-    
     private static Map<String, Collection<URL>> extractURLMapFromCucumberSearcher(final ClassLoader classLoader, final FeatureSearchData featureData) throws IllegalStateException {
     	final Map<String, Collection<URL>> featureURLMap = new HashMap<String, Collection<URL>>();
-    	featureURLMap.put(featureData.getURLPath() + featureData.getURLSuffix(), createListFromCucumberSearcher(classLoader, featureData));
+    	featureURLMap.put(featureData.getURLPath() + featureData.getURLSuffix(), createUrlsListFromCucumberSearcher(classLoader, featureData));
     	return featureURLMap;
     }
     
-    private static List<URL> createListFromCucumberSearcher(final ClassLoader classLoader, final FeatureSearchData featureData) throws IllegalStateException {
+    private static List<URL> createUrlsListFromCucumberSearcher(final ClassLoader classLoader, final FeatureSearchData featureData) throws IllegalStateException {
     	final List<URL> urlsList = new ArrayList<URL>();
     	try {
     		urlsList.addAll(createUrlsListFromResource(classLoader, featureData.getURLPath()));
@@ -305,29 +287,22 @@ public final class FeaturesFinder {
     }
     
     private static URL extractURLFromResource(final Resource resource, final ClassLoader classLoader) {    	
+    	final URL url;
     	if (FileResource.class.isInstance(resource)) {
-    		return extractURLFromFileResource(FileResource.class.cast(resource));
+    		try {
+    			final FileResource fileResource = FileResource.class.cast(resource);
+                final Field field = FileResource.class.getDeclaredField("file");
+                field.setAccessible(true);
+                url = File.class.cast(field.get(fileResource)).toURI().toURL();
+    		} catch (final Exception e) {
+            	return null;
+            }
     	} else if (ZipResource.class.isInstance(resource)) {
-            return extractURLFromZipResource(resource, classLoader);
+    		url = classLoader.getResource(resource.getPath());
         } else {
             return null;
         }
-    }
-    
-    private static URL extractURLFromFileResource(final FileResource fileResource) {    	
-    	try {
-            final Field field = FileResource.class.getDeclaredField("file");
-            field.setAccessible(true);
-            final URL url = File.class.cast(field.get(fileResource)).toURI().toURL();
-            return url;
-        } catch (final Exception e) {
-        	return null;
-        }
-    }
-    
-    private static URL extractURLFromZipResource(final Resource resource, final ClassLoader classLoader) {
-    	final URL url = classLoader.getResource(resource.getPath());
-        return url;
+    	return url;
     }
     
     private static class FeatureSearchData {
