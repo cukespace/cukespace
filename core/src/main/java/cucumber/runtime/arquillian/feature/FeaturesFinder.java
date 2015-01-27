@@ -137,7 +137,7 @@ public final class FeaturesFinder {
     	
     	if (directResource) {
     		try {
-    			featureURLMap.putAll(extractUrlMapFromDirectResource(featureData,classLoader));            		
+    			featureURLMap.putAll(extractURLMapFromDirectResource(featureData,classLoader));            		
         		return featureURLMap;
         	} catch(IllegalStateException ise)
         	{
@@ -156,7 +156,7 @@ public final class FeaturesFinder {
         return featureURLMap;
     }
     
-    private static Map<String, Collection<URL>> extractUrlMapFromDirectResource(final FeatureSearchData featureData, final ClassLoader classLoader) throws IllegalStateException {
+    private static Map<String, Collection<URL>> extractURLMapFromDirectResource(final FeatureSearchData featureData, final ClassLoader classLoader) throws IllegalStateException {
     	final Map<String, Collection<URL>> featureURLMap = new HashMap<String, Collection<URL>>();
     	
     	try {
