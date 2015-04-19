@@ -33,7 +33,7 @@ import java.util.Collections;
 /**
  * These observers are for:
  * 1. get cucumber annotations from a client scan (avoid server scan hacks/specific modules)
- * -> it is done as late as possible to be able a good TCCL even in embedded mode
+ * -&gt; it is done as late as possible to be able a good TCCL even in embedded mode
  * 2. hack System.out for IDE integration
  * 3. get test enricher to enrich additional glues
  */
