@@ -41,6 +41,10 @@
       <scope>provided</scope>
       <exclusions>
         <exclusion>
+          <groupId>org.jboss.shrinkwrap.descriptors</groupId>
+          <artifactId>shrinkwrap-descriptors-api-base</artifactId>
+        </exclusion>
+        <exclusion>
           <groupId>org.jboss.arquillian.extension</groupId>
           <artifactId>arquillian-transaction-jta</artifactId>
         </exclusion>
