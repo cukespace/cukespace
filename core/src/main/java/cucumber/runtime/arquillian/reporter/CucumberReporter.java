@@ -10,11 +10,7 @@ import org.jboss.arquillian.core.api.annotation.Inject;
 import org.jboss.arquillian.core.api.annotation.Observes;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
+import java.util.*;
 import java.util.logging.Logger;
 
 public class CucumberReporter {
@@ -62,7 +58,7 @@ public class CucumberReporter {
             try {
                 new ReportBuilder(new ArrayList<String>(jsonReports),
                                 outputDir, "/", "#", findProjectName(),
-                                false, false, true, false, false, "", true)
+                                false, false, false, false, true, false, false, "", true, false)
                         .generateReports();
 
                 LOGGER.info("Cucumber report available at "
