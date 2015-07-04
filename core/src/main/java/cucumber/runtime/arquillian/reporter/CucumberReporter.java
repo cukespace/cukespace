@@ -1,7 +1,15 @@
 package cucumber.runtime.arquillian.reporter;
 
+import com.github.cukedoctor.Cukedoctor;
+import com.github.cukedoctor.api.CukedoctorConverter;
+import com.github.cukedoctor.api.model.Feature;
+import com.github.cukedoctor.parser.FeatureParser;
+import com.github.cukedoctor.util.FileUtil;
 import cucumber.runtime.arquillian.config.CucumberConfiguration;
 import net.masterthought.cucumber.ReportBuilder;
+import org.asciidoctor.Asciidoctor;
+import org.asciidoctor.OptionsBuilder;
+import org.asciidoctor.SafeMode;
 import org.jboss.arquillian.container.spi.event.KillContainer;
 import org.jboss.arquillian.container.spi.event.StartContainer;
 import org.jboss.arquillian.container.spi.event.StopContainer;
@@ -65,6 +73,36 @@ public class CucumberReporter {
                         + new File(outputDir, "feature-overview.html").getAbsolutePath());
             } catch (final Exception e) {
                 throw new IllegalArgumentException(e);
+            }
+        }
+
+        {//generate documentation using cukedoctor and asciidoctor
+            if (configuration.get().isGenerateDocs()) {
+                List<Feature> features = new ArrayList<Feature>();
+                for (String jsonReport : jsonReports) {
+                    features.addAll(FeatureParser.parse(jsonReport));
+                }
+                if (features.isEmpty()) {
+                    LOGGER.info("No features found for Cucumber documentation");
+                } else {
+
+                    CukedoctorConverter converter = Cukedoctor.instance(features);
+                    String doc = converter.renderDocumentation();
+                    File adocFile = FileUtil.saveFile(configuration.get().getDocsDirectory() + "documentation.adoc", doc);
+                    Asciidoctor asciidoctor = Asciidoctor.Factory.create();
+                    //generate html(default backend) docs
+                    asciidoctor.convertFile(adocFile, OptionsBuilder.options().backend(converter.getDocumentAttributes().getBackend()).safe(SafeMode.UNSAFE).asMap());
+
+                    //generate pdf docs
+                    /**
+                     * commented because of a classpath issue:
+                     * java.lang.NoSuchMethodError: org.yaml.snakeyaml.events.DocumentStartEvent.getVersion()Lorg/yaml/snakeyaml/DumperOptions$Version;
+                     */
+                    //asciidoctor.convertFile(adocFile, OptionsBuilder.options().backend("pdf").safe(SafeMode.UNSAFE).asMap());
+
+                    asciidoctor.shutdown();
+                    LOGGER.info("Cucumber documentation generated at " +adocFile.getParent());
+                }
             }
         }
 
