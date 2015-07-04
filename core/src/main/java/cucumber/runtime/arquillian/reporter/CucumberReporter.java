@@ -7,9 +7,6 @@ import com.github.cukedoctor.parser.FeatureParser;
 import com.github.cukedoctor.util.FileUtil;
 import cucumber.runtime.arquillian.config.CucumberConfiguration;
 import net.masterthought.cucumber.ReportBuilder;
-import org.asciidoctor.Asciidoctor;
-import org.asciidoctor.OptionsBuilder;
-import org.asciidoctor.SafeMode;
 import org.jboss.arquillian.container.spi.event.KillContainer;
 import org.jboss.arquillian.container.spi.event.StartContainer;
 import org.jboss.arquillian.container.spi.event.StopContainer;
@@ -88,20 +85,8 @@ public class CucumberReporter {
 
                     CukedoctorConverter converter = Cukedoctor.instance(features);
                     String doc = converter.renderDocumentation();
-                    File adocFile = FileUtil.saveFile(configuration.get().getDocsDirectory() + "documentation.adoc", doc);
-                    Asciidoctor asciidoctor = Asciidoctor.Factory.create();
-                    //generate html(default backend) docs
-                    asciidoctor.convertFile(adocFile, OptionsBuilder.options().backend(converter.getDocumentAttributes().getBackend()).safe(SafeMode.UNSAFE).asMap());
+                    FileUtil.saveFile(configuration.get().getDocsDirectory() + "documentation.adoc", doc);
 
-                    //generate pdf docs
-                    /**
-                     * commented because of a classpath issue:
-                     * java.lang.NoSuchMethodError: org.yaml.snakeyaml.events.DocumentStartEvent.getVersion()Lorg/yaml/snakeyaml/DumperOptions$Version;
-                     */
-                    //asciidoctor.convertFile(adocFile, OptionsBuilder.options().backend("pdf").safe(SafeMode.UNSAFE).asMap());
-
-                    asciidoctor.shutdown();
-                    LOGGER.info("Cucumber documentation generated at " +adocFile.getParent());
                 }
             }
         }
