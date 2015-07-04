@@ -13,7 +13,9 @@
   <name>Cukes in Space!</name>
 
   <properties>
-    <cukedoctor.version>0.4.1-SNAPSHOT</cukedoctor.version>
+    <asciidoctorj.version>1.5.2</asciidoctorj.version>
+    <asciidoctorj-pdf.version>1.5.0-alpha.8</asciidoctorj-pdf.version>
+    <cukedoctor.version>0.4.0</cukedoctor.version>
   </properties>
 
   <dependencies>
@@ -122,6 +124,17 @@
       <artifactId>cukedoctor-converter</artifactId>
       <version>${cukedoctor.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.asciidoctor</groupId>
+      <artifactId>asciidoctorj</artifactId>
+      <version>${asciidoctorj.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.asciidoctor</groupId>
+      <artifactId>asciidoctorj-pdf</artifactId>
+      <version>${asciidoctorj-pdf.version}</version>
+    </dependency>
+
 
     <dependency>
       <groupId>org.jboss.arquillian.junit</groupId>
