@@ -9,6 +9,7 @@ import com.github.cukedoctor.util.FileUtil;
 import cucumber.runtime.arquillian.config.CucumberConfiguration;
 import net.masterthought.cucumber.ReportBuilder;
 import org.asciidoctor.Asciidoctor;
+import org.asciidoctor.AttributesBuilder;
 import org.asciidoctor.OptionsBuilder;
 import org.asciidoctor.SafeMode;
 import org.jboss.arquillian.container.spi.event.KillContainer;
@@ -19,8 +20,14 @@ import org.jboss.arquillian.core.api.annotation.Inject;
 import org.jboss.arquillian.core.api.annotation.Observes;
 
 import java.io.File;
+import java.lang.reflect.Method;
+import java.net.URI;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.logging.Logger;
+
+import static java.util.Arrays.asList;
+import static java.util.Arrays.binarySearch;
 
 public class CucumberReporter {
     private static final Logger LOGGER = Logger.getLogger(CucumberReporter.class.getName());
@@ -87,14 +94,28 @@ public class CucumberReporter {
                     LOGGER.info("No features found for Cucumber documentation");
                 } else {
 
-                    CukedoctorConverter converter = Cukedoctor.instance(features, new DocumentAttributes());
+                    final DocumentAttributes da = bind(configuration.get().getConfig("adoc.doc.attributes."), new DocumentAttributes());
+                    CukedoctorConverter converter = Cukedoctor.instance(features, da);
                     String doc = converter.renderDocumentation();
                     File adocFile = FileUtil.saveFile(configuration.get().getDocsDirectory() + "documentation.adoc", doc);
 
                     //TODO provide a way to user configure documentation
-                    Map<String, Object> options = OptionsBuilder.options()
+                    final OptionsBuilder optBuilder = OptionsBuilder.options()
                             .backend("html5")
-                            .safe(SafeMode.UNSAFE).asMap();
+                            .safe(SafeMode.UNSAFE);
+
+                    final Map<String, String> opts = configuration.get().getConfig("adoc.options.");
+                    if (!opts.isEmpty()) {
+                        bind(opts, optBuilder);
+                    }
+
+                    final Map<String, String> attrs = configuration.get().getConfig("adoc.attributes.");
+                    if (!attrs.isEmpty()) {
+                        optBuilder.attributes(bind(attrs, AttributesBuilder.attributes()));
+                    }
+
+                    Map<String, Object> options = optBuilder
+                            .asMap();
                     Asciidoctor asciidoctor = Asciidoctor.Factory.create();
                     //generate html(default backend) docs
                     asciidoctor.convertFile(adocFile, options);
@@ -114,6 +135,53 @@ public class CucumberReporter {
 
         jsonReports.clear();
         CucumberConfiguration.reset();
+    }
+
+    private static <T> T bind(final Map<String, String> config, final T instance) {
+        final Class<?>[] params = new Class<?>[] { String.class, boolean.class, File.class, Date.class, URI.class, int.class};
+
+        for (final Map.Entry<String, String> entry : config.entrySet()) {
+            final int dot = entry.getKey().lastIndexOf('.');
+            final String key = entry.getKey().substring(dot + 1);
+
+            boolean done = false;
+            for (final String method : asList(key, "set" + Character.toLowerCase(key.charAt(0)) + key.substring(1))) {
+                for (final Class<?> paramType : params) {
+                    try {
+                        final Method m = instance.getClass().getMethod(method, paramType);
+                        final Object val;
+                        if (paramType == boolean.class) {
+                            val = Boolean.valueOf(entry.getValue());
+                        } else if (paramType == int.class) {
+                            val = Integer.valueOf(entry.getValue());
+                        } else if (paramType == URI.class) {
+                            val = new URI(entry.getValue());
+                        } else if (paramType == Date.class) {
+                            String pattern = config.get(key.substring(0, dot) + ".dateFormat");
+                            if (pattern == null) {
+                                pattern = "yyyy-MM-dd";
+                            }
+                            val = new SimpleDateFormat(pattern).parse(entry.getValue());
+                        } else if (paramType == File.class) {
+                            val = new File(entry.getValue());
+                        } else {
+                            val = entry.getValue();
+                        }
+                        m.invoke(instance, val);
+                        done = true;
+                    } catch (final Throwable th) { // NCDFE as well
+                        // no-op
+                    }
+                }
+                if (done) {
+                    break;
+                }
+            }
+            if (!done) {
+                LOGGER.warning("Can't find matching property " + key + " in " + instance);
+            }
+        }
+        return instance;
     }
 
     private static String findProjectName() {

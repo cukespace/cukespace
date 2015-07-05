@@ -1,6 +1,7 @@
 package cucumber.runtime.arquillian.config;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
@@ -31,6 +32,10 @@ public class CucumberConfiguration {
 
     private boolean persistenceEventsActivated = false;
 
+    // raw configuration in arquillian.xml for internal "extensions" (adoc uses it to extract attributes for instance)
+    // Note: this is only available in Local/embedded containers or client code
+    private Map<String, String> original;
+
     private static String guessDefaultTempDir() {
         final String suffix = "/cukespace/features/";
         if (new File("target").exists()) { // maven
@@ -44,6 +49,22 @@ public class CucumberConfiguration {
 
     public CucumberConfiguration() {
         // no-op
+    }
+
+    public Map<String, String> getConfig(final String prefix) {
+        if (prefix == null) {
+            return new HashMap<String, String>(original);
+        }
+
+        final Map<String, String> config = new HashMap<String, String>();
+        if (original != null) {
+            for (final String key : original.keySet()) {
+                if (key.startsWith(prefix)) {
+                    config.put(key, original.get(key));
+                }
+            }
+        }
+        return config;
     }
 
     public boolean isReport() {
@@ -124,6 +145,8 @@ public class CucumberConfiguration {
             if (properties.containsKey(FEATURE_HOME)) {
                 CONFIGURATION.featureHome = properties.get(FEATURE_HOME);
             }
+
+            CONFIGURATION.original = properties;
 
             CONFIGURATION.initialized = true;
         }
