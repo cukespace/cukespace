@@ -16,9 +16,11 @@ public class CucumberConfiguration {
     public static final String FEATURE_HOME = "featureHome";
 
     private boolean report;
+    private boolean generateDocs;
     private boolean colorized;
     private boolean initialized;
     private String reportDirectory;
+    private String docsDirectory;
     private String options;
     private String featureHome;
 
@@ -46,6 +48,14 @@ public class CucumberConfiguration {
 
     public boolean isReport() {
         return report;
+    }
+
+    public boolean isGenerateDocs() {
+        return generateDocs;
+    }
+
+    public String getDocsDirectory() {
+        return docsDirectory;
     }
 
     public String getReportDirectory() {
@@ -96,6 +106,15 @@ public class CucumberConfiguration {
             if (properties.containsKey("reportDirectory")) {
                 CONFIGURATION.reportDirectory = properties.get("reportDirectory");
             }
+
+            if (properties.containsKey("generateDocs")) {
+                CONFIGURATION.generateDocs = Boolean.parseBoolean(properties.get("generateDocs"));
+            }
+
+            if (properties.containsKey("docsDirectory")) {
+                CONFIGURATION.docsDirectory = properties.get("docsDirectory");
+            }
+
             if (properties.containsKey(COLORS)) {
                 CONFIGURATION.colorized = Boolean.parseBoolean(properties.get(COLORS));
             }
@@ -115,9 +134,11 @@ public class CucumberConfiguration {
         CONFIGURATION.persistenceEventsActivated = false;
         CONFIGURATION.initialized = false;
         CONFIGURATION.reportDirectory = "target/cucumber-report/";
+        CONFIGURATION.docsDirectory = "target/docs/";
         CONFIGURATION.tempDir = guessDefaultTempDir();
         CONFIGURATION.options = null;
         CONFIGURATION.report = false;
+        CONFIGURATION.generateDocs = false;
         CONFIGURATION.colorized = !System.getProperty("os.name").toLowerCase(Locale.ENGLISH).contains("win")
                                         && !System.getProperty("java.class.path").contains("idea_rt");
     }
