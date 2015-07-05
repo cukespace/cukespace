@@ -16,6 +16,23 @@
     <property name="persistenceEventsActivated">true</property>
   </extension>
 
+  <extension qualifier="cucumber-report-adoc">
+    <property name="directory">target/cucumber-report-adoc</property>
+    <property name="directory-html">target/cucumber-report-html</property> <!-- = directory if not specified -->
+    <property name="directory-pdf">target/cucumber-report-pdf</property>
+    <property name="formats">adoc,html,pdf</property>
+    <property name="attributes"> <!-- defaults shared accross all rendering -->
+      linkcss =
+      custom-attr = custom-val
+    </property>
+    <property name="attributes-html">
+      imagesdir = img/
+    </property>
+    <property name="attributes-pdf">
+
+    </property>
+  </extension>
+
   <extension qualifier="webdriver">
     <property name="browser">chrome</property>
     <property name="remoteAddress">http://localhost:4444/wd/hub/</property>
