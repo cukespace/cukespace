@@ -67,6 +67,10 @@ public class CucumberConfiguration {
         return config;
     }
 
+    public void putConfig(Map<String,String> attrs){
+        original.putAll(attrs);
+    }
+
     public boolean isReport() {
         return report;
     }

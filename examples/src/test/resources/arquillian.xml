@@ -22,8 +22,8 @@
     <property name="directory-pdf">target/cucumber-report-pdf</property>
     <property name="formats">adoc,html,pdf</property>
     <property name="attributes"> <!-- defaults shared accross all rendering -->
-      linkcss =
-      custom-attr = custom-val
+      linkcss = true,
+      icons = font
     </property>
     <property name="attributes-html">
       imagesdir = img/

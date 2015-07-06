@@ -27,7 +27,6 @@ import java.util.*;
 import java.util.logging.Logger;
 
 import static java.util.Arrays.asList;
-import static java.util.Arrays.binarySearch;
 
 public class CucumberReporter {
     private static final Logger LOGGER = Logger.getLogger(CucumberReporter.class.getName());
@@ -107,6 +106,12 @@ public class CucumberReporter {
                     final Map<String, String> opts = configuration.get().getConfig("adoc.options.");
                     if (!opts.isEmpty()) {
                         bind(opts, optBuilder);
+                    }
+                    String[] formats = null;
+                    if(opts.containsKey("formats")){
+                        formats = opts.get("formats").split(",");
+                    }else{
+                        formats = new String[]{"html5"};
                     }
 
                     final Map<String, String> attrs = configuration.get().getConfig("adoc.attributes.");
