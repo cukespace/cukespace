@@ -1,5 +1,7 @@
 package cucumber.runtime.arquillian.config;
 
+import cucumber.runtime.arquillian.reporter.ReportConfig;
+
 import java.io.File;
 import java.util.HashMap;
 import java.util.Locale;
@@ -17,13 +19,12 @@ public class CucumberConfiguration {
     public static final String FEATURE_HOME = "featureHome";
 
     private boolean report;
-    private boolean generateDocs;
     private boolean colorized;
     private boolean initialized;
     private String reportDirectory;
-    private String docsDirectory;
     private String options;
     private String featureHome;
+    private ReportConfig reportConfig;
 
     /**
      * directory to dump resource loader from loaders
@@ -75,13 +76,6 @@ public class CucumberConfiguration {
         return report;
     }
 
-    public boolean isGenerateDocs() {
-        return generateDocs;
-    }
-
-    public String getDocsDirectory() {
-        return docsDirectory;
-    }
 
     public String getReportDirectory() {
         return reportDirectory;
@@ -105,6 +99,14 @@ public class CucumberConfiguration {
 
     public String getFeatureHome() {
         return featureHome;
+    }
+
+    public ReportConfig getReportConfig() {
+        return reportConfig;
+    }
+
+    public void setReportConfig(ReportConfig reportConfig) {
+        this.reportConfig = reportConfig;
     }
 
     public boolean arePersistenceEventsActivated() {
@@ -132,13 +134,6 @@ public class CucumberConfiguration {
                 CONFIGURATION.reportDirectory = properties.get("reportDirectory");
             }
 
-            if (properties.containsKey("generateDocs")) {
-                CONFIGURATION.generateDocs = Boolean.parseBoolean(properties.get("generateDocs"));
-            }
-
-            if (properties.containsKey("docsDirectory")) {
-                CONFIGURATION.docsDirectory = properties.get("docsDirectory");
-            }
 
             if (properties.containsKey(COLORS)) {
                 CONFIGURATION.colorized = Boolean.parseBoolean(properties.get(COLORS));
@@ -161,11 +156,9 @@ public class CucumberConfiguration {
         CONFIGURATION.persistenceEventsActivated = false;
         CONFIGURATION.initialized = false;
         CONFIGURATION.reportDirectory = "target/cucumber-report/";
-        CONFIGURATION.docsDirectory = "target/docs/";
         CONFIGURATION.tempDir = guessDefaultTempDir();
         CONFIGURATION.options = null;
         CONFIGURATION.report = false;
-        CONFIGURATION.generateDocs = false;
         CONFIGURATION.colorized = !System.getProperty("os.name").toLowerCase(Locale.ENGLISH).contains("win")
                                         && !System.getProperty("java.class.path").contains("idea_rt");
     }

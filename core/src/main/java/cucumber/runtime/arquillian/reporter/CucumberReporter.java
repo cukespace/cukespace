@@ -9,7 +9,6 @@ import com.github.cukedoctor.util.FileUtil;
 import cucumber.runtime.arquillian.config.CucumberConfiguration;
 import net.masterthought.cucumber.ReportBuilder;
 import org.asciidoctor.Asciidoctor;
-import org.asciidoctor.AttributesBuilder;
 import org.asciidoctor.OptionsBuilder;
 import org.asciidoctor.SafeMode;
 import org.jboss.arquillian.container.spi.event.KillContainer;
@@ -22,6 +21,7 @@ import org.jboss.arquillian.core.api.annotation.Observes;
 import java.io.File;
 import java.lang.reflect.Method;
 import java.net.URI;
+import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.logging.Logger;
@@ -83,8 +83,9 @@ public class CucumberReporter {
             }
         }
 
-        {//generate documentation using cukedoctor and asciidoctor
-            if (configuration.get().isGenerateDocs()) {
+        {//generate report using cukedoctor and asciidoctor
+            if (configuration.get().getReportConfig() != null) {
+                ReportConfig reportConfig = configuration.get().getReportConfig();
                 List<Feature> features = new ArrayList<Feature>();
                 for (String jsonReport : jsonReports) {
                     features.addAll(FeatureParser.parse(jsonReport));
@@ -93,47 +94,57 @@ public class CucumberReporter {
                     LOGGER.info("No features found for Cucumber documentation");
                 } else {
 
-                    final DocumentAttributes da = bind(configuration.get().getConfig("adoc.doc.attributes."), new DocumentAttributes());
+                    final DocumentAttributes da = new DocumentAttributes();
                     CukedoctorConverter converter = Cukedoctor.instance(features, da);
-                    String doc = converter.renderDocumentation();
-                    File adocFile = FileUtil.saveFile(configuration.get().getDocsDirectory() + "documentation.adoc", doc);
+                    String report = converter.renderDocumentation();
 
-                    //TODO provide a way to user configure documentation
-                    final OptionsBuilder optBuilder = OptionsBuilder.options()
-                            .backend("html5")
-                            .safe(SafeMode.UNSAFE);
-
-                    final Map<String, String> opts = configuration.get().getConfig("adoc.options.");
-                    if (!opts.isEmpty()) {
-                        bind(opts, optBuilder);
-                    }
-                    String[] formats = null;
-                    if(opts.containsKey("formats")){
-                        formats = opts.get("formats").split(",");
-                    }else{
-                        formats = new String[]{"html5"};
-                    }
-
-                    final Map<String, String> attrs = configuration.get().getConfig("adoc.attributes.");
-                    if (!attrs.isEmpty()) {
-                        optBuilder.attributes(bind(attrs, AttributesBuilder.attributes()));
-                    }
-
-                    Map<String, Object> options = optBuilder
-                            .asMap();
+                    String destDir = reportConfig.getDirectory();
                     Asciidoctor asciidoctor = Asciidoctor.Factory.create();
-                    //generate html(default backend) docs
-                    asciidoctor.convertFile(adocFile, options);
+                    for (String format : reportConfig.getFormats()) {
+                        final OptionsBuilder optBuilder = OptionsBuilder.options()
+                                //.destinationDir(destDir)
+                                .backend(format)
+                                .safe(SafeMode.UNSAFE);
 
-                    //generate pdf docs
-                    /**
-                     * commented because of a classpath issue:
-                     * java.lang.NoSuchMethodError: org.yaml.snakeyaml.events.DocumentStartEvent.getVersion()Lorg/yaml/snakeyaml/DumperOptions$Version;
-                     */
-                    //asciidoctor.convertFile(adocFile, OptionsBuilder.options().backend("pdf").safe(SafeMode.UNSAFE).asMap());
+
+                        if(format.contains("html")){
+                            if(reportConfig.hasHtmlConfig()){
+                                optBuilder.attributes(reportConfig.getReportAttributes().getHtmlAtributes());
+                                if(reportConfig.getHtmlAttribute("directory") != null){
+                                    destDir = (String) reportConfig.getHtmlAttribute("directory");
+                                    //optBuilder.destinationDir(destDir);
+                                }
+                            }
+                        }
+
+                        if(format.contains("adoc")){
+                            if(reportConfig.hasAdocConfig()){
+                                optBuilder.attributes(reportConfig.getReportAttributes().getAdocAtributes());
+                                if(reportConfig.getAdocAttribute("directory") != null){
+                                    destDir = (String) reportConfig.getAdocAttribute("directory");
+                                   // optBuilder.destinationDir(destDir);
+                                }
+                            }
+                        }
+
+                        if(format.contains("pdf")){
+                            if(reportConfig.hasPdfConfig()){
+                                optBuilder.attributes(reportConfig.getReportAttributes().getPdfAtributes());
+                                if(reportConfig.getPdfAttribute("directory") != null){
+                                    destDir = (String) reportConfig.getPdfAttribute("directory");
+                                    //optBuilder.destinationDir(destDir);
+                                }
+                            }
+                        }
+                        File adocFile = FileUtil.saveFile(destDir + "/"+reportConfig.getFileName() + ".adoc", report);
+                        if(!format.equals("adoc")){//there is no adoc backend
+                            asciidoctor.convertFile(adocFile, optBuilder.asMap());
+                        }
+                        LOGGER.info("Cucumber report available at " + adocFile.getParent() + "/"+reportConfig.getFileName()+"."+format);
+                    }
 
                     asciidoctor.shutdown();
-                    LOGGER.info("Cucumber documentation generated at " + adocFile.getParent());
+
                 }
             }
         }

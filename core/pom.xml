@@ -135,6 +135,12 @@
       <version>${asciidoctorj-pdf.version}</version>
     </dependency>
 
+    <dependency>
+      <groupId>org.yaml</groupId>
+      <artifactId>snakeyaml</artifactId>
+      <version>1.15</version>
+    </dependency>
+
 
     <dependency>
       <groupId>org.jboss.arquillian.junit</groupId>
