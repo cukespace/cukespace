@@ -18,13 +18,15 @@
 
   <extension qualifier="cucumber-report">
     <property name="directory">target/cucumber-report</property>
-    <property name="formats">html</property>
+    <property name="formats">html,pdf, adoc</property>
     <property name="attributes">
 	  adocAtributes: {
         directory: target/cucumber-report-adoc
       }
 	  htmlAtributes: {
         icons: font,
+        toc: right,
+        directory: target/cucumber-report-html,
         imagesdir: img/
 	  }
 	  pdfAtributes: {}

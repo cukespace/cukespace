@@ -98,9 +98,10 @@ public class CucumberReporter {
                     CukedoctorConverter converter = Cukedoctor.instance(features, da);
                     String report = converter.renderDocumentation();
 
-                    String destDir = reportConfig.getDirectory();
+
                     Asciidoctor asciidoctor = Asciidoctor.Factory.create();
                     for (String format : reportConfig.getFormats()) {
+                        String destDir = reportConfig.getDirectory();
                         final OptionsBuilder optBuilder = OptionsBuilder.options()
                                 //.destinationDir(destDir)
                                 .backend(format)
@@ -139,8 +140,9 @@ public class CucumberReporter {
                         File adocFile = FileUtil.saveFile(destDir + "/"+reportConfig.getFileName() + ".adoc", report);
                         if(!format.equals("adoc")){//there is no adoc backend
                             asciidoctor.convertFile(adocFile, optBuilder.asMap());
+                            adocFile.deleteOnExit();
                         }
-                        LOGGER.info("Cucumber report available at " + adocFile.getParent() + "/"+reportConfig.getFileName()+"."+format);
+                        LOGGER.info("Cucumber report available at " + adocFile.getParent() + "/" + reportConfig.getFileName() + "." + format);
                     }
 
                     asciidoctor.shutdown();

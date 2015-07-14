@@ -1,7 +1,9 @@
 package cucumber.runtime.arquillian.feature;
 
 import cucumber.api.CucumberOptions;
+import cucumber.api.PendingException;
 import cucumber.api.java.pt.Dado;
+import cucumber.api.java.pt.E;
 import cucumber.api.java.pt.Entao;
 import cucumber.api.java.pt.Quando;
 import cucumber.runtime.arquillian.ArquillianCucumber;
@@ -42,5 +44,11 @@ public class PortugueseTest {
     @AfterClass
     public static void checkCalls() {
         assertEquals(3, calls);
+    }
+
+    @E("^I add a pending step$")
+    public void I_add_a_pending_step() throws Throwable {
+        // Express the Regexp above with the code you wish you had
+        throw new PendingException();
     }
 }
