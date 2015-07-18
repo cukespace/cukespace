@@ -102,6 +102,7 @@ public class CucumberReporter {
                     Asciidoctor asciidoctor = Asciidoctor.Factory.create();
                     for (String format : reportConfig.getFormats()) {
                         String destDir = reportConfig.getDirectory();
+                        String fileName = reportConfig.getFileName();
                         final OptionsBuilder optBuilder = OptionsBuilder.options()
                                 //.destinationDir(destDir)
                                 .backend(format)
@@ -115,6 +116,9 @@ public class CucumberReporter {
                                     destDir = (String) reportConfig.getHtmlAttribute("directory");
                                     //optBuilder.destinationDir(destDir);
                                 }
+                                if(reportConfig.getHtmlAttribute("fileName") != null){
+                                   fileName = (String) reportConfig.getHtmlAttribute("fileName");
+                                }
                             }
                         }
 
@@ -124,6 +128,9 @@ public class CucumberReporter {
                                 if(reportConfig.getAdocAttribute("directory") != null){
                                     destDir = (String) reportConfig.getAdocAttribute("directory");
                                    // optBuilder.destinationDir(destDir);
+                                }
+                                if(reportConfig.getAdocAttribute("fileName") != null){
+                                    fileName = (String) reportConfig.getAdocAttribute("fileName");
                                 }
                             }
                         }
@@ -135,9 +142,12 @@ public class CucumberReporter {
                                     destDir = (String) reportConfig.getPdfAttribute("directory");
                                     //optBuilder.destinationDir(destDir);
                                 }
+                                if(reportConfig.getPdfAttribute("fileName") != null){
+                                    fileName = (String) reportConfig.getPdfAttribute("fileName");
+                                }
                             }
                         }
-                        File adocFile = FileUtil.saveFile(destDir + "/"+reportConfig.getFileName() + ".adoc", report);
+                        File adocFile = FileUtil.saveFile(destDir + "/"+fileName + ".adoc", report);
                         if(!format.equals("adoc")){//there is no adoc backend
                             asciidoctor.convertFile(adocFile, optBuilder.asMap());
                             adocFile.deleteOnExit();
