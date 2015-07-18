@@ -2,9 +2,6 @@ package cucumber.runtime.arquillian.reporter;
 
 import java.util.Map;
 
-/**
- * Created by pestano on 12/07/15.
- */
 public class ReportAttributes {
 
     private Map<String,Object> adocAtributes;

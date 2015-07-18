@@ -2,9 +2,6 @@ package cucumber.runtime.arquillian.reporter;
 
 import java.io.Serializable;
 
-/**
- * Created by pestano on 12/07/15.
- */
 public class ReportConfig implements Serializable {
 
     private String directory = "target/cucumber-report/";
