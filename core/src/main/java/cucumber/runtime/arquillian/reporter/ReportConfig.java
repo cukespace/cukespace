@@ -5,7 +5,7 @@ import java.io.Serializable;
 public class ReportConfig implements Serializable {
 
     private String directory = "target/cucumber-report/";
-    private String[] formats = new String[]{"html5"};
+    private String[] formats = new String[]{"html"};
     private ReportAttributes reportAttributes = new ReportAttributes();
     private String fileName = "report"; //report output filename
 
