@@ -49,9 +49,16 @@ public class ArquillianBackend extends JavaBackend implements Backend {
 
     public ArquillianBackend() { // no-op constructor but we need to be JavaBackend for java8 integration
         super(null, new ClassFinder() {
+            private final ClassLoader loader = Thread.currentThread().getContextClassLoader();
+
             @Override
-            public <T> Collection<Class<? extends T>> getDescendants(Class<T> parentType, String packageName) {
+            public <T> Collection<Class<? extends T>> getDescendants(final Class<T> parentType, final String packageName) {
                 return Collections.emptyList();
+            }
+
+            @Override
+            public <T> Class<? extends T> loadClass(final String s) throws ClassNotFoundException {
+                return (Class<? extends T>) loader.loadClass(s);
             }
         });
     }
