@@ -6,7 +6,7 @@
   <parent>
     <groupId>com.github.cukespace</groupId>
     <artifactId>cukespace-parent</artifactId>
-    <version>1.6.1-SNAPSHOT</version>
+    <version>1.6.1</version>
   </parent>
 
   <artifactId>cukespace-examples</artifactId>
@@ -326,7 +326,7 @@
                   <attributes>
                     <linkcss>true</linkcss>
                     <linkattrs>true</linkattrs>
-                    <sectnums/>
+                    <sectnums />
                     <toc>right</toc>
                     <tocLevels>3</tocLevels>
                     <icons>font</icons>
