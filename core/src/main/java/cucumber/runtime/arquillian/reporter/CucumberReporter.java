@@ -7,6 +7,7 @@ import com.github.cukedoctor.api.model.Feature;
 import com.github.cukedoctor.parser.FeatureParser;
 import com.github.cukedoctor.util.FileUtil;
 import cucumber.runtime.arquillian.config.CucumberConfiguration;
+import net.masterthought.cucumber.Configuration;
 import net.masterthought.cucumber.ReportBuilder;
 import org.asciidoctor.Asciidoctor;
 import org.asciidoctor.AttributesBuilder;
@@ -71,17 +72,19 @@ public class CucumberReporter {
 
         { // generate the report
             final File outputDir = new File(configuration.get().getReportDirectory());
-            try {
-                new ReportBuilder(new ArrayList<String>(jsonReports),
-                                outputDir, "/", "#", findProjectName(),
-                                false, false, false, false, true, false, true, false)
-                        .generateReports();
 
-                LOGGER.info("Cucumber report available at "
-                        + new File(outputDir, "feature-overview.html").getAbsolutePath());
-            } catch (final Exception e) {
-                throw new IllegalArgumentException(e);
-            }
+            final Configuration reportConfiguration = new Configuration(outputDir, findProjectName());
+            reportConfiguration.setStatusFlags(false, false, false, false);
+            reportConfiguration.setBuildNumber("1");
+            reportConfiguration.setParallelTesting(false);
+            reportConfiguration.setRunWithJenkins(false);
+            reportConfiguration.setJenkinsBasePath("");
+
+            new ReportBuilder(new ArrayList<String>(jsonReports), reportConfiguration)
+                    .generateReports();
+
+            LOGGER.info("Cucumber report available at "
+                    + new File(outputDir, "feature-overview.html").getAbsolutePath());
         }
 
         {//generate documentation using cukedoctor and asciidoctor
