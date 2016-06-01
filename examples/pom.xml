@@ -22,9 +22,9 @@
 
   <dependencies>
     <dependency>
-      <groupId>org.apache.openejb</groupId>
+      <groupId>org.apache.tomee</groupId>
       <artifactId>javaee-api</artifactId>
-      <version>6.0-6</version>
+      <version>7.0</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -63,6 +63,14 @@
         <exclusion>
           <groupId>org.jboss.shrinkwrap.descriptors</groupId>
           <artifactId>shrinkwrap-descriptors-api-base</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>commons-collections</groupId>
+          <artifactId>commons-collections</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-api</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -105,6 +113,10 @@
           <groupId>org.jboss.arquillian.core</groupId>
           <artifactId>arquillian-core-spi</artifactId>
         </exclusion>
+        <exclusion>
+          <groupId>commons-collections</groupId>
+          <artifactId>commons-collections</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
     <dependency>
@@ -116,6 +128,10 @@
         <exclusion>
           <groupId>commons-codec</groupId>
           <artifactId>commons-codec</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>commons-collections</groupId>
+          <artifactId>commons-collections</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -202,7 +218,21 @@
           <groupId>org.apache.commons</groupId>
           <artifactId>commons-lang3</artifactId>
         </exclusion>
+        <exclusion>
+          <groupId>commons-collections</groupId>
+          <artifactId>commons-collections</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>commons-logging</groupId>
+          <artifactId>commons-logging</artifactId>
+        </exclusion>
       </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>commons-logging</groupId>
+      <artifactId>commons-logging</artifactId>
+      <version>1.2</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.seleniumhq.selenium</groupId>
@@ -230,6 +260,10 @@
         <exclusion>
           <groupId>com.google.guava</groupId>
           <artifactId>guava</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-api</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -369,9 +403,9 @@
       </build>
       <dependencies>
         <dependency>
-          <groupId>org.apache.openejb</groupId>
+          <groupId>org.apache.tomee</groupId>
           <artifactId>arquillian-tomee-remote</artifactId>
-          <version>1.7.1</version>
+          <version>7.0.0</version>
           <scope>test</scope>
           <exclusions>
             <exclusion>
@@ -397,6 +431,10 @@
             <exclusion>
               <groupId>org.jboss.arquillian.config</groupId>
               <artifactId>arquillian-config-impl-base</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>commons-logging</groupId>
+              <artifactId>commons-logging</artifactId>
             </exclusion>
           </exclusions>
         </dependency>
