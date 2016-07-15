@@ -164,7 +164,7 @@ Here are the complete properties:
 
     <extension qualifier="cucumber">
         <property name="report">true</property>
-        <property name="report-directory">target/cucumber-report</property>
+        <property name="reportDirectory">target/cucumber-report</property>
         <property name="options">--tags @foo</property>
         <property name="featureHome">/home/test/features</property>
         <property name="tempDir">target/custom/features</property>
@@ -173,7 +173,7 @@ Here are the complete properties:
 | Property name    | Value                                                                                     |
 | ---------------- |:-----------------------------------------------------------------------------------------:|
 | report           | boolean to activate the reporting                                                         |
-| report-directory | where to store the report on the filesystem                                               |
+| reportDirectory | where to store the report on the filesystem                                               |
 | options          | cucumber options used when `cucumber.api.junit.Cucumber.Options` is not on the test class |
 | featureHome      | where to look for features (base path)                                                    |
 | tempDir          | where custom loaders dump their resources                                                 |
@@ -186,7 +186,7 @@ To activate it simply configure the cucumber arquillian extension in the file ar
 
       <extension qualifier="cucumber">
         <property name="report">true</property>
-        <property name="report-directory">target/cucumber-report</property>
+        <property name="reportDirectory">target/cucumber-report</property>
       </extension>
 
 The report file will be then logged. For instance:
