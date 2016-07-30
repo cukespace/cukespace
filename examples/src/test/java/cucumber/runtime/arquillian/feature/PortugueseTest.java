@@ -43,4 +43,5 @@ public class PortugueseTest {
     public static void checkCalls() {
         assertEquals(3, calls);
     }
+
 }

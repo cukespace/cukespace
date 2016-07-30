@@ -84,7 +84,7 @@ public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
         final JavaArchive resourceJar = create(JavaArchive.class, "cukespace-resources.jar");
 
         final CucumberConfiguration cucumberConfiguration = configuration.get();
-        final boolean report = cucumberConfiguration.isReport();
+        final boolean report = cucumberConfiguration.isReport() || cucumberConfiguration.getReportConfig() != null;
         final String reportDirectory = cucumberConfiguration.getReportDirectory();
 
         addFeatures(featureUrls, ln, resourceJar);
