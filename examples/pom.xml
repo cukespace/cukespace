@@ -17,7 +17,7 @@
     <!-- default environment properties -->
     <jbas7>managed</jbas7>
     <jboss-spec.version>3.0.1.Final</jboss-spec.version>
-    <selenium.version>2.35.0</selenium.version>
+    <selenium.version>2.53.0</selenium.version>
   </properties>
 
   <dependencies>
@@ -92,30 +92,6 @@
         <exclusion>
           <groupId>org.jboss.arquillian.config</groupId>
           <artifactId>arquillian-config-api</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.jboss.arquillian.extension</groupId>
-      <artifactId>arquillian-drone-selenium</artifactId>
-      <version>${arquillian-drone.version}</version>
-      <scope>test</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>org.jboss.arquillian.config</groupId>
-          <artifactId>arquillian-config-api</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.jboss.arquillian.test</groupId>
-          <artifactId>arquillian-test-spi</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.jboss.arquillian.core</groupId>
-          <artifactId>arquillian-core-spi</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>commons-collections</groupId>
-          <artifactId>commons-collections</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -226,6 +202,10 @@
           <groupId>commons-logging</groupId>
           <artifactId>commons-logging</artifactId>
         </exclusion>
+        <exclusion>
+          <groupId>com.google.code.gson</groupId>
+          <artifactId>gson</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
     <dependency>
@@ -247,6 +227,10 @@
         <exclusion>
           <groupId>org.mortbay.jetty</groupId>
           <artifactId>servlet-api-2.5</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.beust</groupId>
+          <artifactId>jcommander</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -405,9 +389,17 @@
         <dependency>
           <groupId>org.apache.tomee</groupId>
           <artifactId>arquillian-tomee-remote</artifactId>
-          <version>7.0.0</version>
+          <version>7.0.1</version>
           <scope>test</scope>
           <exclusions>
+            <exclusion>
+              <groupId>org.jboss.shrinkwrap.descriptors</groupId>
+              <artifactId>shrinkwrap-descriptors-spi</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>org.jboss.shrinkwrap.descriptors</groupId>
+              <artifactId>shrinkwrap-descriptors-api-base</artifactId>
+            </exclusion>
             <exclusion>
               <groupId>org.jboss.arquillian.container</groupId>
               <artifactId>arquillian-container-spi</artifactId>

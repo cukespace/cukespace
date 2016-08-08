@@ -36,13 +36,13 @@ import gherkin.formatter.model.Match;
 import gherkin.formatter.model.Result;
 import gherkin.formatter.model.Step;
 import gherkin.formatter.model.Tag;
-
 import org.jboss.arquillian.junit.Arquillian;
 import org.junit.runner.Description;
 import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.InitializationError;
 import org.junit.runners.model.MultipleFailureException;
+import org.junit.runners.model.Statement;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -313,7 +313,7 @@ public class ArquillianCucumber extends Arquillian {
     	return glues;
     }
     
-    private static void runFeatures(final List<CucumberFeature> cucumberFeatures, final CucumberRuntime cucumberRuntime, final JUnitReporter jUnitReporter,final RunNotifier runNotifier) throws Exception {
+    private void runFeatures(final List<CucumberFeature> cucumberFeatures, final CucumberRuntime cucumberRuntime, final JUnitReporter jUnitReporter,final RunNotifier runNotifier) throws Exception {
     	for (final CucumberFeature feature : cucumberFeatures) {
             LOGGER.info("Running " + feature.getPath());
             new FeatureRunner(feature, cucumberRuntime, jUnitReporter).run(runNotifier);
