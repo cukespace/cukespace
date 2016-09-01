@@ -14,10 +14,13 @@
   <packaging>war</packaging>
 
   <properties>
-    <!-- default environment properties -->
     <jbas7>managed</jbas7>
     <jboss-spec.version>3.0.1.Final</jboss-spec.version>
+
+
     <selenium.version>2.53.0</selenium.version>
+    <phantomjs.version>2.1.1</phantomjs.version>
+    <phantomdriver.version>1.2.1</phantomdriver.version>
   </properties>
 
   <dependencies>
@@ -96,20 +99,16 @@
       </exclusions>
     </dependency>
     <dependency>
+      <groupId>org.jboss.arquillian.graphene</groupId>
+      <artifactId>graphene-webdriver-impl</artifactId>
+      <version>2.1.0.Final</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>org.jboss.arquillian.extension</groupId>
-      <artifactId>arquillian-drone-selenium-server</artifactId>
+      <artifactId>arquillian-drone-webdriver</artifactId>
       <version>${arquillian-drone.version}</version>
       <scope>test</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>commons-codec</groupId>
-          <artifactId>commons-codec</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>commons-collections</groupId>
-          <artifactId>commons-collections</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
 
     <dependency>
@@ -178,10 +177,6 @@
       <version>${selenium.version}</version>
       <scope>test</scope>
       <exclusions>
-        <exclusion>
-          <groupId>org.apache.httpcomponents</groupId>
-          <artifactId>httpclient</artifactId>
-        </exclusion>
         <exclusion>
           <groupId>commons-io</groupId>
           <artifactId>commons-io</artifactId>
@@ -256,6 +251,63 @@
       <artifactId>cucumber-java8</artifactId>
     </dependency>
 
+    <dependency>
+      <groupId>com.codeborne</groupId>
+      <artifactId>phantomjsdriver</artifactId>
+      <version>${phantomdriver.version}</version>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.seleniumhq.selenium</groupId>
+          <artifactId>selenium-java</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.seleniumhq.selenium</groupId>
+          <artifactId>selenium-remote-driver</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.jboss.arquillian.extension</groupId>
+      <artifactId>arquillian-phantom-driver</artifactId>
+      <version>${phantomdriver.version}.Final</version>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>commons-io</groupId>
+          <artifactId>commons-io</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.jsoup</groupId>
+          <artifactId>jsoup</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.google.guava</groupId>
+          <artifactId>guava</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.jboss.arquillian.extension</groupId>
+      <artifactId>arquillian-phantom-binary</artifactId>
+      <version>${phantomjs.version}</version>
+      <scope>test</scope>
+      <classifier>linux-64</classifier>
+    </dependency>
+    <dependency>
+      <groupId>org.jboss.arquillian.extension</groupId>
+      <artifactId>arquillian-phantom-binary</artifactId>
+      <version>${phantomjs.version}</version>
+      <scope>test</scope>
+      <classifier>macosx</classifier>
+    </dependency>
+    <dependency>
+      <groupId>org.jboss.arquillian.extension</groupId>
+      <artifactId>arquillian-phantom-binary</artifactId>
+      <version>${phantomjs.version}</version>
+      <scope>test</scope>
+      <classifier>windows</classifier>
+    </dependency>
   </dependencies>
 
   <build>
@@ -324,7 +376,7 @@
           <plugin>
             <groupId>org.asciidoctor</groupId>
             <artifactId>asciidoctor-maven-plugin</artifactId>
-            <version>1.5.2</version>
+            <version>1.5.3</version>
             <configuration>
               <sourceDirectory>${project.build.directory}/docs</sourceDirectory>
               <sourceDocumentName>documentation.adoc</sourceDocumentName>
@@ -379,7 +431,17 @@
               <dependency>
                 <groupId>org.asciidoctor</groupId>
                 <artifactId>asciidoctorj-pdf</artifactId>
-                <version>1.5.0-alpha.8</version>
+                <version>1.5.0-alpha.11</version>
+              </dependency>
+              <dependency>
+                <groupId>org.asciidoctor</groupId>
+                <artifactId>asciidoctorj</artifactId>
+                <version>1.5.4.1</version>
+              </dependency>
+              <dependency>
+                <groupId>org.jruby</groupId>
+                <artifactId>jruby-complete</artifactId>
+                <version>1.7.25</version>
               </dependency>
             </dependencies>
           </plugin>

@@ -1,6 +1,5 @@
 package cucumber.runtime.arquillian.feature;
 
-import com.thoughtworks.selenium.DefaultSelenium;
 import cucumber.runtime.arquillian.ArquillianCucumber;
 import cucumber.runtime.arquillian.api.Features;
 import cucumber.runtime.arquillian.api.Glues;
@@ -15,6 +14,7 @@ import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.runner.RunWith;
+import org.openqa.selenium.WebDriver;
 
 import java.io.File;
 
@@ -38,5 +38,5 @@ public class CukesInBellyFunctionalTest {
     // just because drone extension check test class only for injections. Without any it doesn't start the context
     // will be fixed with a next version
     @Drone
-    private DefaultSelenium selenium;
+    private WebDriver selenium;
 }

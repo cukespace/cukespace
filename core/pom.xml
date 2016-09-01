@@ -13,8 +13,8 @@
   <name>Cukes in Space!</name>
 
   <properties>
-    <asciidoctorj.version>1.5.2</asciidoctorj.version>
-    <asciidoctorj-pdf.version>1.5.0-alpha.8</asciidoctorj-pdf.version>
+    <asciidoctorj.version>1.5.4.1</asciidoctorj.version>
+    <asciidoctorj-pdf.version>1.5.0-alpha.11</asciidoctorj-pdf.version>
     <cukedoctor.version>0.4.0</cukedoctor.version>
   </properties>
 
@@ -89,6 +89,10 @@
           <artifactId>commons-io</artifactId>
         </exclusion>
         <exclusion>
+          <groupId>commons-lang</groupId>
+          <artifactId>commons-lang</artifactId>
+        </exclusion>
+        <exclusion>
           <groupId>geronimo-spec</groupId>
           <artifactId>geronimo-spec-jms</artifactId>
         </exclusion>
@@ -122,11 +126,22 @@
         </exclusion>
       </exclusions>
     </dependency>
+    <dependency> <!-- for cucumber-reporting -->
+      <groupId>commons-lang</groupId>
+      <artifactId>commons-lang</artifactId>
+      <version>2.6</version>
+    </dependency>
 
     <dependency>
       <groupId>com.github.cukedoctor</groupId>
       <artifactId>cukedoctor-converter</artifactId>
       <version>${cukedoctor.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>joda-time</groupId>
+          <artifactId>joda-time</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.asciidoctor</groupId>
@@ -137,8 +152,13 @@
       <groupId>org.asciidoctor</groupId>
       <artifactId>asciidoctorj-pdf</artifactId>
       <version>${asciidoctorj-pdf.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.asciidoctor</groupId>
+          <artifactId>asciidoctorj</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
-
 
     <dependency>
       <groupId>org.jboss.arquillian.junit</groupId>
