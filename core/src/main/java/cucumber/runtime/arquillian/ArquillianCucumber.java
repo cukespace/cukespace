@@ -17,7 +17,7 @@ import cucumber.runtime.arquillian.api.event.BeforeBeforeHooks;
 import cucumber.runtime.arquillian.api.event.BeforeStep;
 import cucumber.runtime.arquillian.backend.ArquillianBackend;
 import cucumber.runtime.arquillian.config.CucumberConfiguration;
-import cucumber.runtime.arquillian.feature.Features;
+import cucumber.runtime.arquillian.feature.FeaturesFinder;
 import cucumber.runtime.arquillian.glue.Glues;
 import cucumber.runtime.arquillian.reporter.CucumberReporter;
 import cucumber.runtime.arquillian.shared.ClientServerFiles;
@@ -130,7 +130,7 @@ public class ArquillianCucumber extends Arquillian {
         final InputStream configurationInputStream = classLoader.getResourceAsStream(ClientServerFiles.CONFIG);        
         final Properties cukespaceConfigurationProperties = loadCucumberConfigurationProperties(configurationInputStream);
         
-        final Map<String, Collection<URL>> featuresMap = Features.createFeatureMap(CucumberConfiguration.instance().getTempDir(),cukespaceConfigurationProperties.getProperty(CucumberConfiguration.FEATURE_HOME),javaTestClass,classLoader);
+        final Map<String, Collection<URL>> featuresMap = FeaturesFinder.createFeatureMap(CucumberConfiguration.instance().getTempDir(),cukespaceConfigurationProperties.getProperty(CucumberConfiguration.FEATURE_HOME),javaTestClass,classLoader);
         final List<CucumberFeature> cucumberFeatures = getCucumberFeatures(testInstance, classLoader, featuresMap);
         
         final RuntimeOptions runtimeOptions = loadRuntimeOptions(javaTestClass, cukespaceConfigurationProperties);        
