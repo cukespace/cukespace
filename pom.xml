@@ -40,7 +40,7 @@
     <shrinkwrap.version>1.2.0</shrinkwrap.version>
     <arquillian.version>1.1.11.Final</arquillian.version>
     <arquillian-drone.version>2.0.0.Final</arquillian-drone.version>
-    <cucumber-jvm.version>1.2.4</cucumber-jvm.version>
+    <cucumber-jvm.version>1.2.5</cucumber-jvm.version>
     <hamcrest.version>1.1</hamcrest.version>
     <junit.version>4.11</junit.version>
     <maven-compiler.version>3.1</maven-compiler.version>

@@ -2,7 +2,6 @@ package cucumber.runtime.arquillian.backend;
 
 import cucumber.api.java.After;
 import cucumber.api.java.Before;
-import cucumber.api.java8.StepdefBody;
 import cucumber.runtime.Backend;
 import cucumber.runtime.ClassFinder;
 import cucumber.runtime.CucumberException;
@@ -14,10 +13,8 @@ import cucumber.runtime.UnreportedStepExecutor;
 import cucumber.runtime.Utils;
 import cucumber.runtime.arquillian.api.Lambda;
 import cucumber.runtime.arquillian.lifecycle.CucumberLifecycle;
-import cucumber.runtime.java.Java8StepDefinition;
 import cucumber.runtime.java.JavaBackend;
 import cucumber.runtime.java.StepDefAnnotation;
-import cucumber.runtime.java.TypeIntrospector;
 import cucumber.runtime.snippets.FunctionNameGenerator;
 import cucumber.runtime.snippets.Snippet;
 import cucumber.runtime.snippets.SnippetGenerator;
@@ -175,15 +172,6 @@ public class ArquillianBackend extends JavaBackend implements Backend {
     private boolean isStepdefAnnotation(final Annotation annotation) {
         final Class<? extends Annotation> annotationClass = annotation.annotationType();
         return annotationClass.getAnnotation(StepDefAnnotation.class) != null;
-    }
-
-    // TODO: remove this method and WorkAroundTypeIntropspector when cucumber > 1.2.4 is removed
-    public void addStepDefinition(final String regexp, final long timeoutMillis, final StepdefBody body, final TypeIntrospector typeIntrospector) {
-        try {
-            glue.addStepDefinition(new Java8StepDefinition(Pattern.compile(regexp), timeoutMillis, body, WorkAroundTypeIntropspector.INSTANCE));
-        } catch (final Exception e) {
-            throw new CucumberException(e);
-        }
     }
 
     private void addStepDefinition(final Annotation annotation, final Method method, final Object instance) {

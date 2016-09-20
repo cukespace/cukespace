@@ -25,6 +25,7 @@ import cucumber.runtime.arquillian.shared.EventHelper;
 import cucumber.runtime.io.Resource;
 import cucumber.runtime.io.ResourceLoader;
 import cucumber.runtime.junit.FeatureRunner;
+import cucumber.runtime.junit.JUnitOptions;
 import cucumber.runtime.junit.JUnitReporter;
 import cucumber.runtime.model.CucumberFeature;
 import cucumber.runtime.model.PathWithLines;
@@ -66,11 +67,12 @@ import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
 
 public class ArquillianCucumber extends Arquillian {
     private static final Logger LOGGER = Logger.getLogger(ArquillianCucumber.class.getName());
 
-    private static final String RUN_CUCUMBER_MTD = "performInternalCucumberOperations";    
+    private static final String RUN_CUCUMBER_MTD = "performInternalCucumberOperations";
 
     private List<FrameworkMethod> methods;
 
@@ -119,70 +121,72 @@ public class ArquillianCucumber extends Arquillian {
             InstanceControlledFrameworkMethod.class.cast(method).setNotifier(notifier);
         }
         super.runChild(method, notifier);
-    } 
-    
+    }
+
     // the cucumber test method, only used internally - see childrenInvoker, public to avoid to setAccessible(true)
     public void performInternalCucumberOperations(final Object testInstance, final RunNotifier runNotifier) throws Exception {
-        
-    	final Class<?> javaTestClass = getTestClass().getJavaClass();
+
+        final Class<?> javaTestClass = getTestClass().getJavaClass();
         final ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
 
-        final InputStream configurationInputStream = classLoader.getResourceAsStream(ClientServerFiles.CONFIG);        
+        final InputStream configurationInputStream = classLoader.getResourceAsStream(ClientServerFiles.CONFIG);
         final Properties cukespaceConfigurationProperties = loadCucumberConfigurationProperties(configurationInputStream);
-        
-        final Map<String, Collection<URL>> featuresMap = Features.createFeatureMap(CucumberConfiguration.instance().getTempDir(),cukespaceConfigurationProperties.getProperty(CucumberConfiguration.FEATURE_HOME),javaTestClass,classLoader);
+
+        final Map<String, Collection<URL>> featuresMap = Features.createFeatureMap(CucumberConfiguration.instance().getTempDir(), cukespaceConfigurationProperties.getProperty(CucumberConfiguration.FEATURE_HOME), javaTestClass, classLoader);
         final List<CucumberFeature> cucumberFeatures = getCucumberFeatures(testInstance, classLoader, featuresMap);
-        
-        final RuntimeOptions runtimeOptions = loadRuntimeOptions(javaTestClass, cukespaceConfigurationProperties);        
+
+        final RuntimeOptions runtimeOptions = loadRuntimeOptions(javaTestClass, cukespaceConfigurationProperties);
 
         final boolean reported = Boolean.parseBoolean(cukespaceConfigurationProperties.getProperty(CucumberConfiguration.REPORTABLE, "false"));
         final StringBuilder reportBuilder = new StringBuilder();
         if (reported) {
-        	runtimeOptions.addPlugin(new JSONFormatter(reportBuilder));
+            runtimeOptions.addPlugin(new JSONFormatter(reportBuilder));
         }
 
         final InputStream gluesInputStream = classLoader.getResourceAsStream(ClientServerFiles.GLUES_LIST);
         final Collection<Class<?>> glues = loadGlues(gluesInputStream, classLoader, javaTestClass);
-        
+
         final ArquillianBackend arquillianBackend = new ArquillianBackend(glues, javaTestClass, testInstance);
-        final CucumberRuntime cucumberRuntime = new CucumberRuntime(null, classLoader, Arrays.asList(arquillianBackend), runtimeOptions);
+        final CucumberRuntime cucumberRuntime = new CucumberRuntime(null, classLoader, singletonList(arquillianBackend), runtimeOptions);
         final Formatter formatter = runtimeOptions.formatter(classLoader);
-        final JUnitReporter jUnitReporter = new JUnitReporter(runtimeOptions.reporter(classLoader), formatter, runtimeOptions.isStrict());
+        final JUnitReporter jUnitReporter = new JUnitReporter(
+                runtimeOptions.reporter(classLoader), formatter,
+                runtimeOptions.isStrict(), new JUnitOptions(runtimeOptions.getJunitOptions()));
         runFeatures(cucumberFeatures, cucumberRuntime, jUnitReporter, runNotifier);
-        
+
         if (reported) {
             final String path = cukespaceConfigurationProperties.getProperty(CucumberConfiguration.REPORTABLE_PATH);
             addReportTestIntoFile(path, javaTestClass, reportBuilder);
         }
 
         handleCucumberTestErrors(cucumberRuntime.getErrors(), cucumberRuntime);
-        
+
     }
-    
+
     private static Properties loadCucumberConfigurationProperties(final InputStream configurationInputStream) throws Exception {
-    	if (configurationInputStream != null) {
-    		return loadConfigurationPropertiesFromStream(configurationInputStream);
+        if (configurationInputStream != null) {
+            return loadConfigurationPropertiesFromStream(configurationInputStream);
         } else {
-    		return loadConfigurationPropertiesFromObject(CucumberConfiguration.instance());
-    	}
+            return loadConfigurationPropertiesFromObject(CucumberConfiguration.instance());
+        }
     }
-    
-    private static Properties loadConfigurationPropertiesFromStream(final InputStream configurationInputStream) throws Exception  {
-    	Properties configurationProperties = new Properties();
+
+    private static Properties loadConfigurationPropertiesFromStream(final InputStream configurationInputStream) throws Exception {
+        Properties configurationProperties = new Properties();
         configurationProperties.load(configurationInputStream);
         return configurationProperties;
     }
-    
+
     private static Properties loadConfigurationPropertiesFromObject(final CucumberConfiguration cucumberConfiguration) throws Exception {
-    	return cucumberConfiguration.getConfigurationAsProperties();
+        return cucumberConfiguration.getConfigurationAsProperties();
     }
-    
-    private static List<CucumberFeature> getCucumberFeatures(final Object testInstance, final ClassLoader classLoader, final Map<String, Collection<URL>> featuresMap ) throws Exception {
-    	final HashSet<Object> testFilters = new HashSet<Object>(createFilters(testInstance));
-        final InputStream featuresInputStream = classLoader.getResourceAsStream(ClientServerFiles.FEATURES_LIST);        
-        return buildFeatureList(testFilters,featuresInputStream,classLoader, featuresMap);
+
+    private static List<CucumberFeature> getCucumberFeatures(final Object testInstance, final ClassLoader classLoader, final Map<String, Collection<URL>> featuresMap) throws Exception {
+        final HashSet<Object> testFilters = new HashSet<Object>(createFilters(testInstance));
+        final InputStream featuresInputStream = classLoader.getResourceAsStream(ClientServerFiles.FEATURES_LIST);
+        return buildFeatureList(testFilters, featuresInputStream, classLoader, featuresMap);
     }
-    
+
     private static List<Object> createFilters(final Object testInstance) {
         final List<Object> filters = new ArrayList<Object>();
 
@@ -210,32 +214,32 @@ public class ArquillianCucumber extends Arquillian {
         }
 
         return filters;
-    } 
-    
+    }
+
     private static List<CucumberFeature> buildFeatureList(final Set<Object> testFilters, final InputStream featuresInputStream, final ClassLoader classLoader, final Map<String, Collection<URL>> featuresMap) throws Exception {
-    	final List<CucumberFeature> cucumberFeatures = new ArrayList<CucumberFeature>();
+        final List<CucumberFeature> cucumberFeatures = new ArrayList<CucumberFeature>();
         final FeatureBuilder featureBuilder = new FeatureBuilder(cucumberFeatures);
-        
+
         if (featuresInputStream != null) {
-            
-            buildFeatureListFromFile(featuresInputStream, testFilters, featureBuilder, classLoader);            
+
+            buildFeatureListFromFile(featuresInputStream, testFilters, featureBuilder, classLoader);
         } else {
-        	buildFeatureListFromMap(featuresMap, testFilters, featureBuilder);
+            buildFeatureListFromMap(featuresMap, testFilters, featureBuilder);
         }
-        
-        featureBuilder.close(); 
-        
+
+        featureBuilder.close();
+
         if (cucumberFeatures.isEmpty()) {
             throw new IllegalArgumentException("No feature found");
         }
-        
+
         return cucumberFeatures;
     }
-    
+
     private static void buildFeatureListFromFile(final InputStream featuresInputStream, final Set<Object> testFilters, final FeatureBuilder featureBuilder, final ClassLoader classLoader) throws Exception {
-    	final BufferedReader featuresFileReader = new BufferedReader(new InputStreamReader(featuresInputStream));
-    	
-    	String readerLine;
+        final BufferedReader featuresFileReader = new BufferedReader(new InputStreamReader(featuresInputStream));
+
+        String readerLine;
 
         while ((readerLine = featuresFileReader.readLine()) != null) {
             readerLine = readerLine.trim();
@@ -247,25 +251,25 @@ public class ArquillianCucumber extends Arquillian {
             testFilters.addAll(pathWithLines.lines);
             featureBuilder.parse(new ClassLoaderResource(classLoader, pathWithLines.path), new ArrayList<Object>(testFilters));
         }
-        
+
         featuresFileReader.close();
     }
-    
-    private static void buildFeatureListFromMap(final Map<String, Collection<URL>> featuresMap, final Set<Object> testFilters,  final FeatureBuilder featureBuilder) {
-    	final Set<Entry<String, Collection<URL>>> featuresEntriesSet = featuresMap.entrySet();
-    	
-    	for (final Map.Entry<String, Collection<URL>> entry : featuresEntriesSet) {
-    		final PathWithLines pathWithLines = new PathWithLines(entry.getKey());
-    		testFilters.addAll(pathWithLines.lines);
+
+    private static void buildFeatureListFromMap(final Map<String, Collection<URL>> featuresMap, final Set<Object> testFilters, final FeatureBuilder featureBuilder) {
+        final Set<Entry<String, Collection<URL>>> featuresEntriesSet = featuresMap.entrySet();
+
+        for (final Map.Entry<String, Collection<URL>> entry : featuresEntriesSet) {
+            final PathWithLines pathWithLines = new PathWithLines(entry.getKey());
+            testFilters.addAll(pathWithLines.lines);
             for (final URL url : entry.getValue()) {
                 featureBuilder.parse(new URLResource(pathWithLines.path, url), new ArrayList<Object>(testFilters));
             }
-    	}
+        }
     }
-    
+
     private static RuntimeOptions loadRuntimeOptions(final Class<?> javaTestClass, final Properties cukespaceConfigurationProperties) {
-    	final RuntimeOptions runtimeOptions;
-    	if (javaTestClass.getAnnotation(CucumberOptions.class) != null) { // by class setting
+        final RuntimeOptions runtimeOptions;
+        if (javaTestClass.getAnnotation(CucumberOptions.class) != null) { // by class setting
             final RuntimeOptionsFactory runtimeOptionsFactory = new RuntimeOptionsFactory(javaTestClass);
             runtimeOptions = runtimeOptionsFactory.create();
             cleanClasspathList(runtimeOptions.getGlue());
@@ -275,7 +279,7 @@ public class ArquillianCucumber extends Arquillian {
         } else { // default
             runtimeOptions = new RuntimeOptions(new Env("cucumber-jvm"), asList("--strict", "--plugin", "pretty", areColorsNotAvailable(cukespaceConfigurationProperties)));
         }
-    	return runtimeOptions;
+        return runtimeOptions;
     }
 
     // classpath: doesn't support scanning, it should be done on client side if supported, not server side
@@ -287,11 +291,11 @@ public class ArquillianCucumber extends Arquillian {
             }
         }
     }
-    
+
     private static Collection<Class<?>> loadGlues(final InputStream gluesInputStream, final ClassLoader classLoader, final Class<?> javaTestClass) throws Exception {
-    	final Collection<Class<?>> glues = new LinkedList<Class<?>>();
-    	
-    	if (gluesInputStream != null) {
+        final Collection<Class<?>> glues = new LinkedList<Class<?>>();
+
+        if (gluesInputStream != null) {
             final BufferedReader reader = new BufferedReader(new InputStreamReader(gluesInputStream));
             String line;
 
@@ -304,26 +308,26 @@ public class ArquillianCucumber extends Arquillian {
                 glues.add(classLoader.loadClass(line));
             }
             reader.close();
-            
+
         } else { // client side
             glues.addAll(Glues.findGlues(javaTestClass));
         }
-    	
-    	return glues;
+
+        return glues;
     }
-    
-    private void runFeatures(final List<CucumberFeature> cucumberFeatures, final CucumberRuntime cucumberRuntime, final JUnitReporter jUnitReporter,final RunNotifier runNotifier) throws Exception {
-    	for (final CucumberFeature feature : cucumberFeatures) {
+
+    private void runFeatures(final List<CucumberFeature> cucumberFeatures, final CucumberRuntime cucumberRuntime, final JUnitReporter jUnitReporter, final RunNotifier runNotifier) throws Exception {
+        for (final CucumberFeature feature : cucumberFeatures) {
             LOGGER.info("Running " + feature.getPath());
             new FeatureRunner(feature, cucumberRuntime, jUnitReporter).run(runNotifier);
-        }    	
-    	jUnitReporter.done();
+        }
+        jUnitReporter.done();
         jUnitReporter.close();
         cucumberRuntime.printSummary();
     }
-    
+
     private static void addReportTestIntoFile(final String path, final Class<?> javaTestClass, final StringBuilder reportBuilder) throws Exception {
-    	if (path != null) {
+        if (path != null) {
             final File destination = CucumberConfiguration.reportFile(path, javaTestClass);
             final File parentFile = destination.getParentFile();
             if (!parentFile.exists() && !parentFile.mkdirs()) {
@@ -345,9 +349,9 @@ public class ArquillianCucumber extends Arquillian {
             CucumberReporter.addReport(CucumberConfiguration.reportFile(path, javaTestClass));
         }
     }
-    
+
     public void handleCucumberTestErrors(final List<Throwable> errors, CucumberRuntime cucumberRuntime) throws Exception {
-    	for (final String snippet : cucumberRuntime.getSnippets()) {
+        for (final String snippet : cucumberRuntime.getSnippets()) {
             errors.add(new CucumberException("Missing snippet: " + snippet));
         }
         if (!errors.isEmpty()) {
@@ -457,16 +461,16 @@ public class ArquillianCucumber extends Arquillian {
             this.notifier = notifier;
         }
     }
-    
-    private static class CucumberRuntime extends cucumber.runtime.Runtime {
-    	public CucumberRuntime(ResourceLoader resourceLoader,
-				ClassLoader classLoader,
-				Collection<? extends Backend> backends,
-				RuntimeOptions runtimeOptions) {
-			super(resourceLoader, classLoader, backends, runtimeOptions);			
-		}
 
-		@Override
+    private static class CucumberRuntime extends cucumber.runtime.Runtime {
+        public CucumberRuntime(ResourceLoader resourceLoader,
+                               ClassLoader classLoader,
+                               Collection<? extends Backend> backends,
+                               RuntimeOptions runtimeOptions) {
+            super(resourceLoader, classLoader, backends, runtimeOptions);
+        }
+
+        @Override
         public void runStep(final String featurePath, final Step step, final Reporter reporter, final I18n i18n) {
             super.runStep(featurePath, step, new Reporter() {
                 @Override
