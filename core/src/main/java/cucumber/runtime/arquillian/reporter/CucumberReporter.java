@@ -24,11 +24,17 @@ import java.io.File;
 import java.lang.reflect.Method;
 import java.net.URI;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 
 import static java.util.Arrays.asList;
-import static java.util.Arrays.binarySearch;
 
 public class CucumberReporter {
     private static final Logger LOGGER = Logger.getLogger(CucumberReporter.class.getName());
@@ -70,8 +76,9 @@ public class CucumberReporter {
             }
         }
 
-        { // generate the report
-            final File outputDir = new File(configuration.get().getReportDirectory());
+        final CucumberConfiguration cucumberConfiguration = configuration.get();
+        if (cucumberConfiguration.isReport()) { // generate the report
+            final File outputDir = new File(cucumberConfiguration.getReportDirectory());
 
             final Configuration reportConfiguration = new Configuration(outputDir, findProjectName());
             reportConfiguration.setStatusFlags(false, false, false, false);
@@ -88,7 +95,7 @@ public class CucumberReporter {
         }
 
         {//generate documentation using cukedoctor and asciidoctor
-            if (configuration.get().isGenerateDocs()) {
+            if (cucumberConfiguration.isGenerateDocs()) {
                 List<Feature> features = new ArrayList<Feature>();
                 for (String jsonReport : jsonReports) {
                     features.addAll(FeatureParser.parse(jsonReport));
@@ -97,23 +104,23 @@ public class CucumberReporter {
                     LOGGER.info("No features found for Cucumber documentation");
                 } else {
 
-                    final DocumentAttributes da = bind(configuration.get().getConfig("adoc.doc.attributes."), new DocumentAttributes());
+                    final DocumentAttributes da = bind(cucumberConfiguration.getConfig("adoc.doc.attributes."), new DocumentAttributes());
                     CukedoctorConverter converter = Cukedoctor.instance(features, da);
                     String doc = converter.renderDocumentation();
-                    File adocFile = FileUtil.saveFile(configuration.get().getDocsDirectory() + "documentation.adoc", doc);
+                    File adocFile = FileUtil.saveFile(cucumberConfiguration.getDocsDirectory() + "documentation.adoc", doc);
 
-                    if (configuration.get().isGenerateDocsAsHtml()) {
+                    if (cucumberConfiguration.isGenerateDocsAsHtml()) {
                         //TODO provide a way to user configure documentation
                         final OptionsBuilder optBuilder = OptionsBuilder.options()
                                 .backend("html5")
                                 .safe(SafeMode.UNSAFE);
 
-                        final Map<String, String> opts = configuration.get().getConfig("adoc.options.");
+                        final Map<String, String> opts = cucumberConfiguration.getConfig("adoc.options.");
                         if (!opts.isEmpty()) {
                             bind(opts, optBuilder);
                         }
 
-                        final Map<String, String> attrs = configuration.get().getConfig("adoc.attributes.");
+                        final Map<String, String> attrs = cucumberConfiguration.getConfig("adoc.attributes.");
                         if (!attrs.isEmpty()) {
                             optBuilder.attributes(bind(attrs, AttributesBuilder.attributes()));
                         }
