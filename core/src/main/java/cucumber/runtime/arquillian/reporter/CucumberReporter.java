@@ -102,36 +102,38 @@ public class CucumberReporter {
                     String doc = converter.renderDocumentation();
                     File adocFile = FileUtil.saveFile(configuration.get().getDocsDirectory() + "documentation.adoc", doc);
 
-                    //TODO provide a way to user configure documentation
-                    final OptionsBuilder optBuilder = OptionsBuilder.options()
-                            .backend("html5")
-                            .safe(SafeMode.UNSAFE);
+                    if (configuration.get().isGenerateDocsAsHtml()) {
+                        //TODO provide a way to user configure documentation
+                        final OptionsBuilder optBuilder = OptionsBuilder.options()
+                                .backend("html5")
+                                .safe(SafeMode.UNSAFE);
 
-                    final Map<String, String> opts = configuration.get().getConfig("adoc.options.");
-                    if (!opts.isEmpty()) {
-                        bind(opts, optBuilder);
+                        final Map<String, String> opts = configuration.get().getConfig("adoc.options.");
+                        if (!opts.isEmpty()) {
+                            bind(opts, optBuilder);
+                        }
+
+                        final Map<String, String> attrs = configuration.get().getConfig("adoc.attributes.");
+                        if (!attrs.isEmpty()) {
+                            optBuilder.attributes(bind(attrs, AttributesBuilder.attributes()));
+                        }
+
+                        Map<String, Object> options = optBuilder
+                                .asMap();
+                        Asciidoctor asciidoctor = Asciidoctor.Factory.create();
+                        //generate html(default backend) docs
+                        asciidoctor.convertFile(adocFile, options);
+
+                        //generate pdf docs
+                        /*
+                         * commented because of a classpath issue:
+                         * java.lang.NoSuchMethodError: org.yaml.snakeyaml.events.DocumentStartEvent.getVersion()Lorg/yaml/snakeyaml/DumperOptions$Version;
+                         */
+                        //asciidoctor.convertFile(adocFile, OptionsBuilder.options().backend("pdf").safe(SafeMode.UNSAFE).asMap());
+
+                        asciidoctor.shutdown();
+                        LOGGER.info("Cucumber documentation generated at " + adocFile.getParent());
                     }
-
-                    final Map<String, String> attrs = configuration.get().getConfig("adoc.attributes.");
-                    if (!attrs.isEmpty()) {
-                        optBuilder.attributes(bind(attrs, AttributesBuilder.attributes()));
-                    }
-
-                    Map<String, Object> options = optBuilder
-                            .asMap();
-                    Asciidoctor asciidoctor = Asciidoctor.Factory.create();
-                    //generate html(default backend) docs
-                    asciidoctor.convertFile(adocFile, options);
-
-                    //generate pdf docs
-                    /**
-                     * commented because of a classpath issue:
-                     * java.lang.NoSuchMethodError: org.yaml.snakeyaml.events.DocumentStartEvent.getVersion()Lorg/yaml/snakeyaml/DumperOptions$Version;
-                     */
-                    //asciidoctor.convertFile(adocFile, OptionsBuilder.options().backend("pdf").safe(SafeMode.UNSAFE).asMap());
-
-                    asciidoctor.shutdown();
-                    LOGGER.info("Cucumber documentation generated at " + adocFile.getParent());
                 }
             }
         }

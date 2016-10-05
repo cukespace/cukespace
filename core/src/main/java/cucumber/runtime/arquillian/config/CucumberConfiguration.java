@@ -18,6 +18,7 @@ public class CucumberConfiguration {
 
     private boolean report;
     private boolean generateDocs;
+    private boolean generateDocsAsHtml = true /*for compat*/;
     private boolean colorized;
     private boolean initialized;
     private String reportDirectory;
@@ -75,6 +76,10 @@ public class CucumberConfiguration {
         return generateDocs;
     }
 
+    public boolean isGenerateDocsAsHtml() {
+        return generateDocsAsHtml;
+    }
+
     public String getDocsDirectory() {
         return docsDirectory;
     }
@@ -130,6 +135,9 @@ public class CucumberConfiguration {
 
             if (properties.containsKey("generateDocs")) {
                 CONFIGURATION.generateDocs = Boolean.parseBoolean(properties.get("generateDocs"));
+            }
+            if (properties.containsKey("generateDocsAsHtml")) {
+                CONFIGURATION.generateDocsAsHtml = Boolean.parseBoolean(properties.get("generateDocsAsHtml"));
             }
 
             if (properties.containsKey("docsDirectory")) {
