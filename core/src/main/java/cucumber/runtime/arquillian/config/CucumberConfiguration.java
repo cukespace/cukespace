@@ -16,9 +16,9 @@ public class CucumberConfiguration {
     public static final String OPTIONS = "options";
     public static final String FEATURE_HOME = "featureHome";
 
-    private boolean report;
-    private boolean generateDocs;
-    private boolean generateDocsAsHtml = true /*for compat*/;
+    private boolean report; // jenkins report
+    private boolean generateDocs; // cukedoctor report
+    private boolean generateDocsAsHtml = true /*for compat*/; // should cukedoctor report be converted in html
     private boolean colorized;
     private boolean initialized;
     private String reportDirectory;
@@ -188,7 +188,7 @@ public class CucumberConfiguration {
     	if (this.isInitialized()) {    		
             configurationProperties.setProperty(CucumberConfiguration.PERSISTENCE_EVENTS, Boolean.toString(persistenceEventsActivated));
             configurationProperties.setProperty(CucumberConfiguration.COLORS, Boolean.toString(colorized));
-            configurationProperties.setProperty(CucumberConfiguration.REPORTABLE, Boolean.toString(report));
+            configurationProperties.setProperty(CucumberConfiguration.REPORTABLE, Boolean.toString(report || generateDocs));
             configurationProperties.setProperty(CucumberConfiguration.REPORTABLE_PATH, reportDirectory);
             if (featureHome != null) {
                 configurationProperties.setProperty(CucumberConfiguration.FEATURE_HOME, featureHome);
