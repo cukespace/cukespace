@@ -27,6 +27,7 @@
   <modules>
     <module>core</module>
     <module>examples</module>
+    <module>examples-testng</module>
   </modules>
 
   <properties>
@@ -42,7 +43,7 @@
     <arquillian-drone.version>2.0.0.Final</arquillian-drone.version>
     <cucumber-jvm.version>1.2.5</cucumber-jvm.version>
     <hamcrest.version>1.1</hamcrest.version>
-    <junit.version>4.11</junit.version>
+    <junit.version>4.12</junit.version>
     <maven-compiler.version>3.1</maven-compiler.version>
     <maven-jar.version>2.3.1</maven-jar.version>
     <maven-surefire.version>2.19.1</maven-surefire.version>
@@ -74,6 +75,12 @@
         <version>${arquillian.version}</version>
         <scope>test</scope>
       </dependency>
+      <dependency>
+        <groupId>org.jboss.arquillian.testng</groupId>
+        <artifactId>arquillian-testng-container</artifactId>
+        <version>${arquillian.version}</version>
+        <scope>test</scope>
+      </dependency>
 
       <dependency>
         <groupId>org.jboss.arquillian.extension</groupId>
@@ -102,6 +109,12 @@
       </dependency>
       <dependency>
         <groupId>info.cukes</groupId>
+        <artifactId>cucumber-testng</artifactId>
+        <version>${cucumber-jvm.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>info.cukes</groupId>
         <artifactId>cucumber-java</artifactId>
         <version>${cucumber-jvm.version}</version>
         <scope>test</scope>
@@ -117,6 +130,13 @@
         <groupId>junit</groupId>
         <artifactId>junit</artifactId>
         <version>${junit.version}</version>
+        <scope>test</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>org.testng</groupId>
+        <artifactId>testng</artifactId>
+        <version>6.8.21</version>
         <scope>test</scope>
       </dependency>
 

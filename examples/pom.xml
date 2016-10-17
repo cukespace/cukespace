@@ -10,13 +10,12 @@
   </parent>
 
   <artifactId>cukespace-examples</artifactId>
-  <name>Cukes in Space! Examples</name>
+  <name>Cukes in Space! :: Examples</name>
   <packaging>war</packaging>
 
   <properties>
     <jbas7>managed</jbas7>
     <jboss-spec.version>3.0.1.Final</jboss-spec.version>
-
 
     <selenium.version>2.53.0</selenium.version>
     <phantomjs.version>2.1.1</phantomjs.version>

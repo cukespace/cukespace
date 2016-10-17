@@ -70,6 +70,10 @@ public class EventHelper {
         TEST_EVENT.set(event);
     }
 
+    public static void unmatch() {
+        TEST_EVENT.remove();
+    }
+
     public static TestEvent currentEvent() {
         return TEST_EVENT.get();
     }

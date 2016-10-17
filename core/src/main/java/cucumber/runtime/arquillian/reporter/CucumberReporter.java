@@ -97,6 +97,9 @@ public class CucumberReporter {
         {//generate documentation using cukedoctor and asciidoctor
             if (cucumberConfiguration.isGenerateDocs()) {
                 List<Feature> features = new ArrayList<Feature>();
+                if (jsonReports == null) {
+                    throw new IllegalStateException("No report available");
+                }
                 for (String jsonReport : jsonReports) {
                     features.addAll(FeatureParser.parse(jsonReport));
                 }

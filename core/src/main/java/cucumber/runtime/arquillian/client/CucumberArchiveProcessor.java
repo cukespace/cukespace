@@ -1,6 +1,5 @@
 package cucumber.runtime.arquillian.client;
 
-import cucumber.api.junit.Cucumber;
 import cucumber.deps.com.thoughtworks.xstream.converters.ConverterRegistry;
 import cucumber.runtime.arquillian.ArquillianCucumber;
 import cucumber.runtime.arquillian.CukeSpace;
@@ -12,6 +11,7 @@ import cucumber.runtime.arquillian.feature.Features;
 import cucumber.runtime.arquillian.glue.Glues;
 import cucumber.runtime.arquillian.lifecycle.CucumberLifecycle;
 import cucumber.runtime.arquillian.reporter.CucumberReporter;
+import cucumber.runtime.arquillian.runner.BaseCukeSpace;
 import cucumber.runtime.arquillian.shared.ClientServerFiles;
 import cucumber.runtime.arquillian.stream.NotCloseablePrintStream;
 import cucumber.runtime.io.ResourceLoaderClassFinder;
@@ -30,10 +30,10 @@ import org.jboss.shrinkwrap.api.container.LibraryContainer;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.jboss.shrinkwrap.impl.base.asset.AssetUtil;
 import org.jboss.shrinkwrap.impl.base.filter.IncludeRegExpPaths;
-import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -41,9 +41,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
-import static cucumber.runtime.arquillian.shared.IOs.slurp;
 import static cucumber.runtime.arquillian.locator.JarLocation.jarLocation;
 import static cucumber.runtime.arquillian.shared.ClassLoaders.load;
+import static cucumber.runtime.arquillian.shared.IOs.slurp;
+import static java.util.Arrays.asList;
 import static org.jboss.shrinkwrap.api.ShrinkWrap.create;
 
 public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
@@ -64,15 +65,52 @@ public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
         final Map<String, Collection<URL>> featureUrls = Features.createFeatureMap(
                 configuration.get().getTempDir(), configuration.get().getFeatureHome(), javaClass, loader);
 
+        Class testNgBase = null;
+        try {
+            testNgBase = loader.loadClass("cucumber.runtime.arquillian.testng.CukeSpace");
+        } catch (final ClassNotFoundException e) {
+            // no-op
+        } catch (final NoClassDefFoundError e) {
+            // no-op
+        }
+        final boolean junit = testNgBase == null || !testNgBase.isAssignableFrom(javaClass);
         if (featureUrls.isEmpty()
                 || !LibraryContainer.class.isInstance(applicationArchive)) {
-            final RunWith runWith = testClass.getAnnotation(RunWith.class);
-            if (runWith == null || (!ArquillianCucumber.class.equals(runWith.value()) && !CukeSpace.class.equals(runWith.value()))) {
-                // not a cucumber test so skip enrichment
-                return;
-            } else {
-                // else let enrich it to avoid type not found error
-                Logger.getLogger(CucumberArchiveProcessor.class.getName()).info("No feature found for " + javaClass.getName());
+            if (junit) {
+                Class<? extends Annotation> runWithType = null;
+                try {
+                    runWithType = (Class<? extends Annotation>) loader.loadClass("org.junit.runner.RunWith");
+
+                } catch (final ClassNotFoundException error) {
+                    // no-op
+                } catch (final NoClassDefFoundError e) {
+                    // no-op
+                }
+
+                if (runWithType == null) {
+                    return;
+                }
+                final Annotation runWith = testClass.getAnnotation(runWithType);
+                if (runWith == null) {
+                    return;
+                }
+
+                try {
+                    final Class<?> runner = Class.class.cast(runWithType.getMethod("value").invoke(runWith));
+                    if ((!ArquillianCucumber.class.equals(runner) && !CukeSpace.class.equals(runner))) {
+                        // not a cucumber test so skip enrichment
+                        return;
+                    } else {
+                        // else let enrich it to avoid type not found error
+                        Logger.getLogger(CucumberArchiveProcessor.class.getName()).info("No feature found for " + javaClass.getName());
+                    }
+                } catch (final IllegalAccessException e) {
+                    throw new IllegalStateException(e);
+                } catch (final InvocationTargetException e) {
+                    throw new IllegalStateException(e.getCause());
+                } catch (final NoSuchMethodException e) {
+                    throw new IllegalArgumentException(e);
+                }
             }
         }
 
@@ -104,7 +142,7 @@ public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
         enrichWithDefaultCucumber(libraryContainer);
 
         // cucumber-arquillian
-        enrichWithCukeSpace(libraryContainer);
+        enrichWithCukeSpace(libraryContainer, junit);
 
         // if scala module is available at classpath
         final Set<ArchivePath> libs = applicationArchive.getContent(new IncludeRegExpPaths("/WEB-INF/lib/.*jar")).keySet();
@@ -114,8 +152,8 @@ public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
     private static void addConfiguration(final JavaArchive resourceJar, final CucumberConfiguration cucumberConfiguration, final boolean report, final String reportDirectory) {
         final StringBuilder config = new StringBuilder();
         config.append(CucumberConfiguration.COLORS).append("=").append(cucumberConfiguration.isColorized()).append("\n")
-            .append(CucumberConfiguration.REPORTABLE).append("=").append(report).append("\n")
-            .append(CucumberConfiguration.REPORTABLE_PATH).append("=").append(reportDirectory).append("\n");
+                .append(CucumberConfiguration.REPORTABLE).append("=").append(report).append("\n")
+                .append(CucumberConfiguration.REPORTABLE_PATH).append("=").append(reportDirectory).append("\n");
         if (cucumberConfiguration.hasOptions()) {
             config.append(CucumberConfiguration.OPTIONS).append("=").append(cucumberConfiguration.getOptions());
         }
@@ -172,13 +210,16 @@ public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
                 jarLocation(Mapper.class),
                 jarLocation(ResourceLoaderClassFinder.class),
                 jarLocation(ConverterRegistry.class),
-                jarLocation(JavaBackend.class),
-                jarLocation(Cucumber.class));
-        try {
-            final File j8 = jarLocation(Thread.currentThread().getContextClassLoader().loadClass("cucumber.runtime.java8.LambdaGlueBase"));
-            libraryContainer.addAsLibraries(j8);
-        } catch (final Exception e) {
-            // no-op
+                jarLocation(JavaBackend.class));
+        for (final String potential : asList(
+                "cucumber.api.junit.Cucumber",
+                "cucumber.api.testng.TestNGCucumberRunner",
+                "cucumber.runtime.java8.LambdaGlueBase")) {
+            try {
+                libraryContainer.addAsLibraries(jarLocation(Thread.currentThread().getContextClassLoader().loadClass(potential)));
+            } catch (final Throwable e) {
+                // no-op
+            }
         }
     }
 
@@ -212,24 +253,24 @@ public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
         }
     }
 
-    private static void enrichWithCukeSpace(final LibraryContainer<?> libraryContainer) {
-        libraryContainer.addAsLibrary(
-            create(JavaArchive.class, "cukespace-core.jar")
+    private static void enrichWithCukeSpace(final LibraryContainer<?> libraryContainer, final boolean junit) {
+        final JavaArchive archive = create(JavaArchive.class, "cukespace-core.jar")
                 .addAsServiceProvider(RemoteLoadableExtension.class, CucumberContainerExtension.class)
                 .addPackage(ArquillianBackend.class.getPackage())
                 .addPackage(cucumber.runtime.arquillian.api.Glues.class.getPackage())
                 .addPackage(StepEvent.class.getPackage())
-                .addClass(NotCloseablePrintStream.class)
-                .addClass(CucumberReporter.class)
-                .addClass(CucumberLifecycle.class)
-                .addClass(Features.class)
-                .addClass(Glues.class)
-                .addClass(CucumberConfiguration.class)
-                .addClasses(ArquillianCucumber.class, CukeSpace.class)
-                .addPackage(ClientServerFiles.class.getPackage())
-                .addClass(CucumberContainerExtension.class)
-                // don't add JarLocation here or update Features#isServer()
-        );
+                .addClasses(NotCloseablePrintStream.class, CucumberReporter.class, CucumberLifecycle.class, BaseCukeSpace.class)
+                .addClasses(CucumberConfiguration.class, CucumberContainerExtension.class, Features.class, Glues.class)
+                .addPackage(ClientServerFiles.class.getPackage());
+        if (junit) {
+            archive.addClasses(ArquillianCucumber.class, CukeSpace.class, ArquillianCucumber.InstanceControlledFrameworkMethod.class);
+        } else {
+            archive.addClasses(
+                    cucumber.runtime.arquillian.testng.CukeSpace.class,
+                    cucumber.runtime.arquillian.testng.CukeSpace.TestNGCukeSpace.class,
+                    cucumber.runtime.arquillian.testng.CukeSpace.FormaterReporterFacade.class);
+        }
+        libraryContainer.addAsLibrary(archive);
     }
 
     private static void tryToAdd(final Collection<ArchivePath> paths, final LibraryContainer<?> container, final String exclusion, final String... classes) {

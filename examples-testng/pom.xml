@@ -1,0 +1,295 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.github.cukespace</groupId>
+    <artifactId>cukespace-parent</artifactId>
+    <version>1.6.4-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>cukespace-examples-testng</artifactId>
+  <name>Cukes in Space! :: Examples TestNG</name>
+  <packaging>war</packaging>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.apache.tomee</groupId>
+      <artifactId>javaee-api</artifactId>
+      <version>7.0</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.testng</groupId>
+      <artifactId>testng</artifactId>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>com.beust</groupId>
+          <artifactId>jcommander</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.jboss.arquillian.testng</groupId>
+      <artifactId>arquillian-testng-container</artifactId>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.jboss.shrinkwrap.descriptors</groupId>
+          <artifactId>shrinkwrap-descriptors-spi</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.jboss.shrinkwrap.descriptors</groupId>
+          <artifactId>shrinkwrap-descriptors-api</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.jboss.shrinkwrap.descriptors</groupId>
+          <artifactId>shrinkwrap-descriptors-api-base</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.jboss.arquillian.config</groupId>
+          <artifactId>arquillian-config-impl-base</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.jboss.arquillian.protocol</groupId>
+      <artifactId>arquillian-protocol-servlet</artifactId>
+      <version>${arquillian.version}</version>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.jboss.shrinkwrap.descriptors</groupId>
+          <artifactId>shrinkwrap-descriptors-api</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.jboss.shrinkwrap.descriptors</groupId>
+          <artifactId>shrinkwrap-descriptors-api-base</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.jboss.shrinkwrap.descriptors</groupId>
+          <artifactId>shrinkwrap-descriptors-spi</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>com.github.cukespace</groupId>
+      <artifactId>cukespace-core</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>com.google.guava</groupId>
+          <artifactId>guava</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-api</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency> <!-- not added by default cause of backward compatibility -->
+      <groupId>info.cukes</groupId>
+      <artifactId>cucumber-testng</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+
+    <testResources>
+      <testResource>
+        <directory>src/test/resources</directory>
+        <filtering>true</filtering>
+      </testResource>
+    </testResources>
+
+    <plugins>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <executions>
+          <execution>
+            <goals>
+              <goal>test-jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.2</version>
+        <configuration>
+          <source>1.8</source>
+          <target>1.8</target>
+        </configuration>
+      </plugin>
+
+    </plugins>
+
+  </build>
+
+  <profiles>
+    <profile>
+      <id>tomee-remote</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <repositories>
+        <repository>
+          <id>apache-snapshot</id>
+          <name>Apache Snapshots</name>
+          <url>https://repository.apache.org/content/groups/snapshots/</url>
+        </repository>
+      </repositories>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <version>${maven-surefire.version}</version>
+            <configuration>
+              <systemPropertyVariables>
+                <arquillian.qualifier>tomee-remote</arquillian.qualifier>
+                <java.net.preferIPv4Stack>true</java.net.preferIPv4Stack>
+              </systemPropertyVariables>
+            </configuration>
+          </plugin>
+          <plugin>
+            <groupId>org.asciidoctor</groupId>
+            <artifactId>asciidoctor-maven-plugin</artifactId>
+            <version>1.5.3</version>
+            <configuration>
+              <sourceDirectory>${project.build.directory}/docs</sourceDirectory>
+              <sourceDocumentName>documentation.adoc</sourceDocumentName>
+              <headerFooter>true</headerFooter>
+              <doctype>book</doctype>
+              <!--<attributes>
+                <imagesdir>./images</imagesdir>
+                <docVersion>${project.version}</docVersion>
+              </attributes>-->
+            </configuration>
+            <executions>
+              <execution>
+                <id>output-html5</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>process-asciidoc</goal>
+                </goals>
+                <configuration>
+                  <sourceHighlighter>coderay</sourceHighlighter>
+                  <backend>html5</backend>
+                  <attributes>
+                    <linkcss>true</linkcss>
+                    <linkattrs>true</linkattrs>
+                    <sectnums />
+                    <toc>right</toc>
+                    <tocLevels>3</tocLevels>
+                    <icons>font</icons>
+                    <idprefix />
+                    <sectanchors>true</sectanchors>
+                  </attributes>
+                </configuration>
+              </execution>
+              <execution>
+                <id>output-pdf</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>process-asciidoc</goal>
+                </goals>
+                <configuration>
+                  <backend>pdf</backend>
+                  <sourceHighlighter>coderay</sourceHighlighter>
+                  <attributes>
+                    <pagenums />
+                    <toc />
+                    <idprefix />
+                    <idseparator>-</idseparator>
+                  </attributes>
+                </configuration>
+              </execution>
+            </executions>
+            <dependencies>
+              <dependency>
+                <groupId>org.asciidoctor</groupId>
+                <artifactId>asciidoctorj-pdf</artifactId>
+                <version>1.5.0-alpha.11</version>
+              </dependency>
+              <dependency>
+                <groupId>org.asciidoctor</groupId>
+                <artifactId>asciidoctorj</artifactId>
+                <version>1.5.4.1</version>
+              </dependency>
+              <dependency>
+                <groupId>org.jruby</groupId>
+                <artifactId>jruby-complete</artifactId>
+                <version>1.7.25</version>
+              </dependency>
+            </dependencies>
+          </plugin>
+        </plugins>
+      </build>
+      <dependencies>
+        <dependency>
+          <groupId>org.apache.tomee</groupId>
+          <artifactId>arquillian-tomee-remote</artifactId>
+          <version>7.0.1</version>
+          <scope>test</scope>
+          <exclusions>
+            <exclusion>
+              <groupId>org.jboss.arquillian.container</groupId>
+              <artifactId>arquillian-container-spi</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>org.jboss.arquillian.protocol</groupId>
+              <artifactId>arquillian-protocol-servlet</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>org.jboss.arquillian.test</groupId>
+              <artifactId>arquillian-test-spi</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>org.jboss.arquillian.container</groupId>
+              <artifactId>arquillian-container-test-spi</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>org.jboss.arquillian.core</groupId>
+              <artifactId>arquillian-core-spi</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>org.jboss.arquillian.config</groupId>
+              <artifactId>arquillian-config-impl-base</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>commons-logging</groupId>
+              <artifactId>commons-logging</artifactId>
+            </exclusion>
+          </exclusions>
+        </dependency>
+      </dependencies>
+    </profile>
+  </profiles>
+
+  <!--
+  This section allows you to configure where to publish libraries for sharing.
+  It is not required and may be deleted.  For more information see:
+  http://maven.apache.org/plugins/maven-deploy-plugin/
+  -->
+  <distributionManagement>
+    <repository>
+      <id>localhost</id>
+      <url>file://${basedir}/target/repo/</url>
+    </repository>
+    <snapshotRepository>
+      <id>localhost</id>
+      <url>file://${basedir}/target/snapshot-repo/</url>
+    </snapshotRepository>
+  </distributionManagement>
+
+</project>
