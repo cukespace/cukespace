@@ -295,6 +295,8 @@ public abstract class BaseCukeSpace<CUCUMBER_REPORTER, TEST_NOTIFIER> {
                 writer.write(reportBuilder.toString());
                 writer.flush();
             } catch (final IOException e) {
+                // no-op
+            } finally {
                 if (writer != null) {
                     writer.close();
                 }

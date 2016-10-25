@@ -32,6 +32,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static java.util.Arrays.asList;
@@ -101,7 +102,11 @@ public class CucumberReporter {
                     throw new IllegalStateException("No report available");
                 }
                 for (String jsonReport : jsonReports) {
-                    features.addAll(FeatureParser.parse(jsonReport));
+                    try {
+                        features.addAll(FeatureParser.parse(jsonReport));
+                    } catch (final RuntimeException re) {
+                        LOGGER.log(Level.WARNING, "Can't parse " + jsonReport, re);
+                    }
                 }
                 if (features.isEmpty()) {
                     LOGGER.info("No features found for Cucumber documentation");
@@ -112,8 +117,7 @@ public class CucumberReporter {
                     String doc = converter.renderDocumentation();
                     File adocFile = FileUtil.saveFile(cucumberConfiguration.getDocsDirectory() + "documentation.adoc", doc);
 
-                    if (cucumberConfiguration.isGenerateDocsAsHtml()) {
-                        //TODO provide a way to user configure documentation
+                    if (cucumberConfiguration.isGenerateDocsAsHtml()) { // arquillian-asciidoctor-extension is better that this now
                         final OptionsBuilder optBuilder = OptionsBuilder.options()
                                 .backend("html5")
                                 .safe(SafeMode.UNSAFE);

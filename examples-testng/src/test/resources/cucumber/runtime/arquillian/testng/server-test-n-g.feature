@@ -1,6 +1,6 @@
-Feature: Eat Cukes
+Feature: Eat Cukes again
 
-  Scenario: Eating 4 cukes
+  Scenario: Eating 4 cukes again
 
     Given I have a belly
     When I eat 4 cukes

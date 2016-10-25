@@ -153,7 +153,8 @@ public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
         final StringBuilder config = new StringBuilder();
         config.append(CucumberConfiguration.COLORS).append("=").append(cucumberConfiguration.isColorized()).append("\n")
                 .append(CucumberConfiguration.REPORTABLE).append("=").append(report).append("\n")
-                .append(CucumberConfiguration.REPORTABLE_PATH).append("=").append(reportDirectory).append("\n");
+                .append(CucumberConfiguration.REPORTABLE_PATH).append("=")
+                .append(reportDirectory == null ? null : new File(reportDirectory).getAbsolutePath()).append("\n");
         if (cucumberConfiguration.hasOptions()) {
             config.append(CucumberConfiguration.OPTIONS).append("=").append(cucumberConfiguration.getOptions());
         }
