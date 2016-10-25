@@ -62,9 +62,7 @@ public class CukeSpace extends Arquillian {
                                   final FormaterReporterFacade reporter, final Void runNotifier) throws Throwable {
             reporter.reporter.startFeature();
             feature.run(reporter.formatter, reporter.reporter, cucumberRuntime);
-            reporter.formatter.done();
-            reporter.formatter.close();
-            cucumberRuntime.printSummary();
+
             if (!reporter.reporter.isPassed()) {
                 throw new CucumberException(reporter.reporter.getFirstError());
             }
