@@ -60,14 +60,13 @@ public class CucumberLifecycle {
 
     // do it lazily to get the right classloader + be sure contexts are started (drone...)
     public void loadCucumberAnnotationsAndEnrichers(final @Observes(precedence = 1) Before before) {
-        // enrichers
-        if (TEST_ENRICHERS.isEmpty()) {
-            synchronized (TEST_ENRICHERS) {
+        // enrichers - load new enrichers every time because of issue #81
+        TEST_ENRICHERS.clear();
+        synchronized (TEST_ENRICHERS) {
                 if (TEST_ENRICHERS.isEmpty()) {
                     TEST_ENRICHERS.addAll(serviceLoader.get().all(TestEnricher.class));
                 }
             }
-        }
 
         // cucumber annotations
         if (CUCUMBER_ANNOTATIONS.isEmpty()) { // don't do it N times
