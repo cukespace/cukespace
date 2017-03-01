@@ -1,6 +1,7 @@
 package cucumber.runtime.arquillian.runner;
 
 import cucumber.api.CucumberOptions;
+import cucumber.api.StepDefinitionReporter;
 import cucumber.runtime.Backend;
 import cucumber.runtime.CucumberException;
 import cucumber.runtime.Env;
@@ -45,7 +46,8 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -78,9 +80,6 @@ public abstract class BaseCukeSpace<CUCUMBER_REPORTER, TEST_NOTIFIER> {
         final InputStream configurationInputStream = classLoader.getResourceAsStream(ClientServerFiles.CONFIG);
         final Properties cukespaceConfigurationProperties = loadCucumberConfigurationProperties(configurationInputStream);
 
-        final Map<String, Collection<URL>> featuresMap = Features.createFeatureMap(CucumberConfiguration.instance().getTempDir(), cukespaceConfigurationProperties.getProperty(CucumberConfiguration.FEATURE_HOME), javaTestClass, classLoader);
-        final List<CucumberFeature> cucumberFeatures = getCucumberFeatures(testInstance, classLoader, featuresMap);
-
         final RuntimeOptions runtimeOptions = loadRuntimeOptions(javaTestClass, cukespaceConfigurationProperties);
 
         final boolean reported = Boolean.parseBoolean(cukespaceConfigurationProperties.getProperty(CucumberConfiguration.REPORTABLE, "false"));
@@ -92,10 +91,17 @@ public abstract class BaseCukeSpace<CUCUMBER_REPORTER, TEST_NOTIFIER> {
         final InputStream gluesInputStream = classLoader.getResourceAsStream(ClientServerFiles.GLUES_LIST);
         final Collection<Class<?>> glues = loadGlues(gluesInputStream, classLoader, javaTestClass);
 
+
         final ArquillianBackend arquillianBackend = new ArquillianBackend(glues, javaTestClass, testInstance);
         final CucumberRuntime cucumberRuntime = new CucumberRuntime(null, classLoader, singletonList(arquillianBackend), runtimeOptions);
+
+        final Map<String, Collection<URL>> featuresMap = Features.createFeatureMap(CucumberConfiguration.instance().getTempDir(), cukespaceConfigurationProperties.getProperty(CucumberConfiguration.FEATURE_HOME), javaTestClass, classLoader);
+        final List<CucumberFeature> cucumberFeatures = getCucumberFeatures(testInstance, classLoader, featuresMap);
+
         final Formatter formatter = runtimeOptions.formatter(classLoader);
         final Reporter reporter = runtimeOptions.reporter(classLoader);
+        final StepDefinitionReporter stepDefinitionReporter = runtimeOptions.stepDefinitionReporter(classLoader);
+        cucumberRuntime.getGlue().reportStepDefinitions(stepDefinitionReporter);
         runFeatures(cucumberFeatures, cucumberRuntime, getReporter(reporter, formatter, runtimeOptions), runNotifier);
 
         if (reported) {
@@ -126,7 +132,7 @@ public abstract class BaseCukeSpace<CUCUMBER_REPORTER, TEST_NOTIFIER> {
     }
 
     private static List<CucumberFeature> getCucumberFeatures(final Object testInstance, final ClassLoader classLoader, final Map<String, Collection<URL>> featuresMap) throws Exception {
-        final HashSet<Object> testFilters = new HashSet<Object>(createFilters(testInstance));
+        final List<Object> testFilters = new ArrayList<Object>(createFilters(testInstance));
         final InputStream featuresInputStream = classLoader.getResourceAsStream(ClientServerFiles.FEATURES_LIST);
         return buildFeatureList(testFilters, featuresInputStream, classLoader, featuresMap);
     }
@@ -160,7 +166,8 @@ public abstract class BaseCukeSpace<CUCUMBER_REPORTER, TEST_NOTIFIER> {
         return filters;
     }
 
-    private static List<CucumberFeature> buildFeatureList(final Set<Object> testFilters, final InputStream featuresInputStream, final ClassLoader classLoader, final Map<String, Collection<URL>> featuresMap) throws Exception {
+    private static List<CucumberFeature> buildFeatureList(final List<Object> testFilters, final InputStream featuresInputStream,
+                                                          final ClassLoader classLoader, final Map<String, Collection<URL>> featuresMap) throws Exception {
         final List<CucumberFeature> cucumberFeatures = new ArrayList<CucumberFeature>();
         final FeatureBuilder featureBuilder = new FeatureBuilder(cucumberFeatures);
 
@@ -174,13 +181,26 @@ public abstract class BaseCukeSpace<CUCUMBER_REPORTER, TEST_NOTIFIER> {
         featureBuilder.close();
 
         if (cucumberFeatures.isEmpty()) {
-            throw new IllegalArgumentException("No feature found");
+            if (featuresMap.values().isEmpty()) {
+                System.out.println("Got no path to feature directory or feature file");
+            } else if (testFilters.isEmpty()) {
+                System.out.println(String.format("No features found at %s", featuresMap.values()));
+            } else {
+                System.out.println(String.format("None of the features at %s matched the filters: %s", featuresMap.values(), testFilters));
+            }
         }
 
+        Collections.sort(cucumberFeatures, new Comparator<CucumberFeature>() {
+            @Override
+            public int compare(final CucumberFeature o1, final CucumberFeature o2) {
+                return o1.getPath().compareTo(o2.getPath());
+            }
+        });
         return cucumberFeatures;
     }
 
-    private static void buildFeatureListFromFile(final InputStream featuresInputStream, final Set<Object> testFilters, final FeatureBuilder featureBuilder, final ClassLoader classLoader) throws Exception {
+    private static void buildFeatureListFromFile(final InputStream featuresInputStream, final List<Object> testFilters,
+                                                 final FeatureBuilder featureBuilder, final ClassLoader classLoader) throws Exception {
         final BufferedReader featuresFileReader = new BufferedReader(new InputStreamReader(featuresInputStream));
 
         String readerLine;
@@ -199,10 +219,9 @@ public abstract class BaseCukeSpace<CUCUMBER_REPORTER, TEST_NOTIFIER> {
         featuresFileReader.close();
     }
 
-    private static void buildFeatureListFromMap(final Map<String, Collection<URL>> featuresMap, final Set<Object> testFilters, final FeatureBuilder featureBuilder) {
-        final Set<Map.Entry<String, Collection<URL>>> featuresEntriesSet = featuresMap.entrySet();
-
-        for (final Map.Entry<String, Collection<URL>> entry : featuresEntriesSet) {
+    private static void buildFeatureListFromMap(final Map<String, Collection<URL>> featuresMap, final List<Object> testFilters,
+                                                final FeatureBuilder featureBuilder) {
+        for (final Map.Entry<String, Collection<URL>> entry : featuresMap.entrySet()) {
             final PathWithLines pathWithLines = new PathWithLines(entry.getKey());
             testFilters.addAll(pathWithLines.lines);
             for (final URL url : entry.getValue()) {

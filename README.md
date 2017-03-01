@@ -235,6 +235,8 @@ public class MyFeatureTest {
 }
 ```
 
+Note: you can also set tags adding them on the test JVM, for the client `"-Dcucumber.options=-t @myTag"`, for the server check your arquillian adapter,
+for TomEE for instance you can use: `"-Dtomee.properties=-Dcucumber.options=-t @myTag"`.
 
 #### @Cucumber.Options
 
