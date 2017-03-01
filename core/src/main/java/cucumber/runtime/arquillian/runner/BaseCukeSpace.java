@@ -96,7 +96,7 @@ public abstract class BaseCukeSpace<CUCUMBER_REPORTER, TEST_NOTIFIER> {
         final CucumberRuntime cucumberRuntime = new CucumberRuntime(null, classLoader, singletonList(arquillianBackend), runtimeOptions);
 
         final Map<String, Collection<URL>> featuresMap = Features.createFeatureMap(CucumberConfiguration.instance().getTempDir(), cukespaceConfigurationProperties.getProperty(CucumberConfiguration.FEATURE_HOME), javaTestClass, classLoader);
-        final List<CucumberFeature> cucumberFeatures = getCucumberFeatures(testInstance, classLoader, featuresMap);
+        final List<CucumberFeature> cucumberFeatures = getCucumberFeatures(runtimeOptions.getFilters(), testInstance, classLoader, featuresMap);
 
         final Formatter formatter = runtimeOptions.formatter(classLoader);
         final Reporter reporter = runtimeOptions.reporter(classLoader);
@@ -131,14 +131,15 @@ public abstract class BaseCukeSpace<CUCUMBER_REPORTER, TEST_NOTIFIER> {
         return cucumberConfiguration.getConfigurationAsProperties();
     }
 
-    private static List<CucumberFeature> getCucumberFeatures(final Object testInstance, final ClassLoader classLoader, final Map<String, Collection<URL>> featuresMap) throws Exception {
-        final List<Object> testFilters = new ArrayList<Object>(createFilters(testInstance));
+    private static List<CucumberFeature> getCucumberFeatures(final Collection<Object> configFilters, final Object testInstance, final ClassLoader classLoader,
+                                                             final Map<String, Collection<URL>> featuresMap) throws Exception {
+        final List<Object> testFilters = new ArrayList<Object>(createFilters(testInstance, configFilters));
         final InputStream featuresInputStream = classLoader.getResourceAsStream(ClientServerFiles.FEATURES_LIST);
         return buildFeatureList(testFilters, featuresInputStream, classLoader, featuresMap);
     }
 
-    private static List<Object> createFilters(final Object testInstance) {
-        final List<Object> filters = new ArrayList<Object>();
+    private static List<Object> createFilters(final Object testInstance, final Collection<Object> configFilters) {
+        final List<Object> filters = new ArrayList<Object>(configFilters);
 
         final Class<?> testInstanceClass = testInstance.getClass();
 
