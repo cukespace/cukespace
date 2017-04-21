@@ -12,6 +12,7 @@ public class CucumberConfiguration {
     public static final String PERSISTENCE_EVENTS = "persistenceEventsActivated";
     public static final String COLORS = "colors";
     public static final String REPORTABLE = "reportable";
+    public static final String OBJECT_FACTORY = "objectFactory";
     public static final String REPORTABLE_PATH = "reportablePath";
     public static final String OPTIONS = "options";
     public static final String FEATURE_HOME = "featureHome";
@@ -25,6 +26,7 @@ public class CucumberConfiguration {
     private String docsDirectory;
     private String options;
     private String featureHome;
+    private String objectFactory;
 
     /**
      * directory to dump resource loader from loaders
@@ -112,6 +114,14 @@ public class CucumberConfiguration {
         return persistenceEventsActivated;
     }
 
+    public String getObjectFactory() {
+        return objectFactory;
+    }
+
+    public void setObjectFactory(final String objectFactory) {
+        this.objectFactory = objectFactory;
+    }
+
     public static File reportFile(final String path, final Class<?> clazz) {
         return new File(path, clazz.getName() + ".json");
     }
@@ -153,6 +163,9 @@ public class CucumberConfiguration {
             if (properties.containsKey(FEATURE_HOME)) {
                 CONFIGURATION.featureHome = properties.get(FEATURE_HOME);
             }
+            if (properties.containsKey(OBJECT_FACTORY)) {
+                CONFIGURATION.objectFactory = properties.get(OBJECT_FACTORY);
+            }
 
             CONFIGURATION.original = properties;
 
@@ -163,6 +176,7 @@ public class CucumberConfiguration {
 
     public static void reset() {
         CONFIGURATION.persistenceEventsActivated = false;
+        CONFIGURATION.objectFactory = null;
         CONFIGURATION.initialized = false;
         CONFIGURATION.reportDirectory = "target/cucumber-report/";
         CONFIGURATION.docsDirectory = "target/docs/";
@@ -190,6 +204,9 @@ public class CucumberConfiguration {
             configurationProperties.setProperty(CucumberConfiguration.COLORS, Boolean.toString(colorized));
             configurationProperties.setProperty(CucumberConfiguration.REPORTABLE, Boolean.toString(report || generateDocs));
             configurationProperties.setProperty(CucumberConfiguration.REPORTABLE_PATH, reportDirectory);
+            if (objectFactory != null) {
+                configurationProperties.setProperty(CucumberConfiguration.OBJECT_FACTORY, objectFactory);
+            }
             if (featureHome != null) {
                 configurationProperties.setProperty(CucumberConfiguration.FEATURE_HOME, featureHome);
             }

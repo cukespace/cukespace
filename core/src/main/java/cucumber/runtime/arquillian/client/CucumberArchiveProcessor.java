@@ -6,7 +6,9 @@ import cucumber.runtime.arquillian.CukeSpace;
 import cucumber.runtime.arquillian.api.event.StepEvent;
 import cucumber.runtime.arquillian.backend.ArquillianBackend;
 import cucumber.runtime.arquillian.config.CucumberConfiguration;
+import cucumber.runtime.arquillian.container.ContextualObjectFactoryBase;
 import cucumber.runtime.arquillian.container.CucumberContainerExtension;
+import cucumber.runtime.arquillian.container.CukeSpaceCDIObjectFactory;
 import cucumber.runtime.arquillian.feature.Features;
 import cucumber.runtime.arquillian.glue.Glues;
 import cucumber.runtime.arquillian.lifecycle.CucumberLifecycle;
@@ -261,7 +263,10 @@ public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
                 .addPackage(cucumber.runtime.arquillian.api.Glues.class.getPackage())
                 .addPackage(StepEvent.class.getPackage())
                 .addClasses(NotCloseablePrintStream.class, CucumberReporter.class, CucumberLifecycle.class, BaseCukeSpace.class)
-                .addClasses(CucumberConfiguration.class, CucumberContainerExtension.class, Features.class, Glues.class)
+                .addClasses(
+                        CucumberConfiguration.class, CucumberContainerExtension.class,
+                        Features.class, Glues.class,
+                        ContextualObjectFactoryBase.class, CukeSpaceCDIObjectFactory.class)
                 .addPackage(ClientServerFiles.class.getPackage());
         if (junit) {
             archive.addClasses(ArquillianCucumber.class, CukeSpace.class, ArquillianCucumber.InstanceControlledFrameworkMethod.class);

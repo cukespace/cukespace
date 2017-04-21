@@ -2,6 +2,7 @@ package cucumber.runtime.arquillian.backend;
 
 import cucumber.api.java.After;
 import cucumber.api.java.Before;
+import cucumber.api.java.ObjectFactory;
 import cucumber.runtime.Backend;
 import cucumber.runtime.ClassFinder;
 import cucumber.runtime.CucumberException;
@@ -12,6 +13,8 @@ import cucumber.runtime.StepDefinition;
 import cucumber.runtime.UnreportedStepExecutor;
 import cucumber.runtime.Utils;
 import cucumber.runtime.arquillian.api.Lambda;
+import cucumber.runtime.arquillian.container.ContextualObjectFactoryBase;
+import cucumber.runtime.arquillian.container.CukeSpaceCDIObjectFactory;
 import cucumber.runtime.arquillian.lifecycle.CucumberLifecycle;
 import cucumber.runtime.java.JavaBackend;
 import cucumber.runtime.java.StepDefAnnotation;
@@ -21,7 +24,9 @@ import cucumber.runtime.snippets.SnippetGenerator;
 import gherkin.formatter.model.Step;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -32,20 +37,23 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 import static cucumber.runtime.arquillian.shared.ClassLoaders.load;
+import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
 
 // patched to use the resource loader defined by this extension
 // the best would probably to update cucumber-core to handle
 // completely listed feature/steps (glue) classes/resources
 public class ArquillianBackend extends JavaBackend implements Backend {
-    protected static enum GlueType {
+    protected enum GlueType {
         JAVA, SCALA, UNKNOWN
     }
 
     private SnippetGenerator snippetGenerator;
-    private final Map<Class<?>, Object> instances = new HashMap<Class<?>, Object>();
     private final Collection<Class<?>> glues = new ArrayList<Class<?>>();
     private Glue glue;
     private GlueType glueType = GlueType.UNKNOWN;
+    private ObjectFactory objectFactory;
+    private Class<?> testClass;
 
     public ArquillianBackend() { // no-op constructor but we need to be JavaBackend for java8 integration
         super(null, new ClassFinder() {
@@ -61,72 +69,154 @@ public class ArquillianBackend extends JavaBackend implements Backend {
                 return (Class<? extends T>) loader.loadClass(s);
             }
         });
+        this.objectFactory = defaultObjectFactory(null, null);
     }
 
-    public ArquillianBackend(final Collection<Class<?>> classes, final Class<?> clazz, final Object testInstance) {
+    public ArquillianBackend(final Collection<Class<?>> classes, final Class<?> clazz, final Object testInstance, final String objectFactory) {
         this();
-        instances.put(clazz, testInstance);
-        glues.addAll(classes);
+        this.glues.addAll(classes);
+        this.testClass = clazz;
+        try {
+            this.objectFactory = objectFactory == null ?
+                    defaultObjectFactory(clazz, testInstance) :
+                    wrapObjectFactory(clazz, testInstance, "cdi".equalsIgnoreCase(objectFactory.trim()) ?
+                            new CukeSpaceCDIObjectFactory() :
+                            ObjectFactory.class.cast(Thread.currentThread().getContextClassLoader()
+                                    .loadClass(objectFactory.trim()).getConstructor().newInstance()));
+        } catch (final InstantiationException | IllegalAccessException | ClassNotFoundException | NoSuchMethodException e) {
+            throw new IllegalStateException(e);
+        } catch (InvocationTargetException e) {
+            throw new IllegalStateException(e.getCause());
+        }
+    }
+
+    // ensure test class is used as glue
+    private ObjectFactory wrapObjectFactory(final Class<?> clazz, final Object testInstance, final ObjectFactory cast) {
+        return new ObjectFactory() {
+            @Override
+            public void start() {
+                cast.start();
+            }
+
+            @Override
+            public void stop() {
+                cast.stop();
+            }
+
+            @Override
+            public boolean addClass(final Class<?> glueClass) {
+                return glueClass == clazz || cast.addClass(glueClass);
+            }
+
+            @Override
+            public <T> T getInstance(final Class<T> glueClass) {
+                return glueClass == clazz ? glueClass.cast(testInstance) : cast.getInstance(glueClass);
+            }
+        };
+    }
+
+    // plain newInstance()
+    private ObjectFactory defaultObjectFactory(final Class<?> clazz, final Object testInstance) {
+        return new ContextualObjectFactoryBase() {
+            private final Map<Class<?>, Object> instances = new HashMap<>();
+
+            {
+                // yes before start cause otherwise we'll duplicate the instance and not behave properly
+                instances.put(clazz, testInstance);
+            }
+
+            @Override
+            public void stop() {
+                instances.clear();
+            }
+
+            @Override
+            public boolean addClass(final Class<?> clazz) {
+                return getInstance(clazz) != null;
+            }
+
+            @Override
+            public <T> T getInstance(final Class<T> type) {
+                T instance = type.cast(instances.get(type));
+                if (instance == null) {
+                    try {
+                        final Constructor<T> constructor = type.getConstructor();
+                        instance = constructor.newInstance();
+                        instances.put(type, instance);
+                        return instance;
+                    } catch (final Exception e) {
+                        throw new CucumberException(String.format("Failed to instantiate %s", type), e);
+                    }
+                }
+                return instance;
+            }
+        };
     }
 
     @Override
     public void loadGlue(final Glue glue, final List<String> gluePaths) {
         super.loadGlue(glue, Collections.<String>emptyList());
         this.glue = glue;
-        for (final Object i : instances.values()) {
-            initLambda(i);
-        }
-        initInstances();
         scan(); // dedicated scanning
     }
 
     private void initInstances() {
         for (final Class<?> glueClass : glues) {
-            final Object instance;
             try {
-                instance = initLambda(glueClass.newInstance());
+                initLambda(CucumberLifecycle.enrich(objectFactory.getInstance(glueClass)));
             } catch (final Exception e) {
                 throw new IllegalArgumentException("Can't instantiate " + glueClass.getName(), e);
             }
-
-            instances.put(glueClass, CucumberLifecycle.enrich(instance));
+        }
+        if (testClass != null) {
+            initLambda(CucumberLifecycle.enrich(objectFactory.getInstance(testClass)));
         }
     }
 
-    private Object initLambda(final Object instance) {
+    private void initLambda(final Object instance) {
         beforeCreate();
         try {
             if (Lambda.class.isInstance(instance)) {
                 Lambda.class.cast(instance).define();
             }
-            return instance;
         } finally {
             afterCreate();
         }
     }
 
     private void scan() {
-        for (final Map.Entry<Class<?>, Object> clazz : instances.entrySet()) {
-            if (readFromJava(clazz)) {
-                glueType = GlueType.JAVA;
+        for (final Collection<? extends Class<?>> list : asList(glues, singletonList(testClass))) {
+            for (final Class<?> clazz : list) {
+                if (clazz == null) { // testclass can be null
+                    continue;
+                }
+
+                if (readFromJava(clazz)) {
+                    glueType = GlueType.JAVA;
+                    break;
+                }
+                if (readFromScalaDsl(objectFactory.getInstance(clazz)) && glueType != GlueType.JAVA) {
+                    glueType = GlueType.SCALA;
+                    break;
+                }
             }
-            if (readFromScalaDsl(clazz.getValue()) && glueType != GlueType.JAVA) {
-                glueType = GlueType.SCALA;
+            if (glueType != GlueType.UNKNOWN) {
+                break;
             }
         }
     }
 
-    private boolean readFromJava(Map.Entry<Class<?>, Object> clazz) {
+    private boolean readFromJava(final Class<?> clazz) {
         boolean found = false;
-        for (final Method method : clazz.getKey().getMethods()) {
+        for (final Method method : clazz.getMethods()) {
             for (final Class<? extends Annotation> cucumberAnnotationClass : CucumberLifecycle.cucumberAnnotations()) {
                 final Annotation annotation = method.getAnnotation(cucumberAnnotationClass);
                 if (annotation != null) {
                     if (isHookAnnotation(annotation)) {
-                        addHook(annotation, method, clazz.getValue());
+                        addHook(annotation, method, objectFactory.getInstance(clazz));
                         found = true;
                     } else if (isStepdefAnnotation(annotation)) {
-                        addStepDefinition(annotation, method, clazz.getValue());
+                        addStepDefinition(annotation, method, objectFactory.getInstance(clazz));
                         found = true;
                     }
                 }
@@ -222,12 +312,13 @@ public class ArquillianBackend extends JavaBackend implements Backend {
 
     @Override
     public void buildWorld() {
-        // no-op
+        objectFactory.start();
+        initInstances();
     }
 
     @Override
     public void disposeWorld() {
-        // no-op
+        objectFactory.stop();
     }
 
     @Override

@@ -92,7 +92,9 @@ public abstract class BaseCukeSpace<CUCUMBER_REPORTER, TEST_NOTIFIER> {
         final Collection<Class<?>> glues = loadGlues(gluesInputStream, classLoader, javaTestClass);
 
 
-        final ArquillianBackend arquillianBackend = new ArquillianBackend(glues, javaTestClass, testInstance);
+        final ArquillianBackend arquillianBackend = new ArquillianBackend(
+                glues, javaTestClass, testInstance,
+                cukespaceConfigurationProperties.getProperty(CucumberConfiguration.OBJECT_FACTORY));
         final CucumberRuntime cucumberRuntime = new CucumberRuntime(null, classLoader, singletonList(arquillianBackend), runtimeOptions);
 
         final Map<String, Collection<URL>> featuresMap = Features.createFeatureMap(CucumberConfiguration.instance().getTempDir(), cukespaceConfigurationProperties.getProperty(CucumberConfiguration.FEATURE_HOME), javaTestClass, classLoader);

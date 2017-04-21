@@ -177,6 +177,10 @@ Here are the complete properties:
 | options          | cucumber options used when `cucumber.api.junit.Cucumber.Options` is not on the test class |
 | featureHome      | where to look for features (base path)                                                    |
 | tempDir          | where custom loaders dump their resources                                                 |
+| objectFactory | if default (plain new instance) implementation doesn't work for you add the object factory jar you use in the deployment and configure the class there (tip: "cdi" is a value value)|
+
+Important: objectFactory support is mainly for the getInstance() lookup, it is not recommanded to reuse
+cucumber-jvm implementation which would start/stop a container. This role is handled by arquillian already in CukeSpace.
 
 #### Reporting sample configuration
 
