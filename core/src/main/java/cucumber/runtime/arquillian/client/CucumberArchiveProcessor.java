@@ -126,10 +126,11 @@ public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
         final CucumberConfiguration cucumberConfiguration = configuration.get();
         final boolean report = cucumberConfiguration.isReport() || cucumberConfiguration.isGenerateDocs();
         final String reportDirectory = cucumberConfiguration.getReportDirectory();
+        final String objectFactory = cucumberConfiguration.getObjectFactory();
 
         addFeatures(featureUrls, ln, resourceJar);
         addCucumberAnnotations(ln, resourceJar);
-        addConfiguration(resourceJar, cucumberConfiguration, report, reportDirectory);
+        addConfiguration(resourceJar, cucumberConfiguration, report, reportDirectory, objectFactory);
 
         libraryContainer.addAsLibrary(resourceJar);
 
@@ -151,12 +152,16 @@ public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
         tryToAdd(libs, libraryContainer, "WEB-INF/lib/scala-library-", "cucumber.api.scala.ScalaDsl", "scala.App");
     }
 
-    private static void addConfiguration(final JavaArchive resourceJar, final CucumberConfiguration cucumberConfiguration, final boolean report, final String reportDirectory) {
+    private static void addConfiguration(final JavaArchive resourceJar, final CucumberConfiguration cucumberConfiguration, final boolean report, final String reportDirectory, final String objectFactory) {
         final StringBuilder config = new StringBuilder();
         config.append(CucumberConfiguration.COLORS).append("=").append(cucumberConfiguration.isColorized()).append("\n")
                 .append(CucumberConfiguration.REPORTABLE).append("=").append(report).append("\n")
                 .append(CucumberConfiguration.REPORTABLE_PATH).append("=")
                 .append(reportDirectory == null ? null : new File(reportDirectory).getAbsolutePath()).append("\n");
+
+        if (objectFactory != null) {
+             config.append(CucumberConfiguration.OBJECT_FACTORY).append("=").append(objectFactory).append("\n");
+        }
         if (cucumberConfiguration.hasOptions()) {
             config.append(CucumberConfiguration.OPTIONS).append("=").append(cucumberConfiguration.getOptions());
         }
