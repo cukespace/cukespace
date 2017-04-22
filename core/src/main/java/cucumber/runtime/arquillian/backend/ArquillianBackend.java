@@ -193,11 +193,9 @@ public class ArquillianBackend extends JavaBackend implements Backend {
 
                 if (readFromJava(clazz)) {
                     glueType = GlueType.JAVA;
-                    break;
                 }
                 if (readFromScalaDsl(objectFactory.getInstance(clazz)) && glueType != GlueType.JAVA) {
                     glueType = GlueType.SCALA;
-                    break;
                 }
             }
             if (glueType != GlueType.UNKNOWN) {
