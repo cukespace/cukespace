@@ -157,6 +157,10 @@ public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
                 .append(CucumberConfiguration.REPORTABLE).append("=").append(report).append("\n")
                 .append(CucumberConfiguration.REPORTABLE_PATH).append("=")
                 .append(reportDirectory == null ? null : new File(reportDirectory).getAbsolutePath()).append("\n");
+
+        if (cucumberConfiguration.getObjectFactory() != null) {
+             config.append(CucumberConfiguration.OBJECT_FACTORY).append("=").append(cucumberConfiguration.getObjectFactory()).append("\n");
+        }
         if (cucumberConfiguration.hasOptions()) {
             config.append(CucumberConfiguration.OPTIONS).append("=").append(cucumberConfiguration.getOptions());
         }
