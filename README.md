@@ -180,7 +180,7 @@ Here are the complete properties:
 | objectFactory | if default (plain new instance) implementation doesn't work for you add the object factory jar you use in the deployment and configure the class there (tip: "cdi" is a value value)|
 
 Important: objectFactory support is mainly for the getInstance() lookup, it is not recommanded to reuse
-cucumber-jvm implementation which would start/stop a container. This role is handled by arquillian already in CukeSpace.
+cucumber-jvm implementation which would start/stop a container. This role is handled by arquillian already in CukeSpace and shouldn't be duplicated - can fail if you start the same container twice.
 
 #### Reporting sample configuration
 
