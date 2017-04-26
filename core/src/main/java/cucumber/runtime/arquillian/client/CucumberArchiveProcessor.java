@@ -48,6 +48,8 @@ import static cucumber.runtime.arquillian.shared.ClassLoaders.load;
 import static cucumber.runtime.arquillian.shared.IOs.slurp;
 import static java.util.Arrays.asList;
 import static org.jboss.shrinkwrap.api.ShrinkWrap.create;
+import org.jboss.shrinkwrap.api.spec.EnterpriseArchive;
+import org.jboss.shrinkwrap.api.spec.WebArchive;
 
 public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
     private static volatile StringAsset scannedAnnotations = null;
@@ -137,14 +139,24 @@ public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
             CucumberReporter.addReport(CucumberConfiguration.reportFile(reportDirectory, javaClass));
         }
 
-        // glues
-        enrichWithGlues(javaClass, libraryContainer, ln);
-
         // cucumber-java and cucumber-core
         enrichWithDefaultCucumber(libraryContainer);
 
+        LibraryContainer<?> entryPointContainer = libraryContainer;
+
+        if (applicationArchive instanceof EnterpriseArchive) {
+            for (ArchivePath applicationKey : applicationArchive.getContent().keySet()) {
+                if (applicationKey.get().endsWith(".war")) {
+                    entryPointContainer = applicationArchive.getAsType(WebArchive.class, applicationKey.get());
+                }
+            }
+        }
+
+        // glues
+        enrichWithGlues(javaClass, entryPointContainer, ln);
+
         // cucumber-arquillian
-        enrichWithCukeSpace(libraryContainer, junit);
+        enrichWithCukeSpace(entryPointContainer, junit);
 
         // if scala module is available at classpath
         final Set<ArchivePath> libs = applicationArchive.getContent(new IncludeRegExpPaths("/WEB-INF/lib/.*jar")).keySet();
