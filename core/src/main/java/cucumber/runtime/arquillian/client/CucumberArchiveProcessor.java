@@ -48,6 +48,9 @@ import static cucumber.runtime.arquillian.shared.ClassLoaders.load;
 import static cucumber.runtime.arquillian.shared.IOs.slurp;
 import static java.util.Arrays.asList;
 import static org.jboss.shrinkwrap.api.ShrinkWrap.create;
+import org.jboss.shrinkwrap.api.asset.EmptyAsset;
+import org.jboss.shrinkwrap.api.spec.EnterpriseArchive;
+import org.jboss.shrinkwrap.api.spec.WebArchive;
 
 public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
     private static volatile StringAsset scannedAnnotations = null;
@@ -137,14 +140,24 @@ public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
             CucumberReporter.addReport(CucumberConfiguration.reportFile(reportDirectory, javaClass));
         }
 
-        // glues
-        enrichWithGlues(javaClass, libraryContainer, ln);
-
         // cucumber-java and cucumber-core
         enrichWithDefaultCucumber(libraryContainer);
 
+        LibraryContainer<?> entryPointContainer = libraryContainer;
+
+        if (applicationArchive instanceof EnterpriseArchive) {
+            for (ArchivePath applicationKey : applicationArchive.getContent().keySet()) {
+                if (applicationKey.get().endsWith(".war")) {
+                    entryPointContainer = applicationArchive.getAsType(WebArchive.class, applicationKey.get());
+                }
+            }
+        }
+
+        // glues
+        enrichWithGlues(javaClass, entryPointContainer, ln);
+
         // cucumber-arquillian
-        enrichWithCukeSpace(libraryContainer, junit);
+        enrichWithCukeSpace(entryPointContainer, junit, "cdi".equalsIgnoreCase(cucumberConfiguration.getObjectFactory().trim()));
 
         // if scala module is available at classpath
         final Set<ArchivePath> libs = applicationArchive.getContent(new IncludeRegExpPaths("/WEB-INF/lib/.*jar")).keySet();
@@ -235,7 +248,6 @@ public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
         final StringBuilder gluesStr = new StringBuilder();
         if (!glues.isEmpty()) {
             final JavaArchive gluesJar = create(JavaArchive.class, "cukespace-glues.jar");
-
             { // glues txt file
                 for (final Class<?> g : glues) {
                     gluesStr.append(g.getName()).append(ln);
@@ -260,7 +272,7 @@ public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
         }
     }
 
-    private static void enrichWithCukeSpace(final LibraryContainer<?> libraryContainer, final boolean junit) {
+    private static void enrichWithCukeSpace(final LibraryContainer<?> libraryContainer, final boolean junit, final boolean cdiEnabled) {
         final JavaArchive archive = create(JavaArchive.class, "cukespace-core.jar")
                 .addAsServiceProvider(RemoteLoadableExtension.class, CucumberContainerExtension.class)
                 .addPackage(ArquillianBackend.class.getPackage())
@@ -272,6 +284,10 @@ public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
                         Features.class, Glues.class,
                         ContextualObjectFactoryBase.class, CukeSpaceCDIObjectFactory.class)
                 .addPackage(ClientServerFiles.class.getPackage());
+
+        if (cdiEnabled) {
+            archive.addAsManifestResource(EmptyAsset.INSTANCE, "beans.xml");
+        }
         if (junit) {
             archive.addClasses(ArquillianCucumber.class, CukeSpace.class, ArquillianCucumber.InstanceControlledFrameworkMethod.class);
         } else {
