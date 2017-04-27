@@ -47,10 +47,11 @@ import static cucumber.runtime.arquillian.locator.JarLocation.jarLocation;
 import static cucumber.runtime.arquillian.shared.ClassLoaders.load;
 import static cucumber.runtime.arquillian.shared.IOs.slurp;
 import static java.util.Arrays.asList;
+import org.jboss.shrinkwrap.api.Node;
 import static org.jboss.shrinkwrap.api.ShrinkWrap.create;
+import org.jboss.shrinkwrap.api.asset.ArchiveAsset;
+import org.jboss.shrinkwrap.api.asset.ClassAsset;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
-import org.jboss.shrinkwrap.api.spec.EnterpriseArchive;
-import org.jboss.shrinkwrap.api.spec.WebArchive;
 
 public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
     private static volatile StringAsset scannedAnnotations = null;
@@ -145,10 +146,14 @@ public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
 
         LibraryContainer<?> entryPointContainer = libraryContainer;
 
-        if (applicationArchive instanceof EnterpriseArchive) {
-            for (ArchivePath applicationKey : applicationArchive.getContent().keySet()) {
-                if (applicationKey.get().endsWith(".war")) {
-                    entryPointContainer = applicationArchive.getAsType(WebArchive.class, applicationKey.get());
+        if (!archiveContains(applicationArchive, testClass.getJavaClass())) {
+            for (Node node : applicationArchive.getContent().values()) {
+                if (node.getAsset() instanceof ArchiveAsset) {
+                    Archive archive = ((ArchiveAsset)node.getAsset()).getArchive();
+
+                    if (archiveContains(archive, testClass.getJavaClass()) && archive instanceof LibraryContainer) {
+                        entryPointContainer = (LibraryContainer)archive;
+                    }
                 }
             }
         }
@@ -164,6 +169,20 @@ public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
         tryToAdd(libs, libraryContainer, "WEB-INF/lib/scala-library-", "cucumber.api.scala.ScalaDsl", "scala.App");
     }
 
+    private boolean archiveContains(Archive<?> archive, Class<?> clazz) {
+        for (Node node : archive.getContent().values()) {
+
+            if(node.getAsset() instanceof ClassAsset) {
+                ClassAsset classAsset = (ClassAsset) node.getAsset();
+
+                if (classAsset.getSource().isAssignableFrom(clazz)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
     private static void addConfiguration(final JavaArchive resourceJar, final CucumberConfiguration cucumberConfiguration, final boolean report, final String reportDirectory) {
         final StringBuilder config = new StringBuilder();
         config.append(CucumberConfiguration.COLORS).append("=").append(cucumberConfiguration.isColorized()).append("\n")
