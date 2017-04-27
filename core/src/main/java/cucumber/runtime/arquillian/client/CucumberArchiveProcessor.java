@@ -47,6 +47,7 @@ import static cucumber.runtime.arquillian.locator.JarLocation.jarLocation;
 import static cucumber.runtime.arquillian.shared.ClassLoaders.load;
 import static cucumber.runtime.arquillian.shared.IOs.slurp;
 import static java.util.Arrays.asList;
+import org.jboss.shrinkwrap.api.Filters;
 import org.jboss.shrinkwrap.api.Node;
 import static org.jboss.shrinkwrap.api.ShrinkWrap.create;
 import org.jboss.shrinkwrap.api.asset.ArchiveAsset;
@@ -147,7 +148,7 @@ public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
         LibraryContainer<?> entryPointContainer = libraryContainer;
 
         if (!archiveContains(applicationArchive, testClass.getJavaClass())) {
-            for (Node node : applicationArchive.getContent().values()) {
+            for (Node node : applicationArchive.getContent(Filters.include(".*\\.(jar|war)")).values()) {
                 if (node.getAsset() instanceof ArchiveAsset) {
                     Archive archive = ((ArchiveAsset)node.getAsset()).getArchive();
 
@@ -170,19 +171,12 @@ public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
     }
 
     private boolean archiveContains(Archive<?> archive, Class<?> clazz) {
-        for (Node node : archive.getContent().values()) {
+        String classPath = clazz.getCanonicalName().replace('.', '/') + ".class";
+        String warClassPath = "WEB-INF/classes/" + classPath;
 
-            if(node.getAsset() instanceof ClassAsset) {
-                ClassAsset classAsset = (ClassAsset) node.getAsset();
-
-                if (classAsset.getSource().isAssignableFrom(clazz)) {
-                    return true;
-                }
-            }
-        }
-
-        return false;
+        return archive.contains(classPath) || archive.contains(warClassPath);
     }
+
     private static void addConfiguration(final JavaArchive resourceJar, final CucumberConfiguration cucumberConfiguration, final boolean report, final String reportDirectory) {
         final StringBuilder config = new StringBuilder();
         config.append(CucumberConfiguration.COLORS).append("=").append(cucumberConfiguration.isColorized()).append("\n")
