@@ -198,9 +198,6 @@ public class ArquillianBackend extends JavaBackend implements Backend {
                     glueType = GlueType.SCALA;
                 }
             }
-            if (glueType != GlueType.UNKNOWN) {
-                break;
-            }
         }
     }
 
