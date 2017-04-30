@@ -26,7 +26,11 @@ import org.jboss.arquillian.core.api.annotation.Inject;
 import org.jboss.arquillian.test.spi.TestClass;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ArchivePath;
+import org.jboss.shrinkwrap.api.Filters;
+import org.jboss.shrinkwrap.api.Node;
+import org.jboss.shrinkwrap.api.asset.ArchiveAsset;
 import org.jboss.shrinkwrap.api.asset.Asset;
+import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.container.LibraryContainer;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
@@ -47,12 +51,7 @@ import static cucumber.runtime.arquillian.locator.JarLocation.jarLocation;
 import static cucumber.runtime.arquillian.shared.ClassLoaders.load;
 import static cucumber.runtime.arquillian.shared.IOs.slurp;
 import static java.util.Arrays.asList;
-import org.jboss.shrinkwrap.api.Filters;
-import org.jboss.shrinkwrap.api.Node;
 import static org.jboss.shrinkwrap.api.ShrinkWrap.create;
-import org.jboss.shrinkwrap.api.asset.ArchiveAsset;
-import org.jboss.shrinkwrap.api.asset.ClassAsset;
-import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 
 public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
     private static volatile StringAsset scannedAnnotations = null;
@@ -150,10 +149,10 @@ public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
         if (!archiveContains(applicationArchive, testClass.getJavaClass())) {
             for (Node node : applicationArchive.getContent(Filters.include(".*\\.(jar|war)")).values()) {
                 if (node.getAsset() instanceof ArchiveAsset) {
-                    Archive archive = ((ArchiveAsset)node.getAsset()).getArchive();
+                    Archive archive = ((ArchiveAsset) node.getAsset()).getArchive();
 
                     if (archiveContains(archive, testClass.getJavaClass()) && archive instanceof LibraryContainer) {
-                        entryPointContainer = (LibraryContainer)archive;
+                        entryPointContainer = (LibraryContainer) archive;
                     }
                 }
             }
@@ -163,7 +162,8 @@ public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
         enrichWithGlues(javaClass, entryPointContainer, ln);
 
         // cucumber-arquillian
-        enrichWithCukeSpace(entryPointContainer, junit, "cdi".equalsIgnoreCase(cucumberConfiguration.getObjectFactory().trim()));
+        enrichWithCukeSpace(entryPointContainer, junit,
+                cucumberConfiguration.getObjectFactory() != null && "cdi".equalsIgnoreCase(cucumberConfiguration.getObjectFactory().trim()));
 
         // if scala module is available at classpath
         final Set<ArchivePath> libs = applicationArchive.getContent(new IncludeRegExpPaths("/WEB-INF/lib/.*jar")).keySet();
@@ -185,7 +185,7 @@ public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
                 .append(reportDirectory == null ? null : new File(reportDirectory).getAbsolutePath()).append("\n");
 
         if (cucumberConfiguration.getObjectFactory() != null) {
-             config.append(CucumberConfiguration.OBJECT_FACTORY).append("=").append(cucumberConfiguration.getObjectFactory()).append("\n");
+            config.append(CucumberConfiguration.OBJECT_FACTORY).append("=").append(cucumberConfiguration.getObjectFactory()).append("\n");
         }
         if (cucumberConfiguration.hasOptions()) {
             config.append(CucumberConfiguration.OPTIONS).append("=").append(cucumberConfiguration.getOptions());
@@ -298,7 +298,7 @@ public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
                         ContextualObjectFactoryBase.class, CukeSpaceCDIObjectFactory.class)
                 .addPackage(ClientServerFiles.class.getPackage());
 
-        if (cdiEnabled) {
+        if (cdiEnabled) { // TODO: drop it to exclude scanning and avoid any potential issue, maybe custom extension?
             archive.addAsManifestResource(EmptyAsset.INSTANCE, "beans.xml");
         }
         if (junit) {
