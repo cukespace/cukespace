@@ -300,7 +300,7 @@ public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
                 .addClasses(
                         CucumberConfiguration.class, CucumberContainerExtension.class,
                         Features.class, Glues.class,
-                        ContextualObjectFactoryBase.class, CukeSpaceCDIObjectFactory.class)
+                        ContextualObjectFactoryBase.class)
                 .addPackage(ClientServerFiles.class.getPackage());
 
         if (junit) {
