@@ -390,7 +390,10 @@ public abstract class BaseCukeSpace<CUCUMBER_REPORTER, TEST_NOTIFIER> {
 
         public URLResource(final String path, final URL url) {
             this.url = url;
-            this.path = path;
+
+            final String urlStr = url.toExternalForm().replace(File.separatorChar, '/');
+            final int idx = urlStr.indexOf(path.replace(File.separatorChar, '/'));
+            this.path = idx < 0 ? path : urlStr.substring(idx);
         }
 
         @Override
