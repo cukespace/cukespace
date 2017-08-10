@@ -80,45 +80,19 @@ public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
             // no-op
         }
         final boolean junit = testNgBase == null || !testNgBase.isAssignableFrom(javaClass);
-        if (featureUrls.isEmpty()
-                || !LibraryContainer.class.isInstance(applicationArchive)) {
-            if (junit) {
-                Class<? extends Annotation> runWithType = null;
-                try {
-                    runWithType = (Class<? extends Annotation>) loader.loadClass("org.junit.runner.RunWith");
-
-                } catch (final ClassNotFoundException error) {
-                    // no-op
-                } catch (final NoClassDefFoundError e) {
-                    // no-op
-                }
-
-                if (runWithType == null) {
-                    return;
-                }
-                final Annotation runWith = testClass.getAnnotation(runWithType);
-                if (runWith == null) {
-                    return;
-                }
-
-                try {
-                    final Class<?> runner = Class.class.cast(runWithType.getMethod("value").invoke(runWith));
-                    if ((!ArquillianCucumber.class.equals(runner) && !CukeSpace.class.equals(runner))) {
-                        // not a cucumber test so skip enrichment
-                        return;
-                    } else {
-                        // else let enrich it to avoid type not found error
-                        Logger.getLogger(CucumberArchiveProcessor.class.getName()).info("No feature found for " + javaClass.getName());
-                    }
-                } catch (final IllegalAccessException e) {
-                    throw new IllegalStateException(e);
-                } catch (final InvocationTargetException e) {
-                    throw new IllegalStateException(e.getCause());
-                } catch (final NoSuchMethodException e) {
-                    throw new IllegalArgumentException(e);
-                }
+        
+        if (junit) {
+            if (!isCukeSpaceTest(testClass, loader)) {
+                // not a cucumber test so skip enrichment
+                return;
+            }
+            if (featureUrls.isEmpty()
+                    || !LibraryContainer.class.isInstance(applicationArchive)) {
+                //let enrich it anyway to avoid type not found error
+                Logger.getLogger(CucumberArchiveProcessor.class.getName()).info("No feature found for " + javaClass.getName());
             }
         }
+        
 
         final String ln = System.getProperty("line.separator");
 
@@ -354,5 +328,39 @@ public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
 
         // fallback
         return Math.abs(url.hashCode()) + Features.EXTENSION;
+    }
+
+    private static boolean isCukeSpaceTest(final TestClass testClass, final ClassLoader loader) {
+        Class<? extends Annotation> runWithType = null;
+        try {
+            runWithType = (Class<? extends Annotation>) loader.loadClass("org.junit.runner.RunWith");
+
+        } catch (final ClassNotFoundException error) {
+            // no-op
+        } catch (final NoClassDefFoundError e) {
+            // no-op
+        }
+
+        if (runWithType == null) {
+            return false;
+        }
+        final Annotation runWith = testClass.getAnnotation(runWithType);
+        if (runWith == null) {
+            return false;
+        }
+
+        try {
+            final Class<?> runner = Class.class.cast(runWithType.getMethod("value").invoke(runWith));
+            if ((!ArquillianCucumber.class.equals(runner) && !CukeSpace.class.equals(runner))) {
+                return false;
+            } 
+        } catch (final IllegalAccessException e) {
+            throw new IllegalStateException(e);
+        } catch (final InvocationTargetException e) {
+            throw new IllegalStateException(e.getCause());
+        } catch (final NoSuchMethodException e) {
+            throw new IllegalArgumentException(e);
+        }
+        return true;
     }
 }
