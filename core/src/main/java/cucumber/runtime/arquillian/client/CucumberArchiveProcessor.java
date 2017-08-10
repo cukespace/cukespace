@@ -61,7 +61,7 @@ public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
 
     @Override
     public void process(final Archive<?> applicationArchive, final TestClass testClass) {
-        if (JavaArchive.class.isInstance(applicationArchive)) {
+        if (!LibraryContainer.class.isInstance(applicationArchive)) {
             return;
         }
 
@@ -82,12 +82,11 @@ public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
         final boolean junit = testNgBase == null || !testNgBase.isAssignableFrom(javaClass);
         
         if (junit) {
-            if (!isCukeSpaceTest(testClass, loader)) {
+            if (!isJUnitCukeSpaceTest(testClass, loader)) {
                 // not a cucumber test so skip enrichment
                 return;
             }
-            if (featureUrls.isEmpty()
-                    || !LibraryContainer.class.isInstance(applicationArchive)) {
+            if (featureUrls.isEmpty()) {
                 //let enrich it anyway to avoid type not found error
                 Logger.getLogger(CucumberArchiveProcessor.class.getName()).info("No feature found for " + javaClass.getName());
             }
@@ -330,7 +329,7 @@ public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
         return Math.abs(url.hashCode()) + Features.EXTENSION;
     }
 
-    private static boolean isCukeSpaceTest(final TestClass testClass, final ClassLoader loader) {
+    private static boolean isJUnitCukeSpaceTest(final TestClass testClass, final ClassLoader loader) {
         Class<? extends Annotation> runWithType = null;
         try {
             runWithType = (Class<? extends Annotation>) loader.loadClass("org.junit.runner.RunWith");
