@@ -25,12 +25,6 @@
       <groupId>org.testng</groupId>
       <artifactId>testng</artifactId>
       <scope>test</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>com.beust</groupId>
-          <artifactId>jcommander</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.jboss.arquillian.testng</groupId>
@@ -94,6 +88,12 @@
     <dependency> <!-- not added by default cause of backward compatibility -->
       <groupId>info.cukes</groupId>
       <artifactId>cucumber-testng</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>joda-time</groupId>
+      <artifactId>joda-time</artifactId>
+      <version>2.9.9</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
