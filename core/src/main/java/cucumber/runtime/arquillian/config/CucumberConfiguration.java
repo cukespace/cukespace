@@ -78,12 +78,16 @@ public class CucumberConfiguration {
         return generateDocs;
     }
 
-    public boolean isGenerateDocsAsHtml() {
-        return generateDocsAsHtml;
-    }
-
     public String getDocsDirectory() {
         return docsDirectory;
+    }
+
+    /**
+     * @deprecated see arquillian-asciidoctor-extension
+     */
+    @Deprecated
+    public boolean isGenerateDocsAsHtml() {
+        return generateDocsAsHtml;
     }
 
     public String getReportDirectory() {

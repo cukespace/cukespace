@@ -4,15 +4,12 @@ import com.github.cukedoctor.Cukedoctor;
 import com.github.cukedoctor.api.CukedoctorConverter;
 import com.github.cukedoctor.api.DocumentAttributes;
 import com.github.cukedoctor.api.model.Feature;
+import com.github.cukedoctor.config.GlobalConfig;
 import com.github.cukedoctor.parser.FeatureParser;
 import com.github.cukedoctor.util.FileUtil;
 import cucumber.runtime.arquillian.config.CucumberConfiguration;
 import net.masterthought.cucumber.Configuration;
 import net.masterthought.cucumber.ReportBuilder;
-import org.asciidoctor.Asciidoctor;
-import org.asciidoctor.AttributesBuilder;
-import org.asciidoctor.OptionsBuilder;
-import org.asciidoctor.SafeMode;
 import org.jboss.arquillian.container.spi.event.KillContainer;
 import org.jboss.arquillian.container.spi.event.StartContainer;
 import org.jboss.arquillian.container.spi.event.StopContainer;
@@ -24,14 +21,7 @@ import java.io.File;
 import java.lang.reflect.Method;
 import java.net.URI;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -111,43 +101,9 @@ public class CucumberReporter {
                 if (features.isEmpty()) {
                     LOGGER.info("No features found for Cucumber documentation");
                 } else {
-
-                    final DocumentAttributes da = bind(cucumberConfiguration.getConfig("adoc.doc.attributes."), new DocumentAttributes());
-                    CukedoctorConverter converter = Cukedoctor.instance(features, da);
+                    CukedoctorConverter converter = Cukedoctor.instance(features, GlobalConfig.getInstance().getDocumentAttributes());
                     String doc = converter.renderDocumentation();
-                    File adocFile = FileUtil.saveFile(cucumberConfiguration.getDocsDirectory() + "documentation.adoc", doc);
-
-                    if (cucumberConfiguration.isGenerateDocsAsHtml()) { // arquillian-asciidoctor-extension is better that this now
-                        final OptionsBuilder optBuilder = OptionsBuilder.options()
-                                .backend("html5")
-                                .safe(SafeMode.UNSAFE);
-
-                        final Map<String, String> opts = cucumberConfiguration.getConfig("adoc.options.");
-                        if (!opts.isEmpty()) {
-                            bind(opts, optBuilder);
-                        }
-
-                        final Map<String, String> attrs = cucumberConfiguration.getConfig("adoc.attributes.");
-                        if (!attrs.isEmpty()) {
-                            optBuilder.attributes(bind(attrs, AttributesBuilder.attributes()));
-                        }
-
-                        Map<String, Object> options = optBuilder
-                                .asMap();
-                        Asciidoctor asciidoctor = Asciidoctor.Factory.create();
-                        //generate html(default backend) docs
-                        asciidoctor.convertFile(adocFile, options);
-
-                        //generate pdf docs
-                        /*
-                         * commented because of a classpath issue:
-                         * java.lang.NoSuchMethodError: org.yaml.snakeyaml.events.DocumentStartEvent.getVersion()Lorg/yaml/snakeyaml/DumperOptions$Version;
-                         */
-                        //asciidoctor.convertFile(adocFile, OptionsBuilder.options().backend("pdf").safe(SafeMode.UNSAFE).asMap());
-
-                        asciidoctor.shutdown();
-                        LOGGER.info("Cucumber documentation generated at " + adocFile.getParent());
-                    }
+                    FileUtil.saveFile(cucumberConfiguration.getDocsDirectory() + "documentation.adoc", doc);
                 }
             }
         }
