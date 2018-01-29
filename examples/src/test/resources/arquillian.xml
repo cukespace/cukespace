@@ -27,12 +27,6 @@
     <property name="backend">html</property>
   </extension>
 
-  <!--<extension qualifier="asciidoctor-docs-pdf">
-    <property name="sourceDirectory">target/docs</property>
-    <property name="outputDirectory">target/docs</property>
-    <property name="backend">pdf</property>
-  </extension>-->
-
   <container qualifier="tomee-remote" default="true">
     <configuration>
       <property name="httpPort">-1</property>

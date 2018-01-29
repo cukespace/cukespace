@@ -25,6 +25,12 @@
       <groupId>org.testng</groupId>
       <artifactId>testng</artifactId>
       <scope>test</scope>
+       <exclusions>
+        <exclusion>
+          <groupId>com.beust</groupId>
+          <artifactId>jcommander</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.jboss.arquillian.testng</groupId>

@@ -14,6 +14,21 @@ public class CucumberConfigurationProducer {
 
     public void findConfiguration(final @Observes ArquillianDescriptor descriptor) {
         final ExtensionDef cucumberDef = descriptor.extension("cucumber");
-        configurationProducer.set(CucumberConfiguration.from(cucumberDef.getExtensionProperties()));
+        CucumberConfiguration cucumberConfiguration = CucumberConfiguration.from(cucumberDef.getExtensionProperties());
+        cucumberConfiguration.setHasAsciidoctorExtension(hasAsciidoctorExtension(descriptor));
+        configurationProducer.set(cucumberConfiguration);
+    }
+
+    private boolean hasAsciidoctorExtension(ArquillianDescriptor descriptor) {
+        if(descriptor.getExtensions() == null || descriptor.getExtensions().isEmpty()) {
+            return false;
+        }
+
+        for (ExtensionDef extension : descriptor.getExtensions()) {
+            if(extension.getExtensionName().startsWith("asciidoctor")) {
+                return true;
+            }
+        }
+        return false;
     }
 }

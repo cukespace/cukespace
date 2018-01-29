@@ -192,6 +192,18 @@
     </dependency>
 
     <dependency>
+      <groupId>com.github.cukespace</groupId>
+      <artifactId>arquillian-asciidoctor-extension</artifactId>
+      <version>0.0.3-SNAPSHOT</version>
+      <exclusions>
+        <exclusion>
+          <groupId>commons-io</groupId>
+          <artifactId>commons-io</artifactId>
+        </exclusion>
+        </exclusions>
+    </dependency>
+
+    <dependency>
       <groupId>org.jboss.shrinkwrap</groupId>
       <artifactId>shrinkwrap-api</artifactId>
       <scope>compile</scope>

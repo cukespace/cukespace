@@ -38,6 +38,7 @@ public class CucumberConfiguration {
     // raw configuration in arquillian.xml for internal "extensions" (adoc uses it to extract attributes for instance)
     // Note: this is only available in Local/embedded containers or client code
     private Map<String, String> original;
+    private boolean hasAsciidoctorExtension;
 
     private static String guessDefaultTempDir() {
         final String suffix = "/cukespace/features/";
@@ -223,5 +224,13 @@ public class CucumberConfiguration {
         }
     	
     	return configurationProperties;
+    }
+
+    public void setHasAsciidoctorExtension(boolean hasAsciidoctorExtension) {
+        this.hasAsciidoctorExtension = hasAsciidoctorExtension;
+    }
+
+    public boolean hasAsciidoctorExtension() {
+        return hasAsciidoctorExtension;
     }
 }
