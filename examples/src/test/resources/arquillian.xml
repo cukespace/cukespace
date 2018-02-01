@@ -20,10 +20,31 @@
     <property name="browser">phantomjs</property>
   </extension>
 
-  <extension qualifier="asciidoctor-docs">
+  <extension qualifier="asciidoctor-docs-html-left">
     <property name="sourceDirectory">target/docs</property>
-    <property name="outputDirectory">target/docs</property>
+    <property name="outputDirectory">target/docs-html-left</property>
     <property name="attribute.toc">left</property>
+    <property name="backend">html</property>
+  </extension>
+
+   <extension qualifier="asciidoctor-docs-pdf">
+    <property name="sourceDirectory">target/docs</property>
+    <property name="outputDirectory">target/docs-pdf</property>
+    <property name="attribute.toc">left</property>
+    <property name="backend">pdf</property>
+  </extension>
+
+   <extension qualifier="asciidoctor-docs-html-right">
+    <property name="sourceDirectory">target/docs</property>
+    <property name="outputDirectory">target/docs-html-right</property>
+    <property name="attribute.toc">right</property>
+    <property name="backend">html</property>
+  </extension>
+
+  <extension qualifier="asciidoctor-docs-html-center">
+    <property name="sourceDirectory">target/docs</property>
+    <property name="outputDirectory">target/docs-html-center</property>
+    <property name="attribute.toc">center</property>
     <property name="backend">html</property>
   </extension>
 

@@ -6,16 +6,12 @@ import com.github.cukedoctor.api.model.Feature;
 import com.github.cukedoctor.config.GlobalConfig;
 import com.github.cukedoctor.parser.FeatureParser;
 import com.github.cukedoctor.util.FileUtil;
-import com.github.cukespace.arquillian.asciidoctor.api.event.RenderDocsEvent;
 import cucumber.runtime.arquillian.config.CucumberConfiguration;
 import net.masterthought.cucumber.Configuration;
 import net.masterthought.cucumber.ReportBuilder;
-import org.jboss.arquillian.config.descriptor.api.ExtensionDef;
-import org.jboss.arquillian.config.descriptor.impl.ExtensionDefImpl;
 import org.jboss.arquillian.container.spi.event.KillContainer;
 import org.jboss.arquillian.container.spi.event.StartContainer;
 import org.jboss.arquillian.container.spi.event.StopContainer;
-import org.jboss.arquillian.core.api.Event;
 import org.jboss.arquillian.core.api.Instance;
 import org.jboss.arquillian.core.api.annotation.Inject;
 import org.jboss.arquillian.core.api.annotation.Observes;
@@ -37,9 +33,6 @@ public class CucumberReporter {
 
     @Inject
     private Instance<CucumberConfiguration> configuration;
-
-    @Inject
-    private Event<RenderDocsEvent> renderDocsEvent;
 
     public void initOnStart(final @Observes StartContainer startContainer) {
         jsonReports = new HashSet<String>();
@@ -110,16 +103,6 @@ public class CucumberReporter {
                     CukedoctorConverter converter = Cukedoctor.instance(features, GlobalConfig.getInstance().getDocumentAttributes());
                     String doc = converter.renderDocumentation();
                     FileUtil.saveFile(cucumberConfiguration.getDocsDirectory() + "documentation.adoc", doc);
-
-                    if (!cucumberConfiguration.hasAsciidoctorExtension()) {
-                        ExtensionDef asciidoctorExtension = new ExtensionDefImpl("asciidoctor-docs")
-                                .setExtensionName("asciidoctor-docs-html");
-                        asciidoctorExtension.property("sourceDirectory", "target/docs")
-                                .property("outputDirectory", "target/docs")
-                                .property("attribute.toc", "right")
-                                .property("backend", "html");
-                        renderDocsEvent.fire(new RenderDocsEvent(asciidoctorExtension));
-                    }
                 }
             }
         }

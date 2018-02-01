@@ -13,7 +13,7 @@
   <name>Cukes in Space!</name>
 
   <properties>
-    <cukedoctor.version>1.0.8</cukedoctor.version>
+    <cukedoctor.version>1.1.0</cukedoctor.version>
   </properties>
 
   <dependencies>
@@ -189,18 +189,6 @@
       <groupId>org.jboss.arquillian.testng</groupId>
       <artifactId>arquillian-testng-container</artifactId>
       <scope>provided</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>com.github.cukespace</groupId>
-      <artifactId>arquillian-asciidoctor-extension</artifactId>
-      <version>0.0.3-SNAPSHOT</version>
-      <exclusions>
-        <exclusion>
-          <groupId>commons-io</groupId>
-          <artifactId>commons-io</artifactId>
-        </exclusion>
-        </exclusions>
     </dependency>
 
     <dependency>
