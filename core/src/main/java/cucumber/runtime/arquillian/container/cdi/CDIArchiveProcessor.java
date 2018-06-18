@@ -24,14 +24,13 @@ public class CDIArchiveProcessor extends CucumberArchiveProcessor {
     public void process(Archive<?> applicationArchive, TestClass testClass) {
         super.process(applicationArchive, testClass);
 
-        CucumberConfiguration cucumberConfiguration = configuration.get();
+        final CucumberConfiguration cucumberConfiguration = configuration.get();
 
-        boolean cdiEnabled = CukeSpaceCDIObjectFactory.class.getCanonicalName()
+        final boolean cdiEnabled = cucumberConfiguration.getObjectFactory() != null && CukeSpaceCDIObjectFactory.class.getName()
                 .equalsIgnoreCase(cucumberConfiguration.getObjectFactory().trim());
 
         if (cdiEnabled) {
-            Archive<?> entryPointContainer = findArchiveByTestClass(applicationArchive, testClass.getJavaClass());
-            enrichWithCDI(entryPointContainer);
+            enrichWithCDI(findArchiveByTestClass(applicationArchive, testClass.getJavaClass()));
         }
     }
 
