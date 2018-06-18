@@ -1,1 +1,2 @@
 cucumber.runtime.arquillian.client.CucumberClientExtension
+cucumber.runtime.arquillian.container.cdi.CDIExtension

@@ -144,30 +144,35 @@ public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
         // cucumber-java and cucumber-core
         enrichWithDefaultCucumber(libraryContainer);
 
-        LibraryContainer<?> entryPointContainer = libraryContainer;
-
-        if (!archiveContains(applicationArchive, testClass.getJavaClass())) {
-            for (Node node : applicationArchive.getContent(Filters.include(".*\\.(jar|war)")).values()) {
-                if (node.getAsset() instanceof ArchiveAsset) {
-                    Archive archive = ((ArchiveAsset) node.getAsset()).getArchive();
-
-                    if (archiveContains(archive, testClass.getJavaClass()) && archive instanceof LibraryContainer) {
-                        entryPointContainer = (LibraryContainer) archive;
-                    }
-                }
-            }
-        }
+        LibraryContainer<?> entryPointContainer = (LibraryContainer<?>)findArchiveByTestClass(applicationArchive, testClass.getJavaClass());
 
         // glues
         enrichWithGlues(javaClass, entryPointContainer, ln);
 
         // cucumber-arquillian
-        enrichWithCukeSpace(entryPointContainer, junit,
-                cucumberConfiguration.getObjectFactory() != null && "cdi".equalsIgnoreCase(cucumberConfiguration.getObjectFactory().trim()));
+        enrichWithCukeSpace(entryPointContainer, junit);
 
         // if scala module is available at classpath
         final Set<ArchivePath> libs = applicationArchive.getContent(new IncludeRegExpPaths("/WEB-INF/lib/.*jar")).keySet();
         tryToAdd(libs, libraryContainer, "WEB-INF/lib/scala-library-", "cucumber.api.scala.ScalaDsl", "scala.App");
+    }
+
+    protected final Archive<? extends Archive<?>> findArchiveByTestClass(Archive<?> topArchive, Class testClass) {
+        Archive<?> testArchive = topArchive;
+
+        if (!archiveContains(testArchive, testClass)) {
+            for (Node node : testArchive.getContent(Filters.include(".*\\.(jar|war)")).values()) {
+                if (node.getAsset() instanceof ArchiveAsset) {
+                    Archive archive = ((ArchiveAsset) node.getAsset()).getArchive();
+
+                    if (archiveContains(archive, testClass) && archive instanceof LibraryContainer) {
+                        testArchive = archive;
+                    }
+                }
+            }
+        }
+
+        return testArchive;
     }
 
     private boolean archiveContains(Archive<?> archive, Class<?> clazz) {
@@ -285,7 +290,7 @@ public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
         }
     }
 
-    private static void enrichWithCukeSpace(final LibraryContainer<?> libraryContainer, final boolean junit, final boolean cdiEnabled) {
+    private static void enrichWithCukeSpace(final LibraryContainer<?> libraryContainer, final boolean junit) {
         final JavaArchive archive = create(JavaArchive.class, "cukespace-core.jar")
                 .addAsServiceProvider(RemoteLoadableExtension.class, CucumberContainerExtension.class)
                 .addPackage(ArquillianBackend.class.getPackage())
@@ -295,12 +300,9 @@ public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
                 .addClasses(
                         CucumberConfiguration.class, CucumberContainerExtension.class,
                         Features.class, Glues.class,
-                        ContextualObjectFactoryBase.class, CukeSpaceCDIObjectFactory.class)
+                        ContextualObjectFactoryBase.class)
                 .addPackage(ClientServerFiles.class.getPackage());
 
-        if (cdiEnabled) { // TODO: drop it to exclude scanning and avoid any potential issue, maybe custom extension?
-            archive.addAsManifestResource(EmptyAsset.INSTANCE, "beans.xml");
-        }
         if (junit) {
             archive.addClasses(ArquillianCucumber.class, CukeSpace.class, ArquillianCucumber.InstanceControlledFrameworkMethod.class);
         } else {

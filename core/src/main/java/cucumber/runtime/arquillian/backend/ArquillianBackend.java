@@ -14,7 +14,6 @@ import cucumber.runtime.UnreportedStepExecutor;
 import cucumber.runtime.Utils;
 import cucumber.runtime.arquillian.api.Lambda;
 import cucumber.runtime.arquillian.container.ContextualObjectFactoryBase;
-import cucumber.runtime.arquillian.container.CukeSpaceCDIObjectFactory;
 import cucumber.runtime.arquillian.lifecycle.CucumberLifecycle;
 import cucumber.runtime.java.JavaBackend;
 import cucumber.runtime.java.StepDefAnnotation;
@@ -79,8 +78,7 @@ public class ArquillianBackend extends JavaBackend implements Backend {
         try {
             this.objectFactory = objectFactory == null ?
                     defaultObjectFactory(clazz, testInstance) :
-                    wrapObjectFactory(clazz, testInstance, "cdi".equalsIgnoreCase(objectFactory.trim()) ?
-                            new CukeSpaceCDIObjectFactory() :
+                    wrapObjectFactory(clazz, testInstance,
                             ObjectFactory.class.cast(Thread.currentThread().getContextClassLoader()
                                     .loadClass(objectFactory.trim()).getConstructor().newInstance()));
         } catch (final InstantiationException | IllegalAccessException | ClassNotFoundException | NoSuchMethodException e) {
