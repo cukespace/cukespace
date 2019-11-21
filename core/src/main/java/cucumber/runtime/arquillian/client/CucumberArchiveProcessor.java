@@ -44,6 +44,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.logging.Logger;
 
@@ -183,17 +184,16 @@ public class CucumberArchiveProcessor implements ApplicationArchiveProcessor {
     }
 
     private static void addConfiguration(final JavaArchive resourceJar, final CucumberConfiguration cucumberConfiguration, final boolean report, final String reportDirectory) {
-        final StringBuilder config = new StringBuilder();
-        config.append(CucumberConfiguration.COLORS).append("=").append(cucumberConfiguration.isColorized()).append("\n")
-                .append(CucumberConfiguration.REPORTABLE).append("=").append(report).append("\n")
-                .append(CucumberConfiguration.REPORTABLE_PATH).append("=")
-                .append(reportDirectory == null ? null : new File(reportDirectory).getAbsolutePath()).append("\n");
+        final Properties config = new Properties();
+        config.setProperty(CucumberConfiguration.COLORS, String.valueOf(cucumberConfiguration.isColorized()));
+        config.setProperty(CucumberConfiguration.REPORTABLE, String.valueOf(report));
+        config.setProperty(CucumberConfiguration.REPORTABLE_PATH, reportDirectory == null ? null : new File(reportDirectory).getAbsolutePath());
 
         if (cucumberConfiguration.getObjectFactory() != null) {
-            config.append(CucumberConfiguration.OBJECT_FACTORY).append("=").append(cucumberConfiguration.getObjectFactory()).append("\n");
+        	config.setProperty(CucumberConfiguration.OBJECT_FACTORY, cucumberConfiguration.getObjectFactory());
         }
         if (cucumberConfiguration.hasOptions()) {
-            config.append(CucumberConfiguration.OPTIONS).append("=").append(cucumberConfiguration.getOptions());
+        	config.setProperty(CucumberConfiguration.OPTIONS, cucumberConfiguration.getOptions());
         }
 
         resourceJar.addAsResource(new StringAsset(config.toString()), ClientServerFiles.CONFIG);
