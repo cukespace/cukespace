@@ -8,6 +8,7 @@ import cucumber.runtime.Env;
 import cucumber.runtime.FeatureBuilder;
 import cucumber.runtime.RuntimeOptions;
 import cucumber.runtime.RuntimeOptionsFactory;
+import cucumber.runtime.Shellwords;
 import cucumber.runtime.StepDefinitionMatch;
 import cucumber.runtime.arquillian.api.Tags;
 import cucumber.runtime.arquillian.api.event.AfterAfterHooks;
@@ -241,7 +242,7 @@ public abstract class BaseCukeSpace<CUCUMBER_REPORTER, TEST_NOTIFIER> {
             cleanClasspathList(runtimeOptions.getGlue());
             cleanClasspathList(runtimeOptions.getFeaturePaths());
         } else if (cukespaceConfigurationProperties.containsKey(CucumberConfiguration.OPTIONS)) { // arquillian setting
-            runtimeOptions = new RuntimeOptions(new Env("cucumber-jvm"), asList((cukespaceConfigurationProperties.getProperty(CucumberConfiguration.OPTIONS, "--strict") + " --strict").split(" ")));
+            runtimeOptions = new RuntimeOptions(new Env("cucumber-jvm"), Shellwords.parse(cukespaceConfigurationProperties.getProperty(CucumberConfiguration.OPTIONS, "--strict")));
         } else { // default
             runtimeOptions = new RuntimeOptions(new Env("cucumber-jvm"), asList("--strict", "--plugin", "pretty", areColorsNotAvailable(cukespaceConfigurationProperties)));
         }
