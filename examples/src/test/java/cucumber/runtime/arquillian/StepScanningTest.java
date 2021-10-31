@@ -18,7 +18,7 @@ public class StepScanningTest {
     @Deployment
     public static Archive<?> createDeployment() {
         return create(WebArchive.class)
-            .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml")
-            .addClasses(Belly.class);
+                .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml")
+                .addClasses(Belly.class);
     }
 }

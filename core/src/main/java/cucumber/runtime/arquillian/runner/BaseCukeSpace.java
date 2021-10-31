@@ -36,6 +36,7 @@ import gherkin.formatter.model.Match;
 import gherkin.formatter.model.Result;
 import gherkin.formatter.model.Step;
 import gherkin.formatter.model.Tag;
+import org.jboss.arquillian.test.spi.event.suite.TestEvent;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -430,11 +431,13 @@ public abstract class BaseCukeSpace<CUCUMBER_REPORTER, TEST_NOTIFIER> {
         @Override
         public void runStep(final String featurePath, final Step step, final Reporter reporter, final I18n i18n) {
             super.runStep(featurePath, step, new Reporter() {
+                private final ThreadLocal<StepDefinitionMatch> current = new ThreadLocal<>();
+
                 @Override
                 public void match(final Match match) { // lazy to get the method and instance
                     if (StepDefinitionMatch.class.isInstance(match)) {
-                        EventHelper.matched(StepDefinitionMatch.class.cast(match));
-                        EventHelper.fire(new BeforeStep(featurePath, step));
+                        final TestEvent event = EventHelper.matched(StepDefinitionMatch.class.cast(match));
+                        EventHelper.fire(new BeforeStep(event, featurePath, step));
                     }
                     reporter.match(match);
                 }
@@ -446,16 +449,16 @@ public abstract class BaseCukeSpace<CUCUMBER_REPORTER, TEST_NOTIFIER> {
 
                 @Override
                 public void result(final Result result) {
+                    final TestEvent event = EventHelper.unmatch();
+                    if (event != null) {
+                        EventHelper.fire(new AfterStep(event, featurePath, step));
+                    }
                     reporter.result(result);
                 }
 
                 @Override
                 public void after(final Match match, final Result result) {
                     reporter.after(match, result);
-                    if (StepDefinitionMatch.class.isInstance(match)) {
-                        EventHelper.fire(new AfterStep(featurePath, step));
-                        EventHelper.unmatch();
-                    }
                 }
 
                 @Override

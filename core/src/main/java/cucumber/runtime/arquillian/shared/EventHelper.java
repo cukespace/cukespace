@@ -48,7 +48,7 @@ public class EventHelper {
         CURRENT.remove();
     }
 
-    public static void matched(final StepDefinitionMatch match) {
+    public static TestEvent matched(final StepDefinitionMatch match) {
         final TestEvent event;
         try {
             final Field field = StepDefinitionMatch.class.getDeclaredField("stepDefinition");
@@ -63,15 +63,18 @@ public class EventHelper {
                 TEST_EVENT.set(event);
             } else { // mock to still fire events but just as marker, TODO: don't use TestEvent? -> java 8
                 event = new TestEvent(TEST_EVENT, EventHelper.class.getMethod("currentEvent"));
+                TEST_EVENT.set(event);
             }
         } catch (final Exception e) {
             throw new IllegalStateException(e);
         }
-        TEST_EVENT.set(event);
+        return event;
     }
 
-    public static void unmatch() {
+    public static TestEvent unmatch() {
+        final TestEvent current = TEST_EVENT.get();
         TEST_EVENT.remove();
+        return current;
     }
 
     public static TestEvent currentEvent() {
