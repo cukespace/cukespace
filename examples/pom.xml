@@ -226,6 +226,10 @@
           <groupId>com.beust</groupId>
           <artifactId>jcommander</artifactId>
         </exclusion>
+        <exclusion>
+          <groupId>org.yaml</groupId>
+          <artifactId>snakeyaml</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
 
@@ -245,6 +249,18 @@
         </exclusion>
       </exclusions>
     </dependency>
+    <dependency>
+      <groupId>com.github.cukespace</groupId>
+      <artifactId>arquillian-asciidoctor-extension</artifactId>
+      <version>0.0.3-SNAPSHOT</version>
+      <exclusions>
+        <exclusion>
+          <groupId>commons-io</groupId>
+          <artifactId>commons-io</artifactId>
+        </exclusion>
+        </exclusions>
+    </dependency>
+
     <dependency>
       <groupId>info.cukes</groupId>
       <artifactId>cucumber-java8</artifactId>
@@ -372,7 +388,7 @@
               </systemPropertyVariables>
             </configuration>
           </plugin>
-          <plugin>
+          <!--<plugin>
             <groupId>org.asciidoctor</groupId>
             <artifactId>asciidoctor-maven-plugin</artifactId>
             <version>1.5.3</version>
@@ -381,10 +397,10 @@
               <sourceDocumentName>documentation.adoc</sourceDocumentName>
               <headerFooter>true</headerFooter>
               <doctype>book</doctype>
-              <!--<attributes>
+              &lt;!&ndash;<attributes>
                 <imagesdir>./images</imagesdir>
                 <docVersion>${project.version}</docVersion>
-              </attributes>-->
+              </attributes>&ndash;&gt;
             </configuration>
             <executions>
               <execution>
@@ -443,7 +459,7 @@
                 <version>1.7.25</version>
               </dependency>
             </dependencies>
-          </plugin>
+          </plugin>-->
         </plugins>
       </build>
       <dependencies>
